@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+
+const app = require('../app')
+const http = require('http')
+
+const port = 8000
+
+app.set('port', port)
+
+const httpServer = http.createServer(app)
+httpServer.listen(port)
+httpServer.on('listening', () => console.log('Listening on ' + port))

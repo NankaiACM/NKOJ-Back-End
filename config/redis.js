@@ -1,6 +1,5 @@
 module.exports = {
-  DB_USER_AVATAR: 0,
-  DB_USER_REGISTER: 1,
+  DB_USER: 1,
   DB_EMAIL_VERIFY: 2,
   DB_SESSION_STORE: 9
 }

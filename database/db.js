@@ -77,4 +77,12 @@ db.checkEmail = async (email) => {
   return false
 }
 
+db.joinQueryArr = (key) => {
+  'use strict'
+  const arr = []
+  arr.push(key.join(', '))
+  arr.push(arr.map(function (k, i) {return '$' + (i + 1)}).join(','))
+  return arr
+}
+
 module.exports = db

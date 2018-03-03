@@ -1,23 +1,29 @@
+
 const router = require('express').Router()
 const db = require('../database/db')
 const check = require('../lib/check')
 const redis = require('redis')
 const client = redis.createClient()
-const {DB_USER_REGISTER} = require('../config/redis')
+const {DB_USER} = require('../config/redis')
 const {sendVerificationMail, banEmail} = require('../lib/mail')
 const {promisify} = require('util')
 const setAsync = promisify(client.set).bind(client)
 const getAsync = promisify(client.get).bind(client)
+const multer = require('multer')
+const path = require('path')
 const md5 = require('../lib/md5')
-client.select(DB_USER_REGISTER)
+client.select(DB_USER)
 
-router.get('/', async (req, res) => {
+const checkLoggedIn = (req, res, next) => {
+  'use strict'
+  if (!req.session.user)
+    return res.fail(401)
+  next()
+}
+
+router.get('/', checkLoggedIn, async (req, res) => {
   'use strict'
   const user = req.session.user
-  if (user === undefined) {
-    res.fail(401)
-    return
-  }
   const result = await db.query('SELECT * FROM users WHERE user_id = $1', [user])
   delete result.rows[0].password
   res.ok(result.rows[0])
@@ -51,10 +57,43 @@ router.post('/login', async (req, res) => {
 
   // TODO: change hash store to Redis instead.
 })
+const {AVATAR_PATH} = require('../config/basic')
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, AVATAR_PATH)
+    },
+    filename: (req, file, cb) => {
+      cb(null, md5(file.fieldname + '-' + Date.now()) + path.extname(file.originalname))
+    }
+  }),
+  fileSize: '2048000',
+  files: 1
+})
 
-router.post('/update', async (req, res) => {
+router.post('/update', upload.single('avatar'), checkLoggedIn, async (req, res) => {
   'use strict'
-  const keys = ['nickname', 'email', 'gender', 'qq', 'phone', 'realname', 'school', 'password']
+
+  const keys = ['nickname', 'email', 'gender', 'qq', 'phone', 'real_name', 'school', 'password', 'words']
+  const values = [req.body.nickname, req.body.email, req.body.gender, req.body.qq, req.body.phone, req.body.real_name, req.body.school, req.body.password, req.body.words]
+  const rule = {allowEmpty: true}
+  const rules = [rule, rule, rule, rule, rule, rule, rule, rule, rule]
+  const form = {}
+
+  const result = check(keys, values, rules, form)
+
+  if (result) return res.fail(1, result)
+  // TODO: check user file and compress the pic to 512*512
+  if (req.file) client.set(`avatar:${req.session.user}`, req.file.filename)
+
+  try {
+    const result = await db.query(`UPDATE users SET nickname = $1, email = $2, gender = $3, qq = $4, phone = $5, real_name = $6, school = $7, password = $8, words = $9 WHERE user_id = ${req.session.user} RETURNING *`, values)
+    if (result.length) return res.ok()
+    res.ok('nothing changed')
+  } catch (err) {
+    res.fatal(520, err)
+    throw err
+  }
 })
 
 router.post('/register', async (req, res) => {
@@ -76,6 +115,7 @@ router.post('/register', async (req, res) => {
       return res.fail(1, result)
     if (result = await db.checkEmail(form.email))
       return res.fail(1, result)
+    console.log(values)
     const query = 'INSERT INTO users (nickname, password, email, gender, school, ipaddr) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id'
     result = await db.query(query, [...values, req.ip])
   } catch (err) {

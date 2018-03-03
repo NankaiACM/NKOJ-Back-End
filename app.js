@@ -4,7 +4,10 @@ const logger = require('morgan')
 
 const bodyParser = require('body-parser')
 const session = require('express-session')
-const sessionStore = require('./lib/session-store')
+const RedisStore = require('connect-redis')(session)
+const redis = require('redis')
+const client = redis.createClient()
+const {DB_SESSION_STORE} = require('./config/redis')
 const api = require('./api')
 const path = require('path')
 const prototype = require('./lib/prototype')
@@ -15,6 +18,9 @@ app.disable('x-powered-by')
 // DEV: request logger
 app.use(logger('dev'))
 
+// DEV: PPT JSON
+app.set('json spaces', 4)
+
 app.use(session({
   name: 'oj.sid',
   // DEV: change in production
@@ -23,7 +29,11 @@ app.use(session({
   saveUninitialized: false,
   unset: 'destroy',
   cookie: {maxAge: 36000000},
-  store: sessionStore
+  store: new RedisStore({
+    client: client,
+    db: DB_SESSION_STORE,
+    logErrors: true
+  })
 }))
 
 // DEV: Added when debugging from localhost or other server

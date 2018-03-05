@@ -10,17 +10,17 @@ const md5 = require('../lib/md5')
 
 router.post('/list', async (req, res) => {
   'use strict'
-  const values = [req.body.queryLeft, req.body.queryRight]
+  const values = [req.body.queryleft, req.body.queryright]
   if (!Number.isInteger(values[0]) || !Number.isInteger(values[1])) {
     return res.ok(1, {'error': 'Not Integer!'})
   }
-  const query = "SELECT * FROM problems WHERE id BETWEEN $1 AND $2"
+  const query = "SELECT * FROM problems WHERE problem_id BETWEEN $1 AND $2"
   let result = await db.query(query, values)
   if (result) {
-    return res.ok(0, result)
+    return res.ok(0, result.rows)
   }
   return res.fail(1, 'Unknown problems')
-})
+})  
 router.post('/update', async (req, res) => {
   'use strict'
   const values = [req.body.id.valueOf(), req.body.title]

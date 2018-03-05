@@ -1,5 +1,5 @@
 BEGIN;
 
-SELECT * FROM users;
+SELECT * FROM problems;
 
 ROLLBACK;

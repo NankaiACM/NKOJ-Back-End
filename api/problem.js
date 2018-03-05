@@ -20,18 +20,11 @@ router.get('/:problemId', (req, res) => {
     if(filename){
       const readDir = path.join(__dirname, PROBLEM_PATH )
       const readPath = path.join(readDir, filename)
-      fs.readFile(readPath, function(err, data) {
-        if(!err) {
-          res.writeHead(200, {'Content-Type':'text/html'});
-          res.end(data);
-        } else {
-          console.log(err);
-          res.writeHead(404, {'Content-Type':'text/html'});
-          res.end(1, {'error': err})
-        }
-      });
+      res.sendFile(readPath, (err) => {
+        if(err) res.fail(1, err)
+      })
     } else {
-      res.end(1, {'error': 'No problem!'})
+      res.ok(1, {'error': 'No problem!'})
     }
   })
 })
@@ -49,6 +42,7 @@ const upload = multer({
   fileSize: '2048000',
   files: 1
 })
+
 router.post('/update', upload.single('problem'), async (req, res) => {
   'use strict'
   try {

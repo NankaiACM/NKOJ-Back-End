@@ -141,7 +141,8 @@ CREATE TABLE problems (
 CREATE TABLE contests (
     contest_id      serial          PRIMARY KEY,
     title           varchar(255)    NOT NULL,
-    restriction_id  integer         REFERENCES problem_restriction(restriction_id),
+    during          tsrange         NOT NULL,
+    description     text,
     problems        integer ARRAY
 );
 

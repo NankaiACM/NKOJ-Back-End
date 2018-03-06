@@ -1,5 +1,5 @@
 BEGIN;
 
-SELECT * FROM problems;
+SELECT * FROM contests;
 
 ROLLBACK;

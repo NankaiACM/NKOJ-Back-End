@@ -1,6 +1,6 @@
 module.exports = {
-  user: 'sunrisefox',
-  password: '123465IsGoodPassword',
+  user: 'poster',
+  password: 'poster',
   host: 'localhost',
   database: 'sunrisefox'
 }

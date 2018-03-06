@@ -23,5 +23,3 @@
 + 访问http://localhost:8000/api/test/initproblems 可以加入一些用于测试的数据
 
 
-
-

@@ -10,6 +10,7 @@ const problem = require('./api/problem')
 const problems = require('./api/problems')
 const test = require('./api/test')
 const user = require('./api/user')
+const initData = require('./database/initData')
 
 router.use('/admin', admin)
 router.use('/avatar', avatar)
@@ -22,6 +23,7 @@ router.use('/p', problem) // '/api/p/1001', '/api/problem/1001'
 router.use('/problem', problem)
 router.use('/problems', problems)
 router.use('/u', user)
+router.use('/test', initData)
 
 // DEV: test
 router.use('/test', test)

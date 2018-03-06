@@ -1,13 +1,7 @@
 const router = require('express').Router()
-const db = require('../database/db')
-const fs = require('fs')
-const check = require('../lib/check')
 const redis = require('redis')
 const client = redis.createClient(6379, '127.0.0.1', {})
 const {DB_PROBLEM} = require('../config/redis')
-const {promisify} = require('util')
-const setAsync = promisify(client.set).bind(client)
-const getAsync = promisify(client.get).bind(client)
 const multer = require('multer')
 const path = require('path')
 const md5 = require('../lib/md5')
@@ -18,20 +12,13 @@ router.get('/:problemId', (req, res) => {
   const problemId = req.params.problemId
   client.get('problem:'+ problemId, (err, filename) =>{
     if(filename){
-      const readDir = path.join(__dirname, PROBLEM_PATH )
+      const readDir = path.join('./public/', PROBLEM_PATH )
       const readPath = path.join(readDir, filename)
-      fs.readFile(readPath, function(err, data) {
-        if(!err) {
-          res.writeHead(200, {'Content-Type':'text/html'});
-          res.end(data);
-        } else {
-          console.log(err);
-          res.writeHead(404, {'Content-Type':'text/html'});
-          res.end(1, {'error': err})
-        }
-      });
+      res.sendFile(path.resolve(readPath), (err) => {
+        if(err) res.ok(1, err)
+      })
     } else {
-      res.end(1, {'error': 'No problem!'})
+      res.ok(1, {'error': 'No problem!'})
     }
   })
 })
@@ -49,6 +36,7 @@ const upload = multer({
   fileSize: '2048000',
   files: 1
 })
+
 router.post('/update', upload.single('problem'), async (req, res) => {
   'use strict'
   try {

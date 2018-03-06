@@ -92,7 +92,7 @@ DECLARE
  ret bit(25) ;
  r RECORD;
 BEGIN
- SELECT user_role INTO "role" FROM user_info WHERE user_id = who;
+ SELECT user_role INTO "role" FROM user_info WHERE user_id = who AND is_removed = 'f'::boolean;
  ret := '0000000000000000000000000';
  FOR r IN SELECT perm, negative FROM user_role WHERE role_id = ANY("role") ORDER BY negative LOOP
     IF(r.negative = 'f') THEN ret := ret | r.perm;

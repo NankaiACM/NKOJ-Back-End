@@ -7,7 +7,8 @@ CREATE UNIQUE INDEX ON email_suffix(email_suffix);
 
 CREATE TABLE ipaddr (
     ipaddr_id       serial          PRIMARY KEY,    -- ip address will be handled by a middleware
-    ipaddr          inet            UNIQUE NOT NULL
+    ipaddr          inet            UNIQUE NOT NULL,
+    banned          boolean         NOT NULL DEFAULT 'f'::boolean
 );
 
 CREATE UNIQUE INDEX ON ipaddr(ipaddr);
@@ -15,7 +16,8 @@ CREATE UNIQUE INDEX ON ipaddr(ipaddr);
 CREATE TABLE user_nick (
     nick_id         serial          PRIMARY KEY,
     nickname        varchar(20)     UNIQUE NOT NULL, -- case insensitive
-    user_id         integer         -- create constraint after user table created !!NOTE: recursive reference
+    user_id         integer,        -- create constraint after user table created !!NOTE: recursive reference
+    since           timestamp       DEFAULT current_timestamp
 );
 
 CREATE UNIQUE INDEX lower_nickname_idx ON user_nick ((lower(nickname)));
@@ -24,17 +26,35 @@ CREATE TABLE user_role (
     role_id         serial          PRIMARY KEY,
     title           varchar(16)     UNIQUE NOT NULL,
     description     text,
-    permission      bit(20)         NOT NULL
-    -- can_login, can_change_profile, can_submit, can_view_self_code, can_view_self_output, can_view_others_code
-    -- , can_view_other_output, can_view_test_input, can_view_test_output, can_bypass_contest_limit, can_bypass_all_limit
-    -- , can_add_problem, can_add_contest, can_edit_problem, can_edit_contest, can_rejudge_problem
-    -- , can_rejudge_contest, can_change_permission, can_do_anything
+    perm      bit(25)         NOT NULL,
+    negative        boolean         NOT NULL
+    -- basic:
+    -- can_LOGIN(0), can_CHANGE_PROFILE(1), can_CHANGE_AVATAR(2)
+    -- code:
+    -- can_SUBMIT_CODE(3), can_GET_CODE_SELF(4), can_VIEW_OUTPUT_SELF(5)
+    -- discuss:
+    -- can_COMMENT(6), can_POST_NEW_POST(7), can_REPLY_POST(8), can_PUBLIC_EDIT(9)
+    -- problem:
+    -- can_ADD_PROBLEM & can_EDIT_PROBLEM_SELF & can_GET_CODE_OWNED & BYPASS_STATISTIC_OWNED(10), can_EDIT_PROBLEM_ALL(11)
+    -- contest:
+    -- can_ADD_CONTEST & can_EDIT_CONTEST_SELF(12), can_EDIT_CONTEST_ALL(13)
+    -- judge:
+    -- can_REJUDGE_CONTEST_SELF(14), can_REJUDGE_CONTEST_ALL(15), can_REJUDGE_ALL(16)
+    -- admin:
+    -- BYPASS_STATISTIC_ALL(17), can_GET_CODE_ALL(18), can_VIEW_OUTPUT_ALL(19), can_MANAGE_ROLE(20), can_SUPER_ADMIN(21)
 );
 
-ALTER SEQUENCE user_role_role_id_seq RESTART WITH 100;
+ALTER SEQUENCE user_role_role_id_seq RESTART WITH 10;
 
-INSERT INTO user_role (role_id, title, description, permission) VALUES (1, 'Default Group', 'This is a default user group.', '11110000000000000000');
-INSERT INTO user_role (role_id, title, description, permission) VALUES (9, 'Super Admin', 'Super Admin', '11111111111111111111');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (1, 'Default Group', 'This is a default user group.', '1001100000000000000000000', 'f');
+
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (2, 'Muted', 'Muted from sociaty', '0110001111101000000000011', 't');
+
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (3, 'Banned', 'Read Only','0111111111111111111111111', 't');
+
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (4, 'Verified Users', 'Real-name Authentication Passed', '1111101111000000000000000', 'f');
+
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (9, 'Super Admin', 'Super Admin', '1111111111111111111111111', 'f');
 
 CREATE TABLE user_info (
     user_id         serial          PRIMARY KEY,
@@ -50,9 +70,10 @@ CREATE TABLE user_info (
     real_name       varchar(20),
     school          varchar(80),
     words           varchar(100),
+    credits         integer         DEFAULT 0,
     submit_ac       integer         DEFAULT 0,
     submit_all      integer         DEFAULT 0,
-    role_id         integer         DEFAULT 1 NOT NULL REFERENCES user_role(role_id) ,
+    user_role       integer ARRAY   DEFAULT '{1}'::integer ARRAY NOT NULL,
     current_badge   integer         DEFAULT 0,
     achievement     integer ARRAY,
     join_time       timestamp       DEFAULT current_timestamp,
@@ -64,6 +85,25 @@ CREATE UNIQUE INDEX ON user_info(nick_id, "password");
 CREATE UNIQUE INDEX ON user_info(email, email_suffix_id, "password");
 
 ALTER TABLE user_nick ADD FOREIGN KEY (user_id) REFERENCES user_info(user_id) DEFERRABLE INITIALLY DEFERRED;
+
+CREATE OR REPLACE FUNCTION cal_perm (who integer) RETURNS bit(25) AS $$
+DECLARE
+ "role" integer ARRAY;
+ ret bit(25) ;
+ r RECORD;
+BEGIN
+ SELECT user_role INTO "role" FROM user_info WHERE user_id = who AND is_removed = 'f'::boolean;
+ ret := '0000000000000000000000000';
+ FOR r IN SELECT perm, negative FROM user_role WHERE role_id = ANY("role") ORDER BY negative LOOP
+    IF(r.negative = 'f') THEN ret := ret | r.perm;
+    ELSE ret := ret & ~r.perm;
+    END IF;
+ END LOOP;
+ RETURN ret;
+END;
+$$ LANGUAGE plpgsql STABLE RETURNS NULL ON NULL INPUT PARALLEL SAFE;
+
+CREATE VIEW user_perm AS SELECT user_id, cal_perm(user_id) as perm FROM user_info;
 
 CREATE TABLE user_apikey (
     user_id         integer         NOT NULL REFERENCES user_info(user_id),
@@ -80,10 +120,14 @@ CREATE TABLE problem_restriction (
     description     text,
     enabled         boolean         NOT NULL DEFAULT 'f'::boolean,
     during          tsrange,
-    perm            BIT(6)          NOT NULL DEFAULT '10000',        -- no_view_before_start, no_all_result_before_end, no_other_result_before_end, no_view_before_end, no_all_result_before_end
-    insiders        integer ARRAY                                    -- array
+    perm            BIT(6)          NOT NULL DEFAULT '10000',
+    -- all_NO_VIEW_BEFORE_START(0)
+    -- insider_NO_RESULT_BEFORE_END_SELF(1)
+    -- insider_NO_RESULT_BEFORE_END_OTHERS(2)
+    -- outsider_NO_VIEW_BEFORE_END(3)
+    -- outsider_NO_RESULT_BEFORE_END_ALL(4)
+    insiders        integer ARRAY
 );
-
 
 CREATE TABLE problems (
     problem_id      serial          PRIMARY KEY,
@@ -97,7 +141,8 @@ CREATE TABLE problems (
 CREATE TABLE contests (
     contest_id      serial          PRIMARY KEY,
     title           varchar(255)    NOT NULL,
-    restriction_id  integer         REFERENCES problem_restriction(restriction_id),
+    during          tsrange         NOT NULL,
+    description     text,
     problems        integer ARRAY
 );
 
@@ -126,7 +171,7 @@ CREATE TABLE messages (
 
 CREATE UNIQUE INDEX ON messages(a, b);
 
-CREATE TABLE status_code (
+CREATE TABLE solution_status (
     status_id       serial          PRIMARY KEY,
     msg_short       varchar(10)     NOT NULL,
     msg_cn          varchar(25)     NOT NULL,
@@ -137,7 +182,7 @@ CREATE TABLE solutions (
     solution_id     serial          PRIMARY KEY,
     user_id         integer         NOT NULL REFERENCES user_info(user_id),
     problem_id      integer         NOT NULL REFERENCES problems(problem_id),
-    status_id       integer         REFERENCES status_code,
+    status_id       integer         REFERENCES solution_status,
     language        integer,
     code_size       integer,
     "time"          integer,
@@ -181,18 +226,18 @@ INSERT INTO email_suffix(email_suffix) VALUES ('qq.com');
 
 ALTER SEQUENCE user_info_user_id_seq RESTART WITH 1;
 
-INSERT INTO user_info(nick_id, user_ip, password, email, email_suffix_id, role_id) VALUES (1, 1, hash_password('123465'), 'sunrisefox', 1, 9);
+INSERT INTO user_info(nick_id, user_ip, password, email, email_suffix_id, user_role) VALUES (1, 1, hash_password('123465'), 'sunrisefox', 1, '{1,9}'::integer ARRAY);
 
 COMMIT;
 
 BEGIN;
 
 CREATE OR REPLACE VIEW users AS
-    SELECT user_info.user_id, nickname, gender, concat(email, '@', email_suffix.email_suffix) as email, last_login, submit_ac, submit_all, ipaddr, user_info.role_id, title as role_type, description, words, "permission", qq, phone, real_name, school, current_badge, is_removed, user_info."password" as "password", null as old_password FROM user_info
+    SELECT user_info.user_id, nickname, gender, concat(email, '@', email_suffix.email_suffix) as email, last_login, submit_ac, submit_all, ipaddr, user_info.user_role, words, qq, phone, real_name, school, current_badge, is_removed, user_info."password" as "password", credits, cal_perm(user_info.user_id) as perm, null as old_password FROM user_info
     INNER JOIN email_suffix ON email_suffix.suffix_id = user_info.email_suffix_id
     INNER JOIN ipaddr ON ipaddr.ipaddr_id = user_info.user_ip
-    INNER JOIN user_nick ON user_nick.nick_id = user_info.nick_id
-    INNER JOIN user_role ON user_role.role_id = user_info.role_id;
+    INNER JOIN user_nick ON user_nick.nick_id = user_info.nick_id;
+--    INNER JOIN user_role ON user_role.role_id = user_info.role_id;
 
 CREATE OR REPLACE FUNCTION insert_new_user()
   RETURNS trigger AS
@@ -255,7 +300,7 @@ BEGIN
         ) UPDATE user_info SET email = v_email_prefix, email_suffix_id = t.suffix_id FROM t WHERE user_id = OLD.user_id;
     END IF;
 
-    UPDATE user_info SET gender = COALESCE(NEW.gender, gender), qq = NEW.qq, phone = NEW.phone, real_name = NEW.real_name, school = NEW.school, role_id = COALESCE(NEW.role_id, role_id), current_badge = COALESCE(NEW.current_badge, current_badge), "password" = COALESCE(hash_password(NEW.password), password), words = NEW.words WHERE user_id = OLD.user_id;
+    UPDATE user_info SET gender = COALESCE(NEW.gender, gender), qq = NEW.qq, phone = NEW.phone, real_name = NEW.real_name, school = NEW.school, user_role = COALESCE(NEW.user_role, user_role), current_badge = COALESCE(NEW.current_badge, current_badge), "password" = COALESCE(hash_password(NEW.password), password), words = NEW.words WHERE user_id = OLD.user_id;
     RETURN NEW;
 END;
 $BODY$

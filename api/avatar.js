@@ -13,7 +13,6 @@ const avatar = async (key) => {
   if (Number.isInteger(Number(key)))
     return await getAsync(`avatar:${key}`)
   else {
-    console.log('123')
     key = await db.query('SELECT user_id FROM users WHERE nickname = $1', [key])
     if (key.rows.length) return await getAsync(`avatar:${key.rows[0].user_id}`)
   }

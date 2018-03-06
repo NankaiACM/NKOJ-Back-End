@@ -1,7 +1,7 @@
 
 const router = require('express').Router()
 const db = require('../database/db')
-const check = require('../lib/check')
+const check = require('../lib/form-check')
 const redis = require('redis')
 const client = redis.createClient()
 const {DB_USER} = require('../config/redis')
@@ -12,16 +12,10 @@ const getAsync = promisify(client.get).bind(client)
 const multer = require('multer')
 const path = require('path')
 const md5 = require('../lib/md5')
+const {check_perm} = require('../lib/perm-check')
 client.select(DB_USER)
 
-const checkLoggedIn = (req, res, next) => {
-  'use strict'
-  if (!req.session.user)
-    return res.fail(401)
-  next()
-}
-
-router.get('/', checkLoggedIn, async (req, res) => {
+router.get('/', check_perm(), async (req, res) => {
   'use strict'
   const user = req.session.user
   const result = await db.query('SELECT * FROM users WHERE user_id = $1', [user])
@@ -71,7 +65,7 @@ const upload = multer({
   files: 1
 })
 
-router.post('/update', upload.single('avatar'), checkLoggedIn, async (req, res) => {
+router.post('/update', upload.single('avatar'), check_perm(), async (req, res) => {
   'use strict'
 
   const keys = ['nickname', 'email', 'gender', 'qq', 'phone', 'real_name', 'school', 'password', 'words']

@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const db = require('../database/db')
 const fs = require('fs')
-const check = require('../lib/check')
+const check = require('../lib/form-check')
 const redis = require('redis')
 const client = redis.createClient(6379, '127.0.0.1', {})
 const {DB_PROBLEM} = require('../config/redis')

@@ -1,14 +1,13 @@
 const express = require('express')
 const app = express()
-const logger = require('morgan')
 
+const api = require('./api')
 const bodyParser = require('body-parser')
+const client = require('redis').createClient()
+const {DB_SESSION_STORE} = require('./config/redis')
+const logger = require('morgan')
 const session = require('express-session')
 const RedisStore = require('connect-redis')(session)
-const redis = require('redis')
-const client = redis.createClient()
-const {DB_SESSION_STORE} = require('./config/redis')
-const api = require('./api')
 const path = require('path')
 const prototype = require('./lib/prototype')
 
@@ -76,7 +75,7 @@ app.use('/api', api)
 
 // Catch all other request
 app.all(/^.+$/, (req, res) => {
-  res.fail(501)
+  res.fatal(501)
 })
 
 module.exports = app

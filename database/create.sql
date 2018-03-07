@@ -77,7 +77,7 @@ CREATE TABLE user_info (
     current_badge   integer         DEFAULT 0,
     achievement     integer ARRAY,
     join_time       timestamp       DEFAULT current_timestamp,
-    is_removed      boolean         DEFAULT 'f'::boolean,
+    removed         boolean         DEFAULT 'f'::boolean,
     UNIQUE (email, email_suffix_id)
 );
 CREATE UNIQUE INDEX ON user_info(nick_id, "password");
@@ -92,7 +92,7 @@ DECLARE
  ret bit(25) ;
  r RECORD;
 BEGIN
- SELECT user_role INTO "role" FROM user_info WHERE user_id = who AND is_removed = 'f'::boolean;
+ SELECT user_role INTO "role" FROM user_info WHERE user_id = who AND removed = 'f'::boolean;
  ret := '0000000000000000000000000';
  FOR r IN SELECT perm, negative FROM user_role WHERE role_id = ANY("role") ORDER BY negative LOOP
     IF(r.negative = 'f') THEN ret := ret | r.perm;
@@ -208,9 +208,9 @@ SELECT pg_reload_conf();
 BEGIN;
 
 CREATE OR REPLACE FUNCTION hash_password(pwd text)
-RETURNS text LANGUAGE SQL AS $$
+RETURNS text AS $$
     SELECT md5(current_setting('custom_settings.hash_prefix') || pwd)::text;
-$$;
+$$ LANGUAGE SQL STABLE RETURNS NULL ON NULL INPUT PARALLEL SAFE;
 
 ALTER SEQUENCE user_nick_nick_id_seq RESTART WITH 1;
 
@@ -233,7 +233,7 @@ COMMIT;
 BEGIN;
 
 CREATE OR REPLACE VIEW users AS
-    SELECT user_info.user_id, nickname, gender, concat(email, '@', email_suffix.email_suffix) as email, last_login, submit_ac, submit_all, ipaddr, user_info.user_role, words, qq, phone, real_name, school, current_badge, is_removed, user_info."password" as "password", credits, cal_perm(user_info.user_id) as perm, null as old_password FROM user_info
+    SELECT user_info.user_id, nickname, gender, concat(email, '@', email_suffix.email_suffix) as email, last_login, submit_ac, submit_all, ipaddr, user_info.user_role, words, qq, phone, real_name, school, current_badge, removed, user_info."password" as "password", credits, cal_perm(user_info.user_id) as perm, null as old_password FROM user_info
     INNER JOIN email_suffix ON email_suffix.suffix_id = user_info.email_suffix_id
     INNER JOIN ipaddr ON ipaddr.ipaddr_id = user_info.user_ip
     INNER JOIN user_nick ON user_nick.nick_id = user_info.nick_id;
@@ -286,6 +286,8 @@ BEGIN
         ELSE
             UPDATE user_info SET nick_id = v_record.nick_id WHERE user_info.user_id = v_record.user_id;
         END IF;
+    ELSE
+        NEW.nickname := null;
     END IF;
 
     IF NEW.email IS NOT NULL AND NEW.email IS DISTINCT FROM OLD.email THEN
@@ -298,9 +300,11 @@ BEGIN
         WITH t AS (
             SELECT suffix_id FROM email_suffix WHERE email_suffix = v_email_suffix
         ) UPDATE user_info SET email = v_email_prefix, email_suffix_id = t.suffix_id FROM t WHERE user_id = OLD.user_id;
+    ELSE
+        NEW.email := null;
     END IF;
 
-    UPDATE user_info SET gender = COALESCE(NEW.gender, gender), qq = NEW.qq, phone = NEW.phone, real_name = NEW.real_name, school = NEW.school, user_role = COALESCE(NEW.user_role, user_role), current_badge = COALESCE(NEW.current_badge, current_badge), "password" = COALESCE(hash_password(NEW.password), password), words = NEW.words WHERE user_id = OLD.user_id;
+    UPDATE user_info SET gender = COALESCE(NEW.gender, gender), qq = COALESCE(NEW.qq, qq), phone = COALESCE(NEW.phone, phone), real_name = COALESCE(NEW.real_name, real_name), school = COALESCE(NEW.school, school), user_role = COALESCE(NEW.user_role, user_role), current_badge = COALESCE(NEW.current_badge, current_badge), "password" = COALESCE(hash_password(NEW.password), password), words = COALESCE(NEW.words, words) WHERE user_id = OLD.user_id;
     RETURN NEW;
 END;
 $BODY$

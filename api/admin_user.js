@@ -4,7 +4,6 @@ const {check_perm,MANAGE_ROLE}=require('../lib/perm-check')
 const db = require(path.join(__dirname, '../database', 'db'))
 const check=require('../lib/form-check')
 const group={
-
 }
 router.post('/', (req, res) => {
   'use strict'

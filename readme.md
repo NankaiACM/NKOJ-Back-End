@@ -23,5 +23,13 @@
 + 访问http://localhost:8000/api/test/initproblems 可以加入一些用于测试的数据
 
 
-
+### 比赛和题目的接口
++ get /api/test/initproblems   初始化题目数据，提供一些用于测试的题目
++ get /api/test/initcontests   初始化比赛数据，提供一些用于测试的比赛
++ post /api/problems/list      post的body中指定queryleft和queryright，返回这个id在这个区间的题目信息
++ get /api/p/id                获取这个id的题目信息（md格式）
++ post /api/contests/list      post的body中指定queryleft和queryright，返回这个id在这个区间的比赛信息
++ get /api/contest/id          获取这个id的比赛信息
++ get /api/contest/id/rule     获取这个id的比赛中的rule(md格式）
++ get /api/contest/id/about    获取这个id的比赛中的about(md格式）
 

@@ -23,6 +23,7 @@ router.use('/p', problem) // '/api/p/1001', '/api/problem/1001'
 router.use('/problem', problem)
 router.use('/problems', problems)
 router.use('/u', user)
+router.use('/user', user)
 router.use('/test', initData)
 
 // DEV: test

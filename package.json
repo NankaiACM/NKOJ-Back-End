@@ -18,7 +18,8 @@
     "nodemailer": "^4.4.2",
     "pg": "^7.4.1",
     "redis": "^2.8.0",
-    "sprintf-js": "^1.1.1"
+    "sprintf-js": "^1.1.1",
+    "sharp": "^0.20.0"
   },
   "devDependencies": {
     "debug": "^3.1.0",

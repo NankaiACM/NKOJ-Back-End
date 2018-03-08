@@ -14,6 +14,7 @@ db.query = (text, params) => {
       const end = Date.now() - start
       if (err) {
         console.log(`Database query ${format(text, params)} failed in ${end} ms`)
+        console.log(err)
         reject(err)
       } else {
         console.log(`Database query ${format(text, params)} finished in ${end} ms`)
@@ -61,8 +62,8 @@ db.checkName = async (name) => {
   let result = await db.query('SELECT nick_id FROM user_nick WHERE lower(nickname) = lower($1) LIMIT 1', [name])
   if (result.rows.length > 0) {
     result = await db.query('SELECT user_id FROM user_info WHERE nick_id = $1 LIMIT 1', [result.rows[0].nick_id])
-    if (result.rows.length > 0) return {nickname: 'is being used.'}
-    return {nickname: 'has been used.'}
+    if (result.rows.length > 0) return {nickname: 'is being used'}
+    return {nickname: 'has been used'}
   }
   return false
 }

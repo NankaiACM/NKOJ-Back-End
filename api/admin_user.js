@@ -14,9 +14,6 @@ router.get('/list',async (req, res) => {
   const result=await db.query(`select * from user_role`);
   res.ok(result.rows)
 })
-router.get('/create_role',(req,res)=>{
-  res.render('./shs_test/shs_test');
-})
 router.post('/create_role',check_perm(MANAGE_ROLE), async (req, res) => {
   const keys = ['role_title', 'role_description', 'perm', 'negative']
   const values = [req.body.title, req.body.description,  req.body.perm,req.body.negative]

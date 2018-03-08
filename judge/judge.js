@@ -1,5 +1,5 @@
 const gcc = '/opt/rh/devtoolset-7/root/usr/bin/gcc'
-const Sandbox='../judge/Sandbox'
+const Sandbox='./judge/Sandbox'
 const router = require('express').Router()
 const fs = require('fs')
 const solution_path=''

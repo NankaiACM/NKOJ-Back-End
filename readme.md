@@ -32,5 +32,3 @@
 + get /api/contest/id          获取这个id的比赛信息
 + get /api/contest/id/rule     获取这个id的比赛中的rule(md格式）
 + get /api/contest/id/about    获取这个id的比赛中的about(md格式）
-
-new line

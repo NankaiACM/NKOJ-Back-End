@@ -17,7 +17,7 @@
 
 ### 在windows上的部署细节
 
-+ 执行完install的命令后，还需要安装postgresql和redis，可以去官网查看安装配置方法 
++ 执行完install的命令后，还需要安装postgresql和redis，可以去官网查看安装配置方法
 + config中主要需要对postgresql进行配置，填写设置好的密码，其他都是默认设置，可以不用更改
 + 使用webstorm可以下载sql插件，执行create.sql文件建立数据库
 + 访问http://localhost:8000/api/test/initproblems 可以加入一些用于测试的数据
@@ -32,4 +32,3 @@
 + get /api/contest/id          获取这个id的比赛信息
 + get /api/contest/id/rule     获取这个id的比赛中的rule(md格式）
 + get /api/contest/id/about    获取这个id的比赛中的about(md格式）
-

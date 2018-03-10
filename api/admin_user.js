@@ -11,7 +11,6 @@ router.post('/', (req, res) => {
 })
 
 router.get('/list',async (req, res) => {
-
   const result=await db.query(`select * from user_role`);
   res.ok(result.rows)
 })
@@ -39,7 +38,6 @@ router.get('/list_role',async(req,res)=>
     res.fail('1',err)
     throw (err)
   }
-
 })
 
 router.post('/create_role',check_perm(MANAGE_ROLE), async (req, res) => {

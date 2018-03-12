@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
     res.fail(...errArr)
 })
 
-router.post('/list/login', async (req, res) => {
+router.get('/list/login', async (req, res) => {
   'use strict'
   session_client.hgetall(`session:${req.session.user}`, function (err, ret) {
     res.ok(ret)

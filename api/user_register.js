@@ -62,7 +62,6 @@ router.post('/register', async (req, res) => {
   try {
     if (result = await db.checkEmail(form.email))
       return res.fail(1, result)
-    console.log(values)
     const query = 'INSERT INTO users (nickname, password, email, gender, school, ipaddr) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id'
     result = await db.query(query, [...values, req.ip])
   } catch (err) {

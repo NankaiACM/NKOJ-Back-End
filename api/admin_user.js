@@ -13,7 +13,7 @@ router.get('/role', async (req, res) => {
 router.get('/role/:rid', async (req, res) => {
   const role_id = req.params.rid
   try {
-    const ret = await db.query('SELECT * FROM user_info WHERE user_role @> { $1 }', [role_id])
+    const ret = await db.query('SELECT * FROM user_info WHERE user_role @> $1', [`{${role_id}}`])
     if (ret.rows.length) res.ok(ret.rows)
     else res.fail(1, {rid: 'no such role'})
   }
@@ -23,8 +23,8 @@ router.get('/role/:rid', async (req, res) => {
 })
 
 router.get('/role/:uid/:type/:rid', check_perm(MANAGE_ROLE), async (req, res) => {
-  const user_id = req.params.uid
-  const role_id = req.params.rid
+  const user_id = Number(req.params.uid)
+  const role_id = Number(req.params.rid)
   const type = req.params.type
 
   let ret = await db.query(`SELECT user_role FROM user_info WHERE user_id = $1 LIMIT 1`, [user_id])
@@ -36,7 +36,7 @@ router.get('/role/:uid/:type/:rid', check_perm(MANAGE_ROLE), async (req, res) =>
   if (type === 'add') roles.push(role_id)
 
   try {
-    ret = await db.query(`UPDATE user_info SET user_role = { $1 } WHERE user_id = $2 RETURNING *`, [roles.join(', '), user_id])
+    ret = await db.query(`UPDATE user_info SET user_role = $1 WHERE user_id = $2 RETURNING *`, [`{${roles.join(', ')}}`, user_id])
   } catch (err) {
     return res.fail(520, err)
   }
@@ -78,6 +78,8 @@ router.get('/logout/:who', check_perm(SUPER_ADMIN), async (req, res) => {
   } else {
     sessionStore.logout(who)
   }
+
+  res.ok()
 })
 
 module.exports = router

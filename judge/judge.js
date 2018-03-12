@@ -37,7 +37,6 @@ router.post('/', (req, res) => {
   const problem = req.body.p
   const lang = req.body.lang
   const code = req.body.code
-  console.log(req.query)
 
   fs.writeFile(`${solution_path}/${problem}.${lang_tpye[lang]}`, code, (err) => {
       console.log(err)

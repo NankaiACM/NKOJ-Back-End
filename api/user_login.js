@@ -47,7 +47,9 @@ router.post('/login', async (req, res) => {
 
 router.post('/list/login', async (req, res) => {
   'use strict'
-  res.ok(session_client.hgetall(`session:${req.session.user}`))
+  session_client.hgetall(`session:${req.session.user}`, function (err, ret) {
+    res.ok(ret)
+  })
 })
 
 module.exports = router

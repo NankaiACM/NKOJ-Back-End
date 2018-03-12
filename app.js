@@ -5,7 +5,6 @@ const api = require('./api')
 const bodyParser = require('body-parser')
 const logger = require('morgan')
 const session = require('express-session')
-const RedisStore = require('connect-redis')(session)
 const path = require('path')
 const prototype = require('./lib/prototype')
 

@@ -14,7 +14,7 @@ router.post('/', (req, res) => {
 function contains(a, obj) {
   for (let i = 0; i < a.length; i++) {
     if (a[i] === obj) {
-      return true;
+      return i;
     }
   }
   return false;
@@ -29,6 +29,27 @@ router.get('/exchange_user_role/add/:i/:j',check_perm(MANAGE_ROLE),async(req,res
     const qq=[...results.rows[0].user_role]
     if(contains(qq,r_id)===false)
       qq.push(r_id)
+    qq.sort()
+    console.log(qq.toString())
+    const results1=await db.query(`update user_info set user_role = $1 `,[ '{'+qq.toString()+'}'])
+    res.ok(results1)
+  }
+  catch (err)
+  {
+    res.fail(1,'err')
+  }
+})
+
+router.get('/exchange_user_role/delete/:i/:j',check_perm(MANAGE_ROLE),async(req,res)=>{
+  //i user_id
+  //j role_id
+  const r_id=Number(req.params.j)
+  try {
+    const results=await db.query(`select user_role from user_info where user_id = $1`,[req.params.i])
+    const qq=[...results.rows[0].user_role]
+    let tmp=contains(qq,r_id)
+    if(tmp!==false)
+      qq.splice(tmp,1)
     qq.sort()
     console.log(qq.toString())
     const results1=await db.query(`update user_info set user_role = $1 `,[ '{'+qq.toString()+'}'])

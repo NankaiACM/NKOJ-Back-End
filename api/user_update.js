@@ -29,7 +29,10 @@ const upload = multer({
   files: 1,
   fileFilter: (req, file, cb) => {
     const mimetype = file.mimetype
-    if (!mimetype.startsWith('image/')) cb(null, false)
+    if (!mimetype.startsWith('image/')) {
+      req.fileErr = mimetype
+      cb(null, false)
+    }
     else cb(null, true)
   }
 })
@@ -49,9 +52,8 @@ router.post('/update', upload.single('avatar'), check_perm(), async (req, res) =
   if (result) return res.fail(1, result)
 
   const ret = {}
-  
+
   // TODO: permission check
-  console.log(req.file)
   if (req.file) {
     try {
       await sharp(req.file.path).resize(512, 512).max().jpeg({quality: 60}).toFile(`${req.file.path}.sharped.jpg`)
@@ -62,6 +64,8 @@ router.post('/update', upload.single('avatar'), check_perm(), async (req, res) =
     fs.unlinkSync(req.file.path)
     redis.setAsync(`avatar:${req.session.user}`, `${req.file.filename}.sharped.jpg`)
     ret.avatar = 'changed'
+  } else if (req.fileErr) {
+    return res.fail(400, `file rejected as it is ${req.fileErr}`)
   }
 
   try {

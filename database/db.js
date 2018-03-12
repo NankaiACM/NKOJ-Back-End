@@ -38,6 +38,7 @@ db.postLogin = (info, req, res) => {
   req.session.permission = info.permission
   req.session.save()
   delete info.password
+  sessionStore.login(info.user_id, req.session.id)
   res.ok(info)
   // hash[new Date] = req.sessionID
   // if(Object.keys(hash).length > 5) delete hash[Object.keys(hash).sort()[0]]

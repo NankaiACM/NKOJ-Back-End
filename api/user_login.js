@@ -5,6 +5,11 @@ const check = require('../lib/form-check')
 
 const {check_perm} = require('../lib/perm-check')
 
+const redis = require('redis')
+const session_client = redis.createClient()
+const {DB_SESSION_STORE} = require('../config/redis')
+session_client.select(DB_SESSION_STORE)
+
 router.get('/', check_perm(), async (req, res) => {
   'use strict'
   const user = req.session.user
@@ -38,8 +43,11 @@ router.post('/login', async (req, res) => {
     db.postLogin(result.rows[0], req, res)
   else
     res.fail(...errArr)
+})
 
-  // TODO: change hash store to Redis instead.
+router.post('/list/login', async (req, res) => {
+  'use strict'
+  res.ok(session_client.hgetall(`session:${req.session.user}`))
 })
 
 module.exports = router

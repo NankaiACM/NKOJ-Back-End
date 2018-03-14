@@ -22,39 +22,50 @@ CREATE TABLE user_nick (
 
 CREATE UNIQUE INDEX lower_nickname_idx ON user_nick ((lower(nickname)));
 
+CREATE TYPE type_perm AS (
+    "LOGIN"                 bit,
+    "CHANGE_PROFILE"        bit,
+    "CHANGE_AVATAR"         bit,
+    "SUBMIT_CODE"           bit,
+    "GET_CODE_SELF"         bit,
+    "VIEW_OUTPUT_SELF"      bit,
+    "COMMENT"               bit,
+    "POST_NEW_POST"         bit,
+    "REPLY_POST"            bit,
+    "PUBLIC_EDIT"           bit,
+    "ADD_PROBLEM"           bit,
+    "EDIT_PROBLEM_ALL"      bit,
+    "ADD_CONTEST"           bit,
+    "EDIT_CONTEST_ALL"      bit,
+    "REJUDGE_CONTEST_SELF"  bit,
+    "REJUDGE_CONTEST_ALL"   bit,
+    "REJUDGE_ALL"           bit,
+    "BYPASS_STATISTIC_ALL"  bit,
+    "GET_CODE_ALL"          bit,
+    "VIEW_OUTPUT_ALL"       bit,
+    "MANAGE_ROLE"           bit,
+    "SUPER_ADMIN"           bit
+);
+
 CREATE TABLE user_role (
-    role_id         serial          PRIMARY KEY,
-    title           varchar(16)     UNIQUE NOT NULL,
-    description     text,
-    perm      bit(25)         NOT NULL,
-    negative        boolean         NOT NULL
-    -- basic:
-    -- can_LOGIN(0), can_CHANGE_PROFILE(1), can_CHANGE_AVATAR(2)
-    -- code:
-    -- can_SUBMIT_CODE(3), can_GET_CODE_SELF(4), can_VIEW_OUTPUT_SELF(5)
-    -- discuss:
-    -- can_COMMENT(6), can_POST_NEW_POST(7), can_REPLY_POST(8), can_PUBLIC_EDIT(9)
-    -- problem:
-    -- can_ADD_PROBLEM & can_EDIT_PROBLEM_SELF & can_GET_CODE_OWNED & BYPASS_STATISTIC_OWNED(10), can_EDIT_PROBLEM_ALL(11)
-    -- contest:
-    -- can_ADD_CONTEST & can_EDIT_CONTEST_SELF(12), can_EDIT_CONTEST_ALL(13)
-    -- judge:
-    -- can_REJUDGE_CONTEST_SELF(14), can_REJUDGE_CONTEST_ALL(15), can_REJUDGE_ALL(16)
-    -- admin:
-    -- BYPASS_STATISTIC_ALL(17), can_GET_CODE_ALL(18), can_VIEW_OUTPUT_ALL(19), can_MANAGE_ROLE(20), can_SUPER_ADMIN(21)
+    role_id                 serial          PRIMARY KEY,
+    title                   varchar(16)     UNIQUE NOT NULL,
+    description             text,
+    perm                    type_perm       NOT NULL,
+    negative                boolean         NOT NULL
 );
 
 ALTER SEQUENCE user_role_role_id_seq RESTART WITH 10;
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (1, 'Default Group', 'This is a default user group.', '1001100000000000000000000', 'f');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (1, 'Default Group', 'This is a default user group.', ('1','0','0','1','1','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (2, 'Muted', 'Muted from sociaty', '0110001111101000000000011', 't');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (2, 'Muted', 'Muted from sociaty', ('0','1','1','0','0','0','1','1','1','1','1','0','1','0','0','0','0','0','0','0','0','0'), 't');
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (3, 'Banned', 'Read Only','0111111111111111111111111', 't');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (3, 'Banned', 'Read Only',('0','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'), 't');
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (4, 'Verified Users', 'Real-name Authentication Passed', '1111101111000000000000000', 'f');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (4, 'Verified Users', 'Real-name Authentication Passed', ('1','1','1','1','1','0','1','1','1','1','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (9, 'Super Admin', 'Super Admin', '1111111111111111111111111', 'f');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (9, 'Super Admin', 'Super Admin', ('1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'), 'f');
 
 CREATE TABLE user_info (
     user_id         serial          PRIMARY KEY,
@@ -86,20 +97,29 @@ CREATE UNIQUE INDEX ON user_info(email, email_suffix_id, "password");
 
 ALTER TABLE user_nick ADD FOREIGN KEY (user_id) REFERENCES user_info(user_id) DEFERRABLE INITIALLY DEFERRED;
 
-CREATE OR REPLACE FUNCTION cal_perm (who integer) RETURNS bit(25) AS $$
+CREATE OR REPLACE FUNCTION cal_perm (who integer) RETURNS jsonb AS $$
 DECLARE
- "role" integer ARRAY;
- ret bit(25) ;
- r RECORD;
+    v_return jsonb;
+    v_user RECORD;
+    v_groups RECORD;
+    v_perms RECORD;
 BEGIN
- SELECT user_role INTO "role" FROM user_info WHERE user_id = who AND removed = 'f'::boolean;
- ret := '0000000000000000000000000';
- FOR r IN SELECT perm, negative FROM user_role WHERE role_id = ANY("role") ORDER BY negative LOOP
-    IF(r.negative = 'f') THEN ret := ret | r.perm;
-    ELSE ret := ret & ~r.perm;
-    END IF;
- END LOOP;
- RETURN ret;
+    v_return := '{}'::jsonb;
+    SELECT user_role INTO v_user FROM user_info WHERE user_id = who;
+    FOR v_groups IN (SELECT row_to_json(perm) as perm, negative FROM (SELECT * FROM user_role WHERE role_id = ANY(v_user.user_role)) AS t) ORDER BY negative LOOP
+        FOR v_perms IN SELECT * FROM json_each_text(v_groups.perm) LOOP
+            IF (v_groups.negative = 'f') THEN
+                SELECT v_return
+                    || jsonb_build_object( v_perms.key, COALESCE((v_return->>v_perms.key)::bit, v_perms.value::bit)::bit | v_perms.value::bit )
+                INTO v_return;
+            ELSE
+                SELECT v_return
+                    || jsonb_build_object( v_perms.key, COALESCE((v_return->>v_perms.key)::bit, v_perms.value::bit)::bit & ~v_perms.value::bit )
+                INTO v_return;
+            END IF;
+        END LOOP;
+    END LOOP;
+    RETURN v_return;
 END;
 $$ LANGUAGE plpgsql STABLE RETURNS NULL ON NULL INPUT PARALLEL SAFE;
 
@@ -118,7 +138,7 @@ CREATE TABLE problem_restriction (
     restriction_id  serial          PRIMARY KEY,
     title           varchar(16)     NOT NULL,
     description     text,
-    enabled         boolean         NOT NULL DEFAULT 'f'::boolean,
+    enabled         boolean,
     during          tsrange,
     perm            BIT(6)          NOT NULL DEFAULT '10000',
     -- all_NO_VIEW_BEFORE_START(0)

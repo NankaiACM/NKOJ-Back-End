@@ -15,12 +15,18 @@ DROP TABLE IF EXISTS messages CASCADE;
 DROP TABLE IF EXISTS solutions CASCADE;
 DROP TABLE IF EXISTS discussions CASCADE;
 DROP TABLE IF EXISTS status_code CASCADE;
+DROP TABLE IF EXISTS solution_status CASCADE;
 
 DROP TRIGGER IF EXISTS insert_users ON users;
 DROP VIEW IF EXISTS users;
+DROP TYPE IF EXISTS type_perm;
 
 COMMIT;
 
 RESET  custom_settings.hash_prefix;
 ALTER SYSTEM RESET  custom_settings.hash_prefix;
 SELECT pg_reload_conf();
+
+DROP FUNCTION cal_perm(integer);
+DROP FUNCTION update_existing_user();
+DROP FUNCTION insert_new_user();

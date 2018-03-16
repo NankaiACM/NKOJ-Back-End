@@ -4,7 +4,6 @@ const check = require('../lib/form-check')
 const db = require('../database/db')
 
 const md5 = require('../lib/md5')
-
 const {DB_USER} = require('../config/redis')
 const redis = require('../lib/redis_util')(DB_USER)
 const {sendVerificationMail, banEmail} = require('../lib/mail')
@@ -45,7 +44,7 @@ router.get('/verify/:key/:code', async (req, res) => {
 router.post('/register', async (req, res) => {
   'use strict'
   const keys = ['nickname', 'password', 'email', 'gender', 'school']
-  const values = [req.body.nickname, req.body.password, req.body.email, req.body.gender, req.body.school]
+  const values = [req.body.nickname, req.body.password, req.body.email, req.body.gender,req.body.school]
   const form = {}
 
   let result = check(keys, values, {}, form)

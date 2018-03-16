@@ -36,7 +36,7 @@ router.post('/login', async (req, res) => {
 
   const errArr = [1, 'wrong username, email or password', 'login failed']
 
-  const query = 'SELECT * FROM users WHERE (lower(nickname) = $1 OR email = $1) AND password = hash_password($2) LIMIT 1';
+  const query = 'SELECT * FROM users WHERE (lower(nickname) = $1 OR email = $1) AND password = hash_password($2) LIMIT 1'
 
   let result = await db.query(query, values)
   if (result.rows.length > 0)

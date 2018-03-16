@@ -3,7 +3,7 @@ const app = express()
 
 const api = require('./api')
 const bodyParser = require('body-parser')
-const client = require('redis').createClient(6379,'192.168.233.128',{})
+const client = require('redis').createClient()
 const {DB_SESSION_STORE} = require('./config/redis')
 const logger = require('morgan')
 const session = require('express-session')

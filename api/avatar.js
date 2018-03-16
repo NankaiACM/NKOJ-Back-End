@@ -1,5 +1,5 @@
 const redis = require('redis')
-const client = redis.createClient(6379, '192.168.233.128',{})
+const client = redis.createClient()
 const {DB_USER} = require('../config/redis')
 client.select(DB_USER)
 const promisify = require('util').promisify

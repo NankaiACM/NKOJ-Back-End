@@ -7,6 +7,7 @@ const logger = require('morgan')
 const session = require('express-session')
 const path = require('path')
 const prototype = require('./lib/prototype')
+const captcha = require('./lib/captcha')
 
 // Disable Header 'X-Powered-By' added by express.
 app.disable('x-powered-by')
@@ -64,6 +65,17 @@ app.use(bodyParser.urlencoded({extended: false}))
 app.use(prototype.setResponsePrototype)
 
 // Dispatch to router
+
+app.get('/captcha', (req, res) => {
+  'use strict'
+  return captcha.middleware(req.params.type)(req, res)
+})
+
+app.get('/captcha/:type', (req, res) => {
+  'use strict'
+  return captcha.middleware(req.params.type)(req, res)
+})
+
 app.use('/api', api)
 
 // Catch all other request

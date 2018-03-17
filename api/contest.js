@@ -5,12 +5,7 @@ const check = require('../lib/form-check')
 const redis = require('redis')
 const client = redis.createClient()
 const {DB_CONTEST} = require('../config/redis')
-const {promisify} = require('util')
-const setAsync = promisify(client.set).bind(client)
-const getAsync = promisify(client.get).bind(client)
-const multer = require('multer')
 const path = require('path')
-const md5 = require('../lib/md5')
 client.select(DB_CONTEST)
 
 router.get('/:contest_id', async (req, res) => {

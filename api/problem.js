@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const redis = require('redis')
-const client = redis.createClient(6379, '127.0.0.1', {})
+const client = redis.createClient()
 const {DB_PROBLEM} = require('../config/redis')
 const multer = require('multer')
 const path = require('path')

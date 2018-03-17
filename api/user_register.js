@@ -4,12 +4,13 @@ const check = require('../lib/form-check')
 const db = require('../database/db')
 
 const md5 = require('../lib/md5')
+const captcha = require('../lib/captcha')
 
 const {DB_USER} = require('../config/redis')
-const redis = require('../lib/redis_util')(DB_USER)
+const redis = require('../lib/redis-util')(DB_USER)
 const {sendVerificationMail, banEmail} = require('../lib/mail')
 
-router.get('/verify/:email', async (req, res) => {
+router.get('/verify/:email', captcha.check('sendmail'), async (req, res) => {
   'use strict'
   const email = req.params.email
 

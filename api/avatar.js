@@ -1,9 +1,5 @@
-const redis = require('redis')
-const client = redis.createClient()
 const {DB_USER} = require('../config/redis')
-client.select(DB_USER)
-const promisify = require('util').promisify
-const getAsync = promisify(client.get).bind(client)
+const redis = require('../lib/redis-util')(DB_USER)
 
 const db = require('../database/db')
 const router = require('express').Router()
@@ -11,10 +7,10 @@ const router = require('express').Router()
 const avatar = async (key) => {
   'use strict'
   if (Number.isInteger(Number(key)))
-    return await getAsync(`avatar:${key}`)
+    return await redis.getAsync(`avatar:${key}`)
   else {
     key = await db.query('SELECT user_id FROM users WHERE nickname = $1', [key])
-    if (key.rows.length) return await getAsync(`avatar:${key.rows[0].user_id}`)
+    if (key.rows.length) return await redis.getAsync(`avatar:${key.rows[0].user_id}`)
   }
   return 'default.png'
 }

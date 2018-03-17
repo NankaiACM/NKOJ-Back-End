@@ -2,15 +2,8 @@ const router = require('express').Router()
 const db = require('./db')
 const fs = require('fs')
 const redis = require('redis')
-const client = redis.createClient(6379, '127.0.0.1', {})
-const {DB_PROBLEM} = require('../config/redis')
-const {DB_CONTEST} = require('../config/redis')
-const {promisify} = require('util')
-const setAsync = promisify(client.set).bind(client)
-const getAsync = promisify(client.get).bind(client)
-const multer = require('multer')
-const path = require('path')
-const md5 = require('../lib/md5')
+const client = redis.createClient()
+const {DB_PROBLEM, DB_CONTEST} = require('../config/redis')
 
 router.get('/initProblems', async (req, res)  => {
 

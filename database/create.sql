@@ -253,7 +253,7 @@ COMMIT;
 BEGIN;
 
 CREATE OR REPLACE VIEW users AS
-    SELECT user_info.user_id, nickname, gender, concat(email, '@', email_suffix.email_suffix) as email, last_login, submit_ac, submit_all, ipaddr, user_info.user_role, words, qq, phone, real_name, school, current_badge, removed, user_info."password" as "password", credits, cal_perm(user_info.user_id) as perm, null as old_password FROM user_info
+    SELECT user_info.user_id, CASE WHEN removed THEN '<removed>'::character varying(20) ELSE nickname END as nickname, gender, concat(CASE WHEN removed THEN '<removed>' ELSE email END, '@', email_suffix.email_suffix) as email, last_login, submit_ac, submit_all, ipaddr, user_info.user_role as role, words, qq, phone, real_name, school, current_badge, removed, user_info."password" as "password", credits, cal_perm(user_info.user_id) as perm, null as old_password FROM user_info
     INNER JOIN email_suffix ON email_suffix.suffix_id = user_info.email_suffix_id
     INNER JOIN ipaddr ON ipaddr.ipaddr_id = user_info.user_ip
     INNER JOIN user_nick ON user_nick.nick_id = user_info.nick_id;
@@ -278,11 +278,15 @@ BEGIN
     ), c AS (
         SELECT ipaddr_id FROM ipaddr WHERE ipaddr = NEW.ipaddr LIMIT 1
     ), d AS (
-        INSERT INTO user_info(nick_id, email, email_suffix_id, user_ip, "password", gender, qq, phone, real_name, school, words) SELECT a.nick_id, v_email_prefix, b.suffix_id, c.ipaddr_id, hash_password(NEW."password"), COALESCE(NEW.gender, 0), NEW.qq, NEW.phone, NEW.real_name, NEW.school, NEW.words FROM a,b,c RETURNING user_id
+        INSERT INTO user_info(nick_id, email, email_suffix_id, user_ip, "password", gender, qq, phone, real_name, school, words)
+         SELECT a.nick_id, v_email_prefix, b.suffix_id, c.ipaddr_id, hash_password(NEW."password"), COALESCE(NEW.gender, 0), NEW.qq, NEW.phone, NEW.real_name, NEW.school, NEW.words FROM a,b,c RETURNING user_id
     ) SELECT a.nick_id as nick_id, d.user_id as user_id FROM a,d INTO v_user;
 --    RETURNING * INTO v_user_id
     UPDATE user_nick SET user_id = v_user.user_id WHERE user_nick.nick_id = v_user.nick_id;
     NEW.user_id := v_user.user_id;
+    IF NEW.role IS NOT NULL THEN
+        UPDATE user_info SET user_role = NEW.role WHERE user_id = NEW.user_id;
+    END IF;
     RETURN NEW;
 END;
 $BODY$
@@ -324,12 +328,14 @@ BEGIN
         NEW.email := null;
     END IF;
 
-    UPDATE user_info SET gender = COALESCE(NEW.gender, gender), qq = COALESCE(NEW.qq, qq), phone = COALESCE(NEW.phone, phone), real_name = COALESCE(NEW.real_name, real_name), school = COALESCE(NEW.school, school), user_role = COALESCE(NEW.user_role, user_role), current_badge = COALESCE(NEW.current_badge, current_badge), "password" = COALESCE(hash_password(NEW.password), password), words = COALESCE(NEW.words, words) WHERE user_id = OLD.user_id;
+    UPDATE user_info SET gender = COALESCE(NEW.gender, gender), qq = COALESCE(NEW.qq, qq), phone = COALESCE(NEW.phone, phone), real_name = COALESCE(NEW.real_name, real_name), school = COALESCE(NEW.school, school), user_role = COALESCE(NEW.role, user_role), current_badge = COALESCE(NEW.current_badge, current_badge), "password" = COALESCE(hash_password(NEW.password), password), words = COALESCE(NEW.words, words), removed = COALESCE(NEW.removed, removed) WHERE user_id = OLD.user_id;
     RETURN NEW;
 END;
 $BODY$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER update_users INSTEAD OF UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_existing_user();
+
+CREATE SEQUENCE users_defaultname_seq OWNED BY user_info.user_id;
 
 COMMIT;

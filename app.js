@@ -3,8 +3,11 @@ const app = express()
 
 const api = require('./api')
 const bodyParser = require('body-parser')
+const client = require('redis').createClient()
+const {DB_SESSION_STORE} = require('./config/redis')
 const logger = require('morgan')
 const session = require('express-session')
+const RedisStore = require('connect-redis')(session)
 const path = require('path')
 const prototype = require('./lib/prototype')
 const captcha = require('./lib/captcha')
@@ -26,7 +29,11 @@ app.use(session({
   saveUninitialized: false,
   unset: 'destroy',
   cookie: {maxAge: 36000000},
-  store: require('./lib/session-store')
+  store: new RedisStore({
+    client: client,
+    db: DB_SESSION_STORE,
+    logErrors: true
+  })
 }))
 
 // DEV: Added when debugging from localhost or other server

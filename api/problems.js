@@ -32,7 +32,7 @@ router.post('/update', async (req, res) => {
   }
   const queryCheck = "SELECT * FROM problems WHERE problem_id = $1"
   let result = await db.query(queryCheck, values[0])
-  if(result.row.length > 0){
+  if(result.rows.length > 0){
     res.fail(1, {'error' : 'Problem exists!'})
     return
   }

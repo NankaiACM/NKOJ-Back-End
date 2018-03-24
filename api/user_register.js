@@ -5,7 +5,7 @@ const db = require('../database/db')
 
 const md5 = require('../lib/md5')
 const captcha = require('../lib/captcha')
-const limit = require('../lib/rate-limit')
+const {limit, require_limit, apply_limit} = require('../lib/rate-limit')
 
 const {DB_USER} = require('../config/redis')
 const redis = require('../lib/redis-util')(DB_USER)
@@ -30,11 +30,14 @@ router.get('/verify/:email', captcha.check('sendmail'), limit('sendmail'), async
   result = await redis.setAsync(key, code, 'NX', 'EX', 600)
   if (!result) return res.fail(500, 'unexpected hash conflict')
 
-  return res.ok({key: key, code: code})
+  // return res.ok({key: key, code: code})
 
   // noinspection UnreachableCodeJS
   sendVerificationMail(email, code, link, (result) => {
-    if (result.success) return res.ok({key: key})
+    if (result.success) {
+      apply_limit('sendmail', req)
+      return res.ok({key: key})
+    }
     redis.del(key)
     return res.fail(1, result)
   })
@@ -63,7 +66,7 @@ router.get('/verify/:key/:email', limit('sendmail'), async (req, res) => {
   if (key === md5(email + code)) {
     const link = `${require('../config/basic').BASE_URL}/api/u/verify/${key}/${code}`
 
-    return res.ok({key: key, code: code})
+    //return res.ok({key: key, code: code})
 
     // noinspection UnreachableCodeJS
     return sendVerificationMail(email, code, link, (result) => {

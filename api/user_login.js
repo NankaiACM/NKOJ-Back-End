@@ -10,6 +10,8 @@ const session_client = redis.createClient()
 const {DB_SESSION_STORE} = require('../config/redis')
 session_client.select(DB_SESSION_STORE)
 
+const captcha = require('../lib/captcha')
+
 router.get('/', check_perm(), async (req, res) => {
   'use strict'
   const user = req.session.user
@@ -24,7 +26,7 @@ router.get('/logout', async (req, res) => {
   res.ok()
 })
 
-router.post('/login', async (req, res) => {
+router.post('/login', captcha.check('login'), async (req, res) => {
   'use strict'
 
   const keys = ['user', 'password']

@@ -11,7 +11,7 @@ const {check_perm} = require('../lib/perm-check')
 const md5 = require('../lib/md5')
 
 const {DB_USER} = require('../config/redis')
-const redis = require('../lib/redis_util')(DB_USER)
+const redis = require('../lib/redis-util')(DB_USER)
 
 const sharp = require('sharp')
 const fs = require('fs')
@@ -62,7 +62,7 @@ router.post('/update', upload.single('avatar'), check_perm(), async (req, res) =
       return res.fail(400, 'invalid picture')
     }
     fs.unlinkSync(req.file.path)
-    redis.setAsync(`avatar:${req.session.user}`, `${req.file.filename}.sharped.jpg`)
+    await redis.setAsync(`avatar:${req.session.user}`, `${req.file.filename}.sharped.jpg`)
     ret.avatar = 'changed'
   } else if (req.fileErr) {
     return res.fail(400, `file rejected as it is ${req.fileErr}`)

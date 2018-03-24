@@ -5,80 +5,75 @@ const db = require(path.join(__dirname, '../database', 'db'))
 const check = require('../lib/form-check')
 const sessionStore = require('../lib/session-store')
 
-router.get('/role', async (req, res) => {
-  const ret = await db.query('SELECT * FROM user_role')
-  res.ok(ret.rows)
+router.post('/add', async (req, res) => {
+  'use strict'
+  const keys = ['nickname', 'password', 'email', 'words', 'count']
+  const values = [req.body.nickname, req.body.password, req.body.email, req.body.words, req.body.count]
+  const rules = [undefined, undefined, undefined, undefined, {type: 'integer'}]
+  const form = {}
+  check(keys, values, rules, form)
+  console.log(form)
+  if (!form.count || form.count === '1') form.count = 1
+
+  if (form.count === 1) {
+    const password = form.password || Math.random().toString(36).substring(2)
+    try {
+      const ret = await db.query(`INSERT INTO users (nickname, password, email, gender, role, school, words, ipaddr)
+SELECT COALESCE($1, CONCAT('ojuser_', t.val)), $2, COALESCE($3, CONCAT('ojuser_',t.val,'@dummy.nankai.edu.cn')), $4, $5, $6, $7, '127.0.0.1'
+FROM (SELECT nextval('users_defaultname_seq') as val) AS t RETURNING nickname`
+        , [form.nickname, password, form.email, 3, `{1, 4}`, 'NKU', form.words])
+      res.ok({nickname: ret.rows[0].nickname, password: password})
+    } catch (err) {
+      res.fail(520, err)
+      throw err
+    }
+  } else {
+    const retArr = []
+    for (let i = 0; i < form.count; i++) {
+      const password = form.password || Math.random().toString(36).substring(2)
+      try {
+        const ret = await db.query(`INSERT INTO users (nickname, password, email, gender, role, school, words, ipaddr)
+SELECT CONCAT(COALESCE($1, 'ojuser'), '_' , t.val), $2, CONCAT(COALESCE($1, 'ojuser'), '_', t.val,'@dummy.nankai.edu.cn'), $3, $4, $5, $6, '127.0.0.1'
+FROM (SELECT nextval('users_defaultname_seq') as val) AS t RETURNING nickname`
+          , [form.nickname, password, 3, `{1, 4}`, 'NKU', form.words])
+        retArr.push({nickname: ret.rows[0].nickname, password: password})
+      } catch (err) {
+        res.fail(520, err)
+        throw err
+      }
+    }
+    res.ok(retArr)
+  }
 })
 
-router.get('/role/:rid', async (req, res) => {
-  const role_id = req.params.rid
-  try {
-    const ret = await db.query('SELECT * FROM user_info WHERE user_role @> $1', [`{${role_id}}`])
-    if (ret.rows.length) res.ok(ret.rows)
-    else res.fail(1, {rid: 'no such role'})
+router.get('/remove/:who', async (req, res) => {
+  'use strict'
+  const user = req.params.who
+  if (user === '' || user === undefined || user === req.session.user)
+    return res.fail(1)
+
+  let ret
+  if (Number.isInteger(Number(user)))
+    ret = await db.query(`UPDATE users SET removed = 't'::boolean WHERE user_id = $1 RETURNING user_id`, [user])
+  else
+    ret = await db.query(`UPDATE users SET removed = 't'::boolean WHERE nickname = $1 RETURNING user_id`, [user])
+
+  if (ret.rows.length) {
+    res.ok({removed: ret.rows[0].user_id})
+    sessionStore.logout(ret.rows[0].user_id)
   }
-  catch (err) {
-    res.fail(520, err)
-  }
+  else
+    res.fail(1, 'no such user')
 })
 
-router.get('/role/:uid/:type/:rid', check_perm(MANAGE_ROLE), async (req, res) => {
-  const user_id = Number(req.params.uid)
-  const role_id = Number(req.params.rid)
-  const type = req.params.type
-
-  let ret = await db.query(`SELECT user_role FROM user_info WHERE user_id = $1 LIMIT 1`, [user_id])
-
-  if (ret.rows.length === 0) return res.fail(1, {uid: 'not exist'})
-  let roles = ret.rows[0].user_role
-  roles = roles.filter(i => i !== role_id)
-
-  if (type === 'add') roles.push(role_id)
-
-  try {
-    ret = await db.query(`UPDATE user_info SET user_role = $1 WHERE user_id = $2 RETURNING *`, [`{${roles.join(', ')}}`, user_id])
-  } catch (err) {
-    return res.fail(520, err)
-  }
-
-  res.ok(ret.rows[0])
-})
-
-// TODO: return permission and add role
-// router.post('/add_role', check_perm(MANAGE_ROLE), async (req, res) => {
-//   const keys = ['role_title', 'role_description', 'perm', 'negative']
-//   const values = [req.body.title, req.body.description, req.body.perm, req.body.negative]
-//   if (req.body.perm[20] === '1') {
-//     res.fail(1, 'can\'t create super admin')
-//   }
-//   else {
-//     const form = {}
-//     let result = check(keys, values, {}, form)
-//     if (result) return res.fail(400, result)
-//     try {
-//       const query = 'INSERT INTO user_role (title, description,perm, negative) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING role_id'
-//       result = await db.query(query, [...values])
-//     }
-//     catch (err) {
-//       res.fail(520, err)
-//       throw err
-//     }
-//     if (result.rows.length === 0)
-//       res.fail(1, {title: 'conflict'})
-//     else res.ok(result.rows)
-//   }
-// })
-
-router.get('/logout/:who', check_perm(SUPER_ADMIN), async (req, res) => {
+router.get('/logout/:who', async (req, res) => {
   'use strict'
   const who = req.params.who
-
   if (who === 'all') {
     sessionStore.logoutAll()
   } else {
     sessionStore.logout(who)
   }
-
   res.ok()
 })
 

@@ -39,6 +39,8 @@ router.get('/initContests', async (req, res)  => {
     await db.query('INSERT INTO contests (contest_id, title, during, description, problems) VALUES ($1, $2, $3, $4, $5)',
       [i, i + '_contests',  `[${2010+i}-01-01 14:30, ${2010+i}-01-01 15:30)`, description, '{1001, 1002, 1003, 1004, 1005, 1006, 1007}'])
   }
+  db.query('INSERT INTO contests (contest_id, title, during, description, problems) VALUES ($1, $2, $3, $4, $5)',
+    [21, 21 + '_contests',  `[2010-01-01 14:30, 2019-01-01 15:30)`, 'emmmmmm', '{1001, 1002, 1003, 1004, 1005, 1006, 1007}'])
   for (let i = 1; i <= 20; i++) {
     client.get('contest_rule:' + i, redis.print)
   }

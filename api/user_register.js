@@ -52,7 +52,7 @@ router.get('/verify/:key/:code', async (req, res, next) => {
     req.email_code = ret
     return next()
   }
-  console.log(code, ret)
+  req.session.ecode = code
   if (ret !== code) return res.fail(1, {ecode: 'not match'})
   return res.ok('email verified')
 })
@@ -91,7 +91,7 @@ router.post('/register', async (req, res) => {
   if (result = await db.checkName(form.nickname))
     return res.fail(1, result)
 
-  form.ecode = req.body.ecode
+  form.ecode = req.body.ecode || req.session.ecode
   const hashed_key = md5(form.email + form.ecode)
   if (await redis.getAsync(hashed_key) !== form.ecode)
     return res.fail(1, {ecode: 'not match'})

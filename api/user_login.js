@@ -26,7 +26,7 @@ router.get('/logout', async (req, res) => {
   res.ok()
 })
 
-router.post('/login', captcha.check('login'), async (req, res) => {
+router.post('/login', async (req, res) => {
   'use strict'
 
   const keys = ['user', 'password']

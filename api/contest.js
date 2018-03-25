@@ -52,4 +52,14 @@ router.get('/:contest_id/about', async (req, res) => {
   })
 })
 
+router.get('/:contest_id/user', async (req, res) => {
+  'use strict'
+  const contest_id = req.params.contest_id
+  let queryString = 'SELECT * FROM contest_users WHERE contest_id = $1'
+  let result = db.query(queryString, [contest_id])
+  if(result.rows.length > 0){
+    return res.ok(result)
+  } else return res.fail(1, 'No User!')
+})
+
 module.exports = router

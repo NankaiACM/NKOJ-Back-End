@@ -1,26 +1,7 @@
 const router = require('express').Router()
 const db = require('../database/db')
 
-Date.prototype.format = function(fmt) {
-  let o = {
-    "M+" : this.getMonth()+1,                 //月份
-    "d+" : this.getDate(),                    //日
-    "h+" : this.getHours(),                   //小时
-    "m+" : this.getMinutes(),                 //分
-    "s+" : this.getSeconds(),                 //秒
-    "q+" : Math.floor((this.getMonth()+3)/3), //季度
-    "S"  : this.getMilliseconds()             //毫秒
-  };
-  if(/(y+)/.test(fmt)) {
-    fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
-  }
-  for (let k in o) {
-    if(new RegExp("("+ k +")").test(fmt)){
-      fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)))
-    }
-  }
-  return fmt;
-}
+Date.prototype.format = require('../lib/dateFormat')
 
 router.get('/contest/register/:contest_id', async (req, res) => {
   'use strict'
@@ -36,14 +17,25 @@ router.get('/contest/register/:contest_id', async (req, res) => {
     result = await db.query(queryString, [contest_id, nowtime])
     if(result.rows.length > 0){
       queryString = 'INSERT INTO contest_users (contest_id, user_id) VALUES ($1, $2)'
-      result = await db.query(queryString, [contest_id, req.session.user])
-      console.log(result)
-      res.ok('Success!')
+      db.query(queryString, [contest_id, 2]).then( (res2) => {
+        res.ok(res2)
+      }, (res2) => {
+        res.fail(3, res2)
+      })
     } else {
       res.fail(2, 'Contest was over!')
     }
   } else
   return res.fail(1, 'No contest!')
+})
+
+router.get('contest/list', async (req, res) => {
+  if(!req.session.user) return res.fatal(401)
+  let queryString = "SELECT * FROM contest_users WHERE user_id = $1"
+  let result = db.query(queryString, [user_id])
+  if(result.rows.length > 0) {
+    return res.ok(result.rows[0])
+  } else return res.fail(1, 'No contest!')
 })
 
 module.exports = router

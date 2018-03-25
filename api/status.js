@@ -11,6 +11,7 @@ const getAsync = promisify(client.get).bind(client)
 const multer = require('multer')
 const path = require('path')
 const md5 = require('../lib/md5')
+const check = require('../lib/form-check')
 const {SOLUTION_PATH} = require('../config/basic')
 const {GET_CODE_SELF}=require('../lib/perm-check')
 const {check_perm}=require('../lib/perm-check')
@@ -25,10 +26,10 @@ router.post('/list',  async (req, res) => {
   checkResult = check(keys, values, rules, form)
   if(checkResult) return res.fail(1, checkResult)
 
-  const queryString = 'SELECT * FROM solutions WHERE solutions_id BETWEEN $1 AND $2'
+  const queryString = 'SELECT * FROM solutions WHERE solution_id BETWEEN $1 AND $2'
   const result = await db.query(queryString, values)
   if(result.rows.length > 0){
-    res.ok(result.rows)
+    return res.ok(result.rows)
   }
   return res.fail(1, 'No solutions!')
 })

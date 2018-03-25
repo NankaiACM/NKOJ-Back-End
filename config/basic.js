@@ -3,5 +3,5 @@ module.exports = {
   AVATAR_PATH: '/var/www/upload',
   PROBLEM_PATH: 'problem',
   CONTEST_PATH: 'contest',
-  SOLUTION_PATH:'../public/solution'
+  SOLUTION_PATH:'public/solution'
 }

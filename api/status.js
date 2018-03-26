@@ -58,6 +58,22 @@ router.post('/code', check_perm(GET_CODE_SELF),  async (req, res) => {
   return res.fail(1, 'No solutions!')
 })
 
-
+router.get('/:problemId',async (req, res) => {
+  'use strict'
+  const problemId = req.params.problemId
+  const keys = ['integer']
+  const values = [problemId]
+  const rules = []
+  const form = {}
+  let checkResult
+  checkResult = check(keys, values, rules, form)
+  if(checkResult) return res.fail(1, checkResult)
+  const queryString = 'SELECT * FROM status WHERE problem_id = $1 ORDER BY time,memory'
+  const result = await db.query(queryString, values)
+  if(result.rows.length > 0){
+      return res.ok(result.rows)
+    }
+  else return res.fail(1, 'No solutions!')
+})
 
 module.exports = router

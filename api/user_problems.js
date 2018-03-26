@@ -3,10 +3,10 @@ const db = require('../database/db')
 const check = require('../lib/form-check')
 
 
-router.post('/list',  async (req, res) => {
+router.get('/list',  async (req, res) => {
   'use strict'
   const keys = ['user']
-  const values = [req.body.user]
+  const values = [req.session.user]
   const rules = []
   const form = {}
   let checkResult

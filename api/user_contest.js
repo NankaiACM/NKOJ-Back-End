@@ -10,7 +10,7 @@ router.get('/contest/register/:contest_id', async (req, res) => {
   let queryString = 'SELECT * FROM contests WHERE contest_id = $1'
   let result = await db.query(queryString, [contest_id])
   if (result.rows.length > 0) {
-    queryString = 'SELECT * FROM contests WHERE contest_id = $1 AND during @> $2'
+    queryString = 'SELECT * FROM contests WHERE contest_id = $1 AND upper(during) > $2'
     let nowtime = new Date().format("yyyy-MM-dd hh:mm:ss")
     nowtime = '[' + nowtime.toString() + ',' + nowtime.toString() + ']'
     console.log(nowtime)

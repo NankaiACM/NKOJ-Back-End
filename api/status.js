@@ -26,7 +26,7 @@ router.post('/list',  async (req, res) => {
   checkResult = check(keys, values, rules, form)
   if(checkResult) return res.fail(1, checkResult)
 
-  const queryString = 'SELECT * FROM solutions WHERE solution_id BETWEEN $1 AND $2'
+  const queryString = 'SELECT * FROM status WHERE solution_id BETWEEN $1 AND $2'
   const result = await db.query(queryString, values)
   if(result.rows.length > 0){
     return res.ok(result.rows)

@@ -193,16 +193,16 @@ CREATE UNIQUE INDEX ON messages(a, b);
 
 CREATE TABLE solution_status (
     status_id       serial          PRIMARY KEY,
-    msg_short       varchar(10)     NOT NULL,
-    msg_cn          varchar(25)     NOT NULL,
-    msg_en          varchar(40)     NOT NULL
+    msg_short       varchar(40)     NOT NULL
+    --msg_cn          varchar(25)     NOT NULL,
+    --msg_en          varchar(40)     NOT NULL
 );
 
 CREATE TABLE solutions (
     solution_id     serial          PRIMARY KEY,
     user_id         integer         NOT NULL REFERENCES user_info(user_id),
     problem_id      integer         NOT NULL REFERENCES problems(problem_id),
-    status_id       integer         REFERENCES solution_status,
+    status_id       integer         DEFAULT 100 REFERENCES solution_status(status_id),
     language        integer,
     code_size       integer,
     "time"          integer,
@@ -253,11 +253,22 @@ COMMIT;
 BEGIN;
 
 CREATE OR REPLACE VIEW users AS
-    SELECT user_info.user_id, CASE WHEN removed THEN '<removed>'::character varying(20) ELSE nickname END as nickname, gender, concat(CASE WHEN removed THEN '<removed>' ELSE email END, '@', email_suffix.email_suffix) as email, last_login, submit_ac, submit_all, ipaddr, user_info.user_role as role, words, qq, phone, real_name, school, current_badge, removed, user_info."password" as "password", credits, cal_perm(user_info.user_id) as perm, null as old_password FROM user_info
+    SELECT user_info.user_id,
+    CASE WHEN removed THEN '<removed>'::character varying(20) ELSE nickname END as nickname,
+    gender, concat(CASE WHEN removed THEN '<removed>' ELSE email END, '@', email_suffix.email_suffix) as email, last_login, submit_ac, submit_all, ipaddr, user_info.user_role as role, words, qq, phone, real_name, school, current_badge, removed, user_info."password" as "password", credits, cal_perm(user_info.user_id) as perm, null as old_password FROM user_info
     INNER JOIN email_suffix ON email_suffix.suffix_id = user_info.email_suffix_id
     INNER JOIN ipaddr ON ipaddr.ipaddr_id = user_info.user_ip
     INNER JOIN user_nick ON user_nick.nick_id = user_info.nick_id;
 --    INNER JOIN user_role ON user_role.role_id = user_info.role_id;
+
+CREATE OR REPLACE VIEW status as
+    SELECT "language", code_size, memory, solution_id,
+    problem_id, "time", "when", user_nick.nickname,
+     solution_status.msg_short, ipaddr.ipaddr
+    FROM solutions
+    INNER JOIN user_nick ON user_nick.user_id = solutions.user_id
+    INNER JOIN solution_status ON solution_status.status_id = solutions.status_id
+    INNER JOIN ipaddr ON ipaddr.ipaddr_id = solutions.ipaddr_id;
 
 CREATE OR REPLACE FUNCTION insert_new_user()
   RETURNS trigger AS
@@ -337,5 +348,15 @@ LANGUAGE plpgsql;
 CREATE TRIGGER update_users INSTEAD OF UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_existing_user();
 
 CREATE SEQUENCE users_defaultname_seq OWNED BY user_info.user_id;
+
+INSERT INTO solution_status (status_id, msg_short) VALUES (100, 'Judging');
+INSERT INTO solution_status (status_id, msg_short) VALUES (107, 'Accepted');
+INSERT INTO solution_status (status_id, msg_short) VALUES (102, 'Wrong Answer');
+INSERT INTO solution_status (status_id, msg_short) VALUES (108, 'Presentation Error');
+INSERT INTO solution_status (status_id, msg_short) VALUES (101, 'Compilation Error');
+INSERT INTO solution_status (status_id, msg_short) VALUES (103, 'Runtime Error');
+INSERT INTO solution_status (status_id, msg_short) VALUES (105, 'Tiem Limit Exceeded');
+INSERT INTO solution_status (status_id, msg_short) VALUES (106, 'Output Limit Exceeded');
+INSERT INTO solution_status (status_id, msg_short) VALUES (109, 'Function Limit Exceeded');
 
 COMMIT;

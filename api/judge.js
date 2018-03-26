@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
   db.query(queryString, [user, problem, lang, ipaddr_id]).then(suc => {
     fs.writeFile(`${SOLUTION_PATH}/${suc.rows[0].solution_id}.${langString}`, code, err => {
       if(!err) return res.ok('Submit Successfully!')
-      else res.fail(2, err)
+      else return res.fail(2, err)
     })
   }, err => {
     res.fail(1, err)

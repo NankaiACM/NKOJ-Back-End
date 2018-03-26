@@ -19,6 +19,7 @@ DROP TABLE IF EXISTS solution_status CASCADE;
 
 DROP TRIGGER IF EXISTS insert_users ON users;
 DROP VIEW IF EXISTS users;
+DROP VIEW IF EXISTS status;
 DROP TYPE IF EXISTS type_perm;
 
 COMMIT;

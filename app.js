@@ -73,12 +73,12 @@ app.use(prototype.setResponsePrototype)
 
 // Dispatch to router
 
-app.get('/captcha', (req, res) => {
+app.get('/api/captcha', (req, res) => {
   'use strict'
   return captcha.middleware(req.params.type)(req, res)
 })
 
-app.get('/captcha/:type', (req, res) => {
+app.get('/api/captcha/:type', (req, res) => {
   'use strict'
   return captcha.middleware(req.params.type)(req, res)
 })

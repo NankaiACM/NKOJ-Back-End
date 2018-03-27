@@ -221,8 +221,8 @@ CREATE TABLE discussions (
     ipaddr_id       integer         REFERENCES ipaddr(ipaddr_id)
 );
 
-SET custom_settings.hash_prefix = 'not production';
-ALTER SYSTEM SET custom_settings.hash_prefix = 'not production';
+SET custom_settings.hash_prefix = '1T9N9GO8A03ID23';
+ALTER SYSTEM SET custom_settings.hash_prefix = '1T9N9GO8A03ID23';
 SELECT pg_reload_conf();
 
 BEGIN;

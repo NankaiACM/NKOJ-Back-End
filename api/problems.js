@@ -1,6 +1,9 @@
 const router = require('express').Router()
 const db = require('../database/db')
 const check = require('../lib/form-check')
+const fs=require('fs')
+const path=require('path')
+const {PROBLEM_PATH,PROBLEM_DATA_PATH}=require('../config/basic')
 
 router.post('/list', async (req, res) => {
   'use strict'
@@ -18,6 +21,7 @@ router.post('/list', async (req, res) => {
   }
   return res.fail(1, 'Unknown problems')
 })
+
 
 router.post('/update', async (req, res) => {
   'use strict'

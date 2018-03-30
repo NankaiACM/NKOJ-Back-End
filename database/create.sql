@@ -221,6 +221,15 @@ CREATE TABLE discussions (
     ipaddr_id       integer         REFERENCES ipaddr(ipaddr_id)
 );
 
+CREATE TABLE user_favo(
+    user_id         integer         NOT NULL REFERENCES user_info(user_id),
+    problem_id      integer         NOT NULL REFERENCES problems(problem_id),
+    title           text,
+    content         text,
+    "when"          timestamp       DEFAULT current_timestamp
+);
+
+
 SET custom_settings.hash_prefix = '1T9N9GO8A03ID23';
 ALTER SYSTEM SET custom_settings.hash_prefix = '1T9N9GO8A03ID23';
 SELECT pg_reload_conf();

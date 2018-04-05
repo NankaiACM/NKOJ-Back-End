@@ -2,21 +2,30 @@ const router = require('express').Router()
 const db = require('../database/db')
 const check = require('../lib/form-check')
 
-router.post('/list', async (req, res) => {
+router.get('/list', async (req, res) => {
   'use strict'
-  const keys = ['integer', 'integer']
-  const values = [req.body.queryleft, req.body.queryright]
-  const rules = []
+  const keys = ['l', 'r']
+  const values = [req.query.l, req.query.r]
+  const rule = {empty: 'remove', type: 'integer'}
+  const rules = [rule, rule]
   const form = {}
   let checkResult
-  if(checkResult = check(keys, values, rules, form)) return res.fail(1, checkResult)
+  if (checkResult = check(keys, values, rules, form))
+    return res.fail(1, checkResult)
 
-  const query = "SELECT * FROM problems WHERE problem_id BETWEEN $1 AND $2"
-  let result = await db.query(query, values)
-  if (result) {
-    return res.ok(result.rows)
+  let requested = form.r ? (form.r - (form.l || 0)) : 20
+  let limit = requested > 50 ? 50 : requested
+  let offset = form.l || 0
+  let result = await db.query('SELECT * FROM problems order by problem_id limit $1 offset $2', [limit, offset])
+  if (result.rows.length) {
+    return res.ok({
+      requested: requested,
+      served: result.rows.length,
+      is_end: result.rows.length !== limit,
+      list: result.rows
+    })
   }
-  return res.fail(1, 'Unknown problems')
+  return res.fatal(404)
 })
 
 router.post('/update', async (req, res) => {

@@ -154,9 +154,10 @@ CREATE TABLE problems (
     title           varchar(255)    NOT NULL,               -- content stores in file (use svn)
     submit_ac       integer         NOT NULL DEFAULT 0,
     submit_all      integer         NOT NULL DEFAULT 0,
-    restriction_id  integer         REFERENCES problem_restriction(restriction_id)
+    restriction_id  integer         REFERENCES problem_restriction(restriction_id),
+    cases           integer         NOT NULL DEFAULT 1
 );
-
+ALTER SEQUENCE problems_problem_id_seq RESTART WITH 1001;
 
 CREATE TABLE contests (
     contest_id      serial          PRIMARY KEY,
@@ -165,6 +166,8 @@ CREATE TABLE contests (
     description     text,
     problems        integer ARRAY
 );
+
+ALTER SEQUENCE contests_contest_id_seq RESTART WITH 1001;
 
 CREATE TABLE contest_problems (
     contest_id      integer         NOT NULL REFERENCES contests(contest_id),

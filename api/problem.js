@@ -2,28 +2,30 @@ const router = require('express').Router()
 const redis = require('redis')
 const client = redis.createClient()
 const {DB_PROBLEM} = require('../config/redis')
+const {PROBLEM_PATH} = require('../config/basic')
 const multer = require('multer')
 const path = require('path')
 const md5 = require('../lib/md5')
+const fs = require('fs')
+const db = require('../database/db')
 client.select(DB_PROBLEM)
 
-router.get('/:problemId', (req, res) => {
+router.get('/:pid', async (req, res) => {
   'use strict'
-  const problemId = req.params.problemId
+  const problemId = req.params.pid
+  const ret = await db.query('SELECT * FROM problems WHERE problem_id = $1', [problemId])
+  if (ret.rows.length === 0) return res.fatal(404)
   client.get('problem:'+ problemId, (err, filename) =>{
-    if(filename){
-      const readDir = path.join('./public/', PROBLEM_PATH )
-      const readPath = path.join(readDir, filename)
-      res.sendFile(path.resolve(readPath), (err) => {
-        if(err) res.ok(1, err)
-      })
+    const readPath = path.resolve(PROBLEM_PATH, `${problemId}.md`)
+    if (fs.existsSync(readPath)) {
+      const content = fs.readFileSync(readPath).toString()
+      res.ok(Object.assign(ret.rows[0], {content: content}))
     } else {
-      res.ok(1, {'error': 'No problem!'})
+      res.fatal(500, 'data not found')
     }
   })
 })
 
-const {PROBLEM_PATH} = require('../config/basic')
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {

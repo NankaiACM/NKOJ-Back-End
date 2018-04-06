@@ -3,11 +3,9 @@ const app = express()
 
 const api = require('./api')
 const bodyParser = require('body-parser')
-const client = require('redis').createClient()
 const {DB_SESSION_STORE} = require('./config/redis')
 const logger = require('morgan')
-const session = require('express-session')
-const RedisStore = require('connect-redis')(session)
+const session = require('./lib/session-store')
 const path = require('path')
 const prototype = require('./lib/prototype')
 const captcha = require('./lib/captcha')
@@ -21,20 +19,7 @@ app.use(logger('dev'))
 // DEV: PPT JSON
 app.set('json spaces', 4)
 
-app.use(session({
-  name: 'oj.sid',
-  // DEV: change in production
-  secret: 'not production',
-  resave: false,
-  saveUninitialized: false,
-  unset: 'destroy',
-  cookie: {maxAge: 36000000},
-  store: new RedisStore({
-    client: client,
-    db: DB_SESSION_STORE,
-    logErrors: true
-  })
-}))
+app.use(session.sessionParser)
 
 // DEV: Added when debugging from localhost or other server
 app.use(function (req, res, next) {
@@ -73,12 +58,12 @@ app.use(prototype.setResponsePrototype)
 
 // Dispatch to router
 
-app.get('/captcha', (req, res) => {
+app.get('/api/captcha', (req, res) => {
   'use strict'
   return captcha.middleware(req.params.type)(req, res)
 })
 
-app.get('/captcha/:type', (req, res) => {
+app.get('/api/captcha/:type', (req, res) => {
   'use strict'
   return captcha.middleware(req.params.type)(req, res)
 })

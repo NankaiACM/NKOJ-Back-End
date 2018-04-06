@@ -1,5 +1,4 @@
 const router = require('express').Router()
-
 router.get('/', (req, res) => {
   'use strict'
   res.ok(JSON.parse('[{' +
@@ -34,6 +33,31 @@ router.get('/', (req, res) => {
     '    }' +
     '  ]'
   ))
+})
+router.get('/list', async (req, res) => {
+  'use strict'
+  const keys = ['l', 'r']
+  const values = [req.query.l, req.query.r]
+  const rule = {empty: 'remove', type: 'integer'}
+  const rules = [rule, rule]
+  const form = {}
+  let checkResult
+  if (checkResult = check(keys, values, rules, form))
+    return res.fail(1, checkResult)
+
+  let requested = form.r ? (form.r - (form.l || 0)) : 20
+  let limit = requested > 50 ? 50 : requested
+  let offset = form.l || 0
+  let result = await db.query('SELECT * FROM discussions ORDER BY post_id DESC LIMIT $1 OFFSET $2', [limit, offset])
+  if (result.rows.length) {
+    return res.ok({
+      requested: requested,
+      served: result.rows.length,
+      is_end: result.rows.length !== limit,
+      list: result.rows
+    })
+  }
+  return res.fatal(404)
 })
 
 module.exports = router

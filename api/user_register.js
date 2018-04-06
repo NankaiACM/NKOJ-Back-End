@@ -53,7 +53,7 @@ router.get('/verify/:key/:code', async (req, res, next) => {
     return next()
   }
   req.session.ecode = code
-  if (ret !== code) return res.fail(1, {ecode: 'not match'})
+  if (ret !== code) return res.fail(1, [{name: 'ecode', message: 'not match'}])
   return res.ok('email verified')
 })
 
@@ -75,7 +75,7 @@ router.get('/verify/:key/:email', limit('sendmail'), async (req, res) => {
       return res.fail(1, result)
     })
   }
-  return res.fail(1, {email: 'not match'})
+  return res.fail(1, [{name: 'email', message: 'not match'}])
 })
 
 // noinspection JSUnresolvedFunction
@@ -94,7 +94,7 @@ router.post('/register', async (req, res) => {
   form.ecode = req.body.ecode || req.session.ecode
   const hashed_key = md5(form.email + form.ecode)
   if (await redis.getAsync(hashed_key) !== form.ecode)
-    return res.fail(1, {ecode: 'not match'})
+    return res.fail(1, [{name: 'ecode', message: 'not match'}])
 
   try {
     if (result = await db.checkEmail(form.email))

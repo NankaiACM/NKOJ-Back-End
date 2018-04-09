@@ -342,3 +342,39 @@ CREATE TRIGGER update_users INSTEAD OF UPDATE ON users FOR EACH ROW EXECUTE PROC
 CREATE SEQUENCE users_defaultname_seq OWNED BY user_info.user_id;
 
 COMMIT;
+
+BEGIN;
+
+create table if not exists  _danmaku (
+    danmaku_id serial primary key,
+    user_id integer,
+    ipaddr_id integer,
+    message text,
+    "when" timestamp default current_timestamp
+);
+
+ALTER SEQUENCE if exists _danmaku_danmaku_id_seq MAXVALUE 1000 CYCLE;
+
+create or replace view user_danmaku as
+    select message, _danmaku.user_id, case when _danmaku.user_id is not null then nickname else host(ipaddr.ipaddr) end as nickname, ipaddr.ipaddr, "when" from _danmaku
+    left outer join users on _danmaku.user_id = users.user_id
+    inner join ipaddr on _danmaku.ipaddr_id = ipaddr.ipaddr_id;
+
+
+create or replace function upsert_user_danmaku() returns trigger as
+$$
+declare
+v_ipaddr_id integer;
+begin
+    INSERT INTO ipaddr(ipaddr) VALUES (NEW.ipaddr) ON CONFLICT DO NOTHING;
+    SELECT ipaddr_id FROM ipaddr WHERE ipaddr = NEW.ipaddr LIMIT 1 into v_ipaddr_id;
+    raise notice '%',v_ipaddr_id;
+    insert into _danmaku(user_id, ipaddr_id, message) values(NEW.user_id, v_ipaddr_id, NEW.message)
+    on conflict(danmaku_id) do update set user_id = NEW.user_id, ipaddr_id = v_ipaddr_id, message = NEW.message, "when" = DEFAULT;
+    return new;
+end;
+$$ LANGUAGE plpgsql;
+
+create trigger insert_danmaku instead of insert on user_danmaku FOR EACH ROW EXECUTE PROCEDURE upsert_user_danmaku();
+
+COMMIT;

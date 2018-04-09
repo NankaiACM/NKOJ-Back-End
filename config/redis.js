@@ -1,4 +1,5 @@
 module.exports = {
+  DB_BASIC: 0,
   DB_USER: 1,
   DB_EMAIL_VERIFY: 2,
   DB_PROBLEM: 3,

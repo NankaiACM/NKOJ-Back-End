@@ -20,6 +20,7 @@ app.use(logger('dev'))
 app.set('json spaces', 4)
 
 app.use(session.sessionParser)
+app.use(prototype.setResponsePrototype)
 
 // DEV: Added when debugging from localhost or other server
 app.use(function (req, res, next) {
@@ -53,8 +54,6 @@ app.use((err, req, res, next) => {
 
 // This defaults to 100kb
 app.use(bodyParser.urlencoded({extended: false}))
-
-app.use(prototype.setResponsePrototype)
 
 // Dispatch to router
 

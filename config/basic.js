@@ -7,6 +7,7 @@ module.exports = {
   DATA_BASE: DATA_BASE,
   AVATAR_PATH: path.resolve(DATA_BASE, 'avatars'),
   PROBLEM_PATH: path.resolve(DATA_BASE, 'problems'),
+  TEMP_PATH: path.resolve(DATA_BASE, 'temp'),
   CONTEST_PATH: path.resolve(DATA_BASE, 'contests'),
   SOLUTION_PATH: path.resolve(DATA_BASE, 'solutions')
 }

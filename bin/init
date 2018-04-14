@@ -18,5 +18,6 @@ if (!fs.existsSync(config.AVATAR_PATH)) fs.mkdirSync(config.AVATAR_PATH)
 if (!fs.existsSync(config.PROBLEM_PATH)) fs.mkdirSync(config.PROBLEM_PATH)
 if (!fs.existsSync(config.CONTEST_PATH)) fs.mkdirSync(config.CONTEST_PATH)
 if (!fs.existsSync(config.SOLUTION_PATH)) fs.mkdirSync(config.SOLUTION_PATH)
+if (!fs.existsSync(config.TEMP_PATH)) fs.mkdirSync(config.TEMP_PATH)
 
 require('../lib/chat')

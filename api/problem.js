@@ -15,6 +15,8 @@ router.get('/:pid', async (req, res) => {
   const problemId = req.params.pid
   const ret = await db.query('SELECT * FROM problems WHERE problem_id = $1', [problemId])
   if (ret.rows.length === 0) return res.fatal(404)
+  const tags = await db.query('SELECT problem_tag_assoc.tag_id as id, official, positive as p, negative as n, tag_name as name FROM problem_tag_assoc INNER JOIN problem_tags ON problem_tags.tag_id = problem_tag_assoc.tag_id WHERE problem_id = $1', [problemId])
+  ret.rows[0].tags = tags.rows
   client.get('problem:'+ problemId, (err, filename) =>{
     const readPath = path.resolve(PROBLEM_PATH, `${problemId}.md`)
     if (fs.existsSync(readPath)) {

@@ -13,9 +13,9 @@ router.get('/list', async (req, res) => {
   if (checkResult = check(keys, values, rules, form))
     return res.fail(1, checkResult)
 
-  let requested = form.r ? (form.r - (form.l || 0)) : 20
+  let offset = form.l - 1 || 0
+  let requested = form.r ? (form.r - offset) : 20
   let limit = requested > 50 ? 50 : requested
-  let offset = form.l || 0
   let result = await db.query('SELECT * FROM problems order by problem_id limit $1 offset $2', [limit, offset])
   if (result.rows.length) {
     return res.ok({

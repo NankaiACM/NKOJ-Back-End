@@ -148,4 +148,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION insert_tags(tags text ARRAY) RETURNS integer ARRAY AS
+$$
+DECLARE
+v_return_arr integer ARRAY;
+v_temp integer;
+tag text;
+BEGIN
+    v_return_arr = '{}'::integer ARRAY;
+    FOREACH tag IN ARRAY tags
+    LOOP
+        v_temp := NULL;
+        SELECT tag_id FROM problem_tags WHERE tag_name = tag INTO v_temp;
+        IF v_temp IS NULL THEN
+            INSERT INTO problem_tags(tag_name) VALUES (tag) ON CONFLICT DO NOTHING RETURNING tag_id INTO v_temp;
+        END IF;
+        IF v_temp IS NOT NULL THEN
+            v_return_arr = array_append(v_return_arr, v_temp);
+        END IF;
+    END LOOP;
+    RETURN v_return_arr;
+END;
+$$ LANGUAGE plpgsql;
+
+
 COMMIT;

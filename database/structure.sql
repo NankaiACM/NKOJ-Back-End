@@ -118,18 +118,21 @@ CREATE TABLE problem_restriction (
 
 CREATE TABLE problem_tags (
     tag_id          serial      PRIMARY KEY,
-    tag_name        text        NOT NULL CHECK(length(tag_name) > 2)
+    tag_name        text        UNIQUE NOT NULL CHECK(length(tag_name) > 1)
 );
+
+CREATE UNIQUE INDEX ON problem_tags(tag_name);
 
 CREATE TABLE problems (
     problem_id      serial          PRIMARY KEY,
     title           varchar(255)    NOT NULL,               -- content stores in file (use svn)
-    submit_ac       integer         NOT NULL DEFAULT 0,
-    submit_all      integer         NOT NULL DEFAULT 0,
+    "ac"            integer         NOT NULL DEFAULT 0,
+    "all"           integer         NOT NULL DEFAULT 0,
     restriction_id  integer         REFERENCES problem_restriction(restriction_id),
     special_judge   boolean         NOT NULL DEFAULT 'f'::boolean,
     detail_judge    boolean         NOT NULL DEFAULT 't'::boolean,
-    cases           integer         NOT NULL DEFAULT 1
+    cases           integer         NOT NULL DEFAULT 1,
+    "level"         integer
 );
 
 CREATE TABLE problem_tag_assoc (

@@ -148,7 +148,8 @@ CREATE TABLE problem_tag_votes (
     user_id     integer references user_info(user_id),
     tag_id      integer references problem_tags(tag_id),
     problem_id  integer references problems(problem_id),
-    attitude    boolean not null
+    attitude    boolean not null,
+    primary key (user_id, tag_id, problem_id)
 );
 
 CREATE TABLE contests (

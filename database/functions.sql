@@ -57,6 +57,9 @@ BEGIN
             UPDATE problem_tag_assoc SET negative = negative + 1 WHERE tag_id = NEW.tag_id AND problem_id = NEW.problem_id;
         END IF;
     END IF;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'no data found';
+    END IF;
     RETURN NEW;
 END;
 $BODY$

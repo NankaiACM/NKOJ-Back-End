@@ -1,5 +1,10 @@
 BEGIN;
 
+CREATE OR REPLACE FUNCTION hash_password(pwd text)
+RETURNS text AS $$
+    SELECT md5(current_setting('custom_settings.hash_prefix') || pwd)::text;
+$$ LANGUAGE SQL STABLE RETURNS NULL ON NULL INPUT PARALLEL SAFE;
+
 CREATE OR REPLACE FUNCTION cal_perm (who integer) RETURNS jsonb AS $$
 DECLARE
     v_return jsonb;

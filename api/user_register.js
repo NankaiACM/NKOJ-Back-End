@@ -99,7 +99,7 @@ router.post('/register', async (req, res) => {
   try {
     if (result = await db.checkEmail(form.email))
       return res.fail(1, result)
-    const query = 'INSERT INTO users (nickname, password, email, gender, school, ipaddr) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id'
+    const query = 'INSERT INTO users (nickname, password, email, gender, school, ipaddr) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *'
     result = await db.query(query, [...values, req.ip])
   } catch (err) {
     res.fail(520, err)
@@ -107,7 +107,7 @@ router.post('/register', async (req, res) => {
   }
   req.session.user = result.rows[0].user_id
   req.session.save()
-  res.ok({user_id: req.session.user})
+  res.ok(result.rows[0])
   redis.del(hashed_key)
 })
 

@@ -32,7 +32,7 @@ app.use(function (req, res, next) {
   next()
 })
 
-app.use(express.static(PUBLIC_PATH))
+app.use('/public', express.static(PUBLIC_PATH, {fallthrough: false}))
 
 // Catch internal error
 app.use((err, req, res, next) => {

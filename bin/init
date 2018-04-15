@@ -19,5 +19,8 @@ if (!fs.existsSync(config.PROBLEM_PATH)) fs.mkdirSync(config.PROBLEM_PATH)
 if (!fs.existsSync(config.CONTEST_PATH)) fs.mkdirSync(config.CONTEST_PATH)
 if (!fs.existsSync(config.SOLUTION_PATH)) fs.mkdirSync(config.SOLUTION_PATH)
 if (!fs.existsSync(config.TEMP_PATH)) fs.mkdirSync(config.TEMP_PATH)
+if (!fs.existsSync(config.PROBLEM_DATA_PATH)) fs.mkdirSync(config.PROBLEM_DATA_PATH)
+if (!fs.existsSync(config.PROBLEM_SPJ_PATH)) fs.mkdirSync(config.PROBLEM_SPJ_PATH)
+if (!fs.existsSync(config.PUBLIC_PATH)) fs.mkdirSync(config.PUBLIC_PATH)
 
 require('../lib/chat')

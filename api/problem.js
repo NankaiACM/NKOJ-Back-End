@@ -8,6 +8,7 @@ const path = require('path')
 const md5 = require('../lib/md5')
 const fs = require('fs')
 const db = require('../database/db')
+const {splitFileString} = require('../lib/problem_utils')
 client.select(DB_PROBLEM)
 
 router.get('/:pid', async (req, res) => {
@@ -20,8 +21,8 @@ router.get('/:pid', async (req, res) => {
   client.get('problem:' + pid, (err, filename) => {
     const readPath = path.resolve(PROBLEM_PATH, `${pid}.md`)
     if (fs.existsSync(readPath)) {
-      const content = fs.readFileSync(readPath).toString()
-      res.ok(Object.assign(ret.rows[0], {content: content}))
+      const content = splitFileString(fs.readFileSync(readPath).toString())
+      res.ok(Object.assign(ret.rows[0], {keys: Object.keys(content), content: content}))
     } else {
       res.fatal(500, 'data not found')
     }

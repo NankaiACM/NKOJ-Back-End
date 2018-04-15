@@ -1,3 +1,4 @@
+const {PUBLIC_PATH} = require('./config/basic')
 const express = require('express')
 const app = express()
 
@@ -31,7 +32,7 @@ app.use(function (req, res, next) {
   next()
 })
 
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(PUBLIC_PATH))
 
 // Catch internal error
 app.use((err, req, res, next) => {

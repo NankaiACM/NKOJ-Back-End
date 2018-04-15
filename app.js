@@ -54,7 +54,7 @@ app.use((err, req, res, next) => {
 })
 
 // This defaults to 100kb
-app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.urlencoded({extended: true}))
 
 // Dispatch to router
 
@@ -73,6 +73,11 @@ app.use('/api', api)
 // Catch all other request
 app.all(/^.+$/, (req, res) => {
   res.fatal(501)
+})
+
+app.all(/^.+$/, (err, req, res) => {
+  // DEV: remove
+  res.fatal(500, err.stack || err)
 })
 
 module.exports = app

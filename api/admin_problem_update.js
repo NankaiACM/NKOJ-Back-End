@@ -37,7 +37,7 @@ router.post('/:pid', async (req, res, next) => {
   let pid = Number(form.pid)
   try {
     if (req.form.tags) {
-      const t = JSON.parse(form.tags)
+      const t = typeof form.tags === 'string' ? JSON.parse(form.tags) : form.tags
       const r = await db.query('select insert_tags($1) as tags', [t])
       if (r.rows.length) {
         tags = r.rows[0].tags
@@ -57,7 +57,7 @@ router.post('/:pid', async (req, res, next) => {
     }
 
   } catch (e) {
-    return res.fail(520, e)
+    return res.fail(520, e.stack || e)
   }
 
   // noinspection EqualityComparisonWithCoercionJS

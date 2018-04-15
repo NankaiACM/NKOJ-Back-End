@@ -47,8 +47,8 @@ router.post('/code', check_perm(GET_CODE_SELF),  async (req, res) => {
   const result = await db.query(queryString, values)
   if(result.rows.length > 0){
     if(req.session.user===result.rows[0].user_id) {
-      if (fs.existsSync(`${SOLUTION_PATH}/${values[0]}`)) {
-        res.sendFile(`${SOLUTION_PATH}/${values[0]}`)
+      if (fs.existsSync(path.resolve(SOLUTION_PATH, values[0]))) {
+        res.sendFile(path.resolve(SOLUTION_PATH, values[0]))
       } else {
         res.fail(1,'No solution\'s file')
       }

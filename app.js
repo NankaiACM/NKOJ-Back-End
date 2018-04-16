@@ -1,13 +1,12 @@
+const {PUBLIC_PATH} = require('./config/basic')
 const express = require('express')
 const app = express()
 
 const api = require('./api')
 const bodyParser = require('body-parser')
-const client = require('redis').createClient()
 const {DB_SESSION_STORE} = require('./config/redis')
 const logger = require('morgan')
-const session = require('express-session')
-const RedisStore = require('connect-redis')(session)
+const session = require('./lib/session-store')
 const path = require('path')
 const prototype = require('./lib/prototype')
 const captcha = require('./lib/captcha')
@@ -21,20 +20,8 @@ app.use(logger('dev'))
 // DEV: PPT JSON
 app.set('json spaces', 4)
 
-app.use(session({
-  name: 'oj.sid',
-  // DEV: change in production
-  secret: 'not production',
-  resave: false,
-  saveUninitialized: false,
-  unset: 'destroy',
-  cookie: {maxAge: 36000000},
-  store: new RedisStore({
-    client: client,
-    db: DB_SESSION_STORE,
-    logErrors: true
-  })
-}))
+app.use(session.sessionParser)
+app.use(prototype.setResponsePrototype)
 
 // DEV: Added when debugging from localhost or other server
 app.use(function (req, res, next) {
@@ -45,7 +32,7 @@ app.use(function (req, res, next) {
   next()
 })
 
-app.use(express.static(path.join(__dirname, 'public')))
+app.use('/public', express.static(PUBLIC_PATH, {fallthrough: false}))
 
 // Catch internal error
 app.use((err, req, res, next) => {
@@ -67,9 +54,7 @@ app.use((err, req, res, next) => {
 })
 
 // This defaults to 100kb
-app.use(bodyParser.urlencoded({extended: false}))
-
-app.use(prototype.setResponsePrototype)
+app.use(bodyParser.urlencoded({extended: true}))
 
 // Dispatch to router
 
@@ -88,6 +73,11 @@ app.use('/api', api)
 // Catch all other request
 app.all(/^.+$/, (req, res) => {
   res.fatal(501)
+})
+
+app.all(/^.+$/, (err, req, res) => {
+  // DEV: remove
+  res.fatal(500, err.stack || err)
 })
 
 module.exports = app

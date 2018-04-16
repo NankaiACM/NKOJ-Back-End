@@ -26,7 +26,7 @@ router.get('/logout', async (req, res) => {
   res.ok()
 })
 
-router.post('/login', async (req, res) => {
+router.post('/login', captcha.check('login'), async (req, res) => {
   'use strict'
 
   const keys = ['user', 'password']
@@ -36,7 +36,10 @@ router.post('/login', async (req, res) => {
   let err = check(keys, values, rules)
   if (err) return res.fail(400, err)
 
-  const errArr = [1, {error:'wrong username, email or password'}, 'login failed']
+  const errArr = [1, [{name: 'name', message: 'might be wrong'}, {
+    name: 'password',
+    message: 'might be wrong'
+  }], 'login failed']
 
   const query = 'SELECT * FROM users WHERE (lower(nickname) = $1 OR email = $1) AND password = hash_password($2) LIMIT 1'
 

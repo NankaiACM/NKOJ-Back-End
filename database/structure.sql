@@ -132,6 +132,8 @@ CREATE TABLE problems (
     special_judge   boolean         NOT NULL DEFAULT 'f'::boolean,
     detail_judge    boolean         NOT NULL DEFAULT 't'::boolean,
     cases           integer         NOT NULL DEFAULT 1,
+    time_limit      integer         NOT NULL DEFAULT 1000,
+    memory_limit    integer         NOT NULL DEFAULT 10000,
     "level"         integer
 );
 

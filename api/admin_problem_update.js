@@ -47,8 +47,9 @@ router.post('/:pid', async (req, res, next) => {
 
     const r = await db.query('update problems set title = COALESCE($1, title), cases = COALESCE($2, cases),' +
       ' special_judge = COALESCE($3::boolean, special_judge), detail_judge = COALESCE($4::boolean, detail_judge),' +
-      ' level = COALESCE($5::integer, level) where problem_id = $6 returning problem_id'
-      , [form.title, form.cases, form.special_judge, form.detail_judge, form.level, pid])
+      ' level = COALESCE($5::integer, level), time_limit = COALESCE($6::integer, time_limit), memory_limit = COALESCE($7::integer, memory_limit)' +
+      ' where problem_id = $8 returning problem_id'
+      , [form.title, form.cases, form.special_judge, form.detail_judge, form.level, form.time_limit, form.memory_limit, pid])
     if (r.rows.length !== 1) return res.fail(520, 'database returns neither an error nor a successful insert')
 
     for (let tag in tags) {

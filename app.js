@@ -1,4 +1,4 @@
-const {PUBLIC_PATH} = require('./config/basic')
+const {PUBLIC_PATH, DIST_PATH} = require('./config/basic')
 const express = require('express')
 const app = express()
 
@@ -70,9 +70,10 @@ app.get('/api/captcha/:type', (req, res) => {
 
 app.use('/api', api)
 
-// Catch all other request
-app.all(/^.+$/, (req, res) => {
-  res.fatal(501)
+app.use('/', express.static(DIST_PATH, {fallthrough: true}))
+
+app.get(/^.+$/, (req, res) => {
+  res.sendFile(`${DIST_PATH}/index.html`, {acceptRanges: false})
 })
 
 app.all(/^.+$/, (err, req, res) => {

@@ -6,7 +6,8 @@ const fs = require('fs')
 const path = require('path')
 
 router.post('/:pid', (req, res, next) => {
-  if (!Number.isInteger(req.params.pid)) return res.fatal(400)
+  if (!Number.isInteger(Number(req.params.pid)))
+    return res.fatal(400)
   next()
 })
 
@@ -41,7 +42,7 @@ router.post('/:pid', upload.single('file'), (req, res, next) => {
 
   zipEntries.forEach(function (zipEntry) {
     if (path.extname(zipEntry.entryName) === '.in') {
-      const out = zip.getEntry(path.basename(zipEntry.entryName, '.in'))
+      const out = zip.getEntry(`${path.basename(zipEntry.entryName, '.in')}.out`)
       if (out) {
         i++
         fs.writeFileSync(`${data_path}/${i}.in`, zipEntry.data)

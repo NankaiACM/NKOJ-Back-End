@@ -37,8 +37,8 @@ router.post('/', async (req, res, next) => {
   let tags = []
   let pid
   try {
-    if (req.form.tags) {
-      const t = JSON.parse(form.tags)
+    if (form.tags) {
+      const t = typeof form.tags === 'string' ? JSON.parse(form.tags) : form.tags
       const r = await db.query('select insert_tags($1) as tags', [t])
       if (r.rows.length) {
         tags = r.rows[0].tags
@@ -56,7 +56,8 @@ router.post('/', async (req, res, next) => {
     }
 
   } catch (e) {
-    return res.fail(520, e)
+    console.log(e.stack || e)
+    return res.fail(520, e.stack || e)
   }
 
   const filename = `${pid}.md`

@@ -18,3 +18,5 @@ selenium-debug.log
 
 /node_modules/
 config/postgres.js
+
+package-lock.json

@@ -1,20 +1,31 @@
 const router = require('express').Router()
 const db = require('../database/db')
-const check = require('../lib/form-check')
+//const check = require('../lib/form-check')
+const { matchedData} = require('express-validator/filter');
+const {validationResult}=require('express-validator/check')
+const check=require('../lib/form-check1')
 const fs=require('fs')
 const path=require('path')
+const {PROBLEM_PATH,PROBLEM_DATA_PATH}=require('../config/basic')
 
-router.get('/list', async (req, res) => {
+router.get('/list', [check.l,check.r],async (req, res) => {
   'use strict'
-  const keys = ['l', 'r']
+  /*const keys = ['l', 'r']
   const values = [req.query.l, req.query.r]
   const rule = {empty: 'remove', type: 'integer'}
   const rules = [rule, rule]
   const form = {}
   let checkResult
   if (checkResult = check(keys, values, rules, form))
-    return res.fail(1, checkResult)
-
+    return res.fail(1, checkResult)*/
+  const errors = validationResult(req);
+  if(!errors.isEmpty())
+  {
+    res.fail(1,errors.array())
+    return
+  }
+  const checkres = matchedData(req);
+  let form={l:checkres.l,r:checkres.r}
   let offset = form.l - 1 || 0
   let requested = form.r ? (form.r - offset) : 20
   let limit = requested > 50 ? 50 : requested
@@ -30,4 +41,39 @@ router.get('/list', async (req, res) => {
   return res.fatal(404)
 })
 
+
+router.post('/update',[check.id,check.title], async (req, res) => {
+  'use strict'
+  /*const values = [req.body.id.valueOf(), req.body.title]
+  if(!Number.isInteger(values[0])){
+    res.fail(1, {'error' : 'Not Integer!'})
+    return
+  }
+  if(values[2].length > 30) {
+    res.fail(1, {'error' : 'Title is too long!'})
+    return
+  }*/
+
+  const errors = validationResult(req);
+  if(!errors.isEmpty())
+  {
+    res.fail(1,errors.array())
+    return
+  }
+  const checkres = matchedData(req);
+  const values=[req.id,req.title]
+  const queryCheck = "SELECT * FROM problems WHERE problem_id = $1"
+  let result = await db.query(queryCheck, values[0])
+  if(result.rows.length > 0){
+    res.fail(1, {'error' : 'Problem exists!'})
+    return
+  }
+  try {
+    const query = "INSERT INTO problems (problem_id, title) VALUES ($1, $2)"
+    result = await db.query(query, values)
+    return res.ok()
+  } catch(err){
+    return res.fail(1, err)
+  }
+})
 module.exports = router

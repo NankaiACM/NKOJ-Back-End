@@ -1,11 +1,28 @@
 const router = require('express').Router()
 const fs = require('fs')
 const db = require('../database/db')
+const ws = require('ws')
 const {SOLUTION_PATH} = require('../config/basic')
 Date.prototype.format = require('../lib/dateFormat')
 
-router.post('/', async (req, res) => {
+router.get('/', async (req, res) => {
   'use strict'
+  const webstorm = new ws('ws://192.168.99.100:8000')
+  webstorm.on('open', function open() {
+    webstorm.send('./')
+    webstorm.send('1')
+    webstorm.send('1001')
+    webstorm.send('0')
+    webstorm.send('1000')
+    webstorm.send('2560000')
+    webstorm.send('3')
+    webstorm.send('0')
+    webstorm.send('1')
+  })
+  webstorm.on('close', function close() {
+    res.ok('!!!')
+  })
+  /*
   if(!req.session.user) return res.fatal(401)
   const problem = req.body.p
   const lang = req.body.lang
@@ -34,7 +51,7 @@ router.post('/', async (req, res) => {
     })
   }, err => {
     res.fail(1, err)
-  })
+  })*/
 })
 
 module.exports = router

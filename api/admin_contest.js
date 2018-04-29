@@ -5,7 +5,10 @@ const {CONTEST_PATH} = require('../config/basic')
 const redis = require('redis')
 const {DB_CONTEST} = require('../config/redis')
 const client = redis.createClient()
-const check = require('../lib/form-check')
+//const check = require('../lib/form-check')
+const { matchedData} = require('express-validator/filter');
+const {validationResult}=require('express-validator/check')
+const check=require('../lib/form-check1')
 client.select(DB_CONTEST)
 
 const upload = multer({
@@ -33,23 +36,28 @@ const upload = multer({
   }
 })
 
-router.post('/', upload.fields({name : 'rule', maxCount: 1}, {name: 'about', maxCount: 1}), async (req, res) => {
+router.post('/', upload.fields({name : 'rule', maxCount: 1}, {name: 'about', maxCount: 1}),[check.id,check.role_title,
+  check.role_description,check.problems,check.start,check.end], async (req, res) => {
 
   if(req.idErr){ res.fail(1, req.idErr) }
   if(req.fileErr) { res.fail(2, req.fileErr) }
-  const id = req.body.id
+
+  const errors = validationResult(req);
+  if(!errors.isEmpty())
+  {
+    res.fail(1,errors.array())
+    return
+  }
+  const checkres = matchedData(req);
+  const id = checkres.id
   client.set('contest_rule:' + id, 'contest_rule_' + id + '.md')
   client.set('contest_about:' + id, 'contest_about_' + id + '.md')
-  const title = req.body.title
-  const start = req.body.start
-  const end = req.body.end
-  const description = req.body.discription
-  const problems = req.body.problems
-
-  const keys = ['role_title', 'role_description']
+  const title = checkres.title
+  const start = checkres.start
+  const end = checkres.end
+  const description = checkres.discription
+  const problems = checkres.problems
   const values = [title, description]
-  let result = check(keys, values, {})
-  if(result) res.fail(1, result)
 
   const queryString = 'INSERT INTO contests (title, during, description, problems) VALUES ($1, $2, $3, $4)'
   const during = '[' + start + ',' + end + ']'

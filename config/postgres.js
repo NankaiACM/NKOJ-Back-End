@@ -1,6 +1,5 @@
 module.exports = {
-  user: 'sunrisefox',
-  password: '123465IsGoodPassword',
+  user: 'root',
   host: 'localhost',
-  database: 'sunrisefox'
+  database: 'onlinejudge'
 }

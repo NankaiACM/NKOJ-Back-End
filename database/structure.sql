@@ -1,6 +1,6 @@
 BEGIN;
 
-CREATE SCHEMA public;
+CREATE IF NOT EXISTS SCHEMA public;
 
 CREATE TABLE email_suffix (
     suffix_id       serial          PRIMARY KEY,

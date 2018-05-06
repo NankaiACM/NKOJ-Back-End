@@ -1,6 +1,3 @@
-
-ALTER SYSTEM SET custom_settings.hash_prefix = 'not production';
-
 BEGIN;
 
 ALTER SEQUENCE user_role_role_id_seq RESTART WITH 10;
@@ -18,8 +15,6 @@ INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (9, '
 ALTER SEQUENCE problems_problem_id_seq RESTART WITH 1001;
 
 ALTER SEQUENCE contests_contest_id_seq RESTART WITH 1001;
-
-SET custom_settings.hash_prefix = 'not production';
 
 ALTER SEQUENCE user_nick_nick_id_seq RESTART WITH 1;
 
@@ -43,5 +38,8 @@ ALTER SEQUENCE IF EXISTS _danmaku_danmaku_id_seq MAXVALUE 1000 CYCLE;
 
 COMMIT;
 
+SET custom_settings.hash_prefix = 'not production';
+
+ALTER SYSTEM SET custom_settings.hash_prefix = 'not production';
 
 SELECT pg_reload_conf();

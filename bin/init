@@ -1,26 +1,54 @@
 #!/usr/bin/env node
 
-const app = require('../app')
-const http = require('http')
 const fs = require('fs')
-const config = require('../config/basic')
+const path = require('path')
+const http = require('http')
 
-const port = 80
-
-app.set('port', port)
-
-const httpServer = http.createServer(app)
-httpServer.listen(port)
-httpServer.on('listening', () => console.log('Listening on ' + port))
-
-if (!fs.existsSync(config.DATA_BASE)) fs.mkdirSync(config.DATA_BASE)
-if (!fs.existsSync(config.AVATAR_PATH)) fs.mkdirSync(config.AVATAR_PATH)
-if (!fs.existsSync(config.PROBLEM_PATH)) fs.mkdirSync(config.PROBLEM_PATH)
-if (!fs.existsSync(config.CONTEST_PATH)) fs.mkdirSync(config.CONTEST_PATH)
-if (!fs.existsSync(config.SOLUTION_PATH)) fs.mkdirSync(config.SOLUTION_PATH)
-if (!fs.existsSync(config.TEMP_PATH)) fs.mkdirSync(config.TEMP_PATH)
-if (!fs.existsSync(config.PROBLEM_DATA_PATH)) fs.mkdirSync(config.PROBLEM_DATA_PATH)
-if (!fs.existsSync(config.PROBLEM_SPJ_PATH)) fs.mkdirSync(config.PROBLEM_SPJ_PATH)
-if (!fs.existsSync(config.PUBLIC_PATH)) fs.mkdirSync(config.PUBLIC_PATH)
-
-require('../lib/chat')
+let app = undefined
+new Promise(async (resolve, reject) => {
+  const {REASON_PATH_CONFIG, REASON_DATABASE_CONFIG, REASON_INACCESSIBLE_PATH, REASON_DATABASE_CONNECT, REASON_REDIS_ERROR} = require('../init/reason')
+  if (!fs.existsSync(path.resolve(__dirname, '../config/postgres.js')))
+    return reject({reason: REASON_DATABASE_CONFIG})
+  try {
+    const db = require('../database/init')
+    const ret = await db.query('SELECT NOW() AS now')
+    if (!ret.rows[0].now) return reject({
+      reason: REASON_DATABASE_CONNECT,
+      details: 'unexpected response from select now()'
+    })
+  } catch (e) {
+    return reject({reason: REASON_DATABASE_CONNECT, details: e.stack || e})
+  }
+  if (!fs.existsSync(path.resolve(__dirname, '../config/path.js')))
+    return reject({reason: REASON_PATH_CONFIG})
+  try {
+    const basic = require('../config/basic')
+    Object.keys(basic).forEach((k) => {
+      if (!basic.hasOwnProperty(k)) return
+      if (!fs.existsSync(basic[k]))
+        fs.mkdirSync(basic[k])
+    })
+  } catch (e) {
+    return reject({reason: REASON_INACCESSIBLE_PATH, details: e.stack || e})
+  }
+  const redis = require('redis')
+  const client = redis.createClient()
+  client.on('ready', () => resolve())
+  client.on('error', () => reject({reason: REASON_REDIS_ERROR}))
+}).then(() => {
+  app = require('../app')
+  require('../lib/chat')
+}).catch((err) => {
+  console.error(`failed to start normal server, reason: ${err.reason},\n details: ${err.details}`)
+  app = require('../init/init')
+}).then(() => {
+  const port = 80
+  app.set('port', port)
+  const httpServer = http.createServer(app)
+  httpServer.listen(port)
+  httpServer.on('listening', () => console.log('Listening on ' + port))
+}).catch((err) => {
+  console.error('An error occurred when starting the server...')
+  console.error(err)
+  process.exit(-1)
+})

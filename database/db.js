@@ -1,5 +1,4 @@
 const pool = require('./init')
-const format = require('sprintf-js').vsprintf
 const sessionStore = require('../lib/session-store')
 const db = {}
 
@@ -10,14 +9,13 @@ db.query = (text, params) => {
   return new Promise((resolve, reject) => {
     'use strict'
     pool.query(text, params, (err, res) => {
-      'use strict'
       const end = Date.now() - start
       if (err) {
-        console.log(`Database query ${format(text, params)} failed in ${end} ms`)
+        console.log(`Database query [${text}, ${params}] failed in ${end} ms`)
         console.log(err)
         reject(err)
       } else {
-        console.log(`Database query ${format(text, params)} finished in ${end} ms`)
+        console.log(`Database query [${text}, ${params}] finished in ${end} ms`)
         resolve(res)
       }
     })
@@ -41,22 +39,6 @@ db.postLogin = (info, req, res) => {
   delete info.password
   sessionStore.login(info.user_id, req.session.id)
   res.ok(info)
-  // hash[new Date] = req.sessionID
-  // if(Object.keys(hash).length > 5) delete hash[Object.keys(hash).sort()[0]]
-  // const arr = Object.assign({}, hash)
-  // for (let o in arr) {
-  //   if (arr.hasOwnProperty(o)) {
-  //     (key => {
-  //       sessionStore.get(hash[key], function (err, res) {
-  //         if(err || !res) delete hash[key]
-  //         delete arr[key]
-  //         if(Object.keys(arr).length === 0){
-  //           db.query('UPDATE users SET login_hash = $1 WHERE user_id = $2', [hash, info.user_id])
-  //         }
-  //       })
-  //     })(o)
-  //   }
-  // }
 }
 
 db.checkName = async (name) => {

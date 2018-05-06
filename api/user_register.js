@@ -35,7 +35,7 @@ router.get('/verify/:email', captcha.check('sendmail'),check.email, limit('sendm
 
   const code = Math.floor(Math.random() * 900000) + 100000
   const key = md5(email + code)
-  const link = `${require('../config/basic').BASE_URL}/api/u/verify/${key}/${code}`
+  const link = `${require('../config/path').BASE_URL}/api/u/verify/${key}/${code}`
 
   result = await redis.setAsync(key, code, 'NX', 'EX', 600)
   if (!result) return res.fail(500, 'unexpected hash conflict')
@@ -74,7 +74,7 @@ router.get('/verify/:key/:email', limit('sendmail'), async (req, res) => {
   const code = req.email_code
 
   if (key === md5(email + code)) {
-    const link = `${require('../config/basic').BASE_URL}/api/u/verify/${key}/${code}`
+    const link = `${require('../config/path').BASE_URL}/api/u/verify/${key}/${code}`
 
     //return res.ok({key: key, code: code})
 

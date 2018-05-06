@@ -20,3 +20,4 @@ selenium-debug.log
 config/postgres.js
 
 package-lock.json
+database/temp.sql

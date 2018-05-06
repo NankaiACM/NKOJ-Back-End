@@ -1,17 +1,19 @@
 const path = require('path')
-
-const DATA_BASE = path.resolve(__dirname, '/var/www/data')
+const {
+  DIST_PATH, PUBLIC_PATH, TEMP_PATH, PROBLEM_SPJ_PATH,
+  AVATAR_PATH, CONTEST_PATH, DATA_BASE,
+  PROBLEM_DATA_PATH, PROBLEM_PATH, SOLUTION_PATH
+} = require('./path')
 
 module.exports = {
-  BASE_URL: 'http://oj.vampire.rip',
   DATA_BASE: DATA_BASE,
-  AVATAR_PATH: path.resolve(DATA_BASE, 'avatars'),
-  DIST_PATH: path.resolve(DATA_BASE, '/var/www/front/dist'),
-  PROBLEM_PATH: path.resolve(DATA_BASE, 'problems'),
-  PROBLEM_DATA_PATH: path.resolve(DATA_BASE, 'problem_data'),
-  PROBLEM_SPJ_PATH: path.resolve(DATA_BASE, 'problem_spj'),
-  PUBLIC_PATH: path.resolve(DATA_BASE, 'public'),
-  TEMP_PATH: path.resolve(DATA_BASE, 'temp'),
-  CONTEST_PATH: path.resolve(DATA_BASE, 'contests'),
-  SOLUTION_PATH: path.resolve(DATA_BASE, 'solutions')
+  AVATAR_PATH: path.resolve(DATA_BASE, AVATAR_PATH),
+  DIST_PATH: path.resolve(DATA_BASE, DIST_PATH),
+  PROBLEM_PATH: path.resolve(DATA_BASE, PROBLEM_PATH),
+  PROBLEM_DATA_PATH: path.resolve(DATA_BASE, PROBLEM_DATA_PATH),
+  PROBLEM_SPJ_PATH: path.resolve(DATA_BASE, PROBLEM_SPJ_PATH),
+  PUBLIC_PATH: path.resolve(DATA_BASE, PUBLIC_PATH),
+  TEMP_PATH: path.resolve(DATA_BASE, TEMP_PATH),
+  CONTEST_PATH: path.resolve(DATA_BASE, CONTEST_PATH),
+  SOLUTION_PATH: path.resolve(DATA_BASE, SOLUTION_PATH)
 }

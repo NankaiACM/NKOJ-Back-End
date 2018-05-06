@@ -40,7 +40,7 @@ router.post('/', [check.description,check.input,check.output,check.sample_input,
   /*const keys = ['description', 'input', 'output', 'sample_input', 'sample_output', 'hint']
   const values = [req.body.description, req.body.input, req.body.output, req.body.sample_input, req.body.sample_output, req.body.hint]
   const rules = undefined*/
-  const form = req.form
+  const form1 = req.form
   const errors = validationResult(req);
   if(!errors.isEmpty())
   {
@@ -49,7 +49,7 @@ router.post('/', [check.description,check.input,check.output,check.sample_input,
   }
   const checkres=matchedData(req)
   const values = [checkres.description, checkres.input, checkres.output, checkres.sample_input, checkres.sample_output, checkres.hint]
-
+  const form=Object.assign(form1,checkres);
 
   /*const ret = check(keys, values, rules, form)
   if (ret) return res.fail(1, ret)*/

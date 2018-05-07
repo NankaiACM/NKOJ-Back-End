@@ -10,7 +10,9 @@ router.get('/', async (req, res) => {
   }
   for (let i = 0; i < 5; i++)
   {
-    const query='SELECT user_nick.nickname,user_info.submit_ac,user_info.submit_all FROM user_info,user_nick where user_nick.nick_id=user_info.nick_id and join_time <  timestamp $1 and join_time >=timestamp $2 order by  submit_ac,submit_all  DESC limit 100'
+    const query='SELECT user_nick.nickname,user_info.submit_ac,user_info.submit_all ' +
+      'FROM user_info,user_nick WHERE user_nick.nick_id = user_info.nick_id AND join_time <  timestamp $1 AND join_time >=timestamp $2 ' +
+      'ORDER BY  submit_ac,submit_all  DESC LIMIT 100'
     const result = await db.query(query, [time[i], time[i + 1]]);
     myres[i]=new Object();
     myres[i].data=result.rows;

@@ -1,7 +1,6 @@
 const router = require('express').Router()
 const db = require('../database/db')
 const fs = require('fs')
-//const check = require('../lib/form-check')
 const redis = require('redis')
 const client = redis.createClient()
 const {DB_CONTEST} = require('../config/redis')

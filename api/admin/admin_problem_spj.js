@@ -1,10 +1,10 @@
 const router = require('express').Router()
 
-const {PROBLEM_SPJ_PATH, TEMP_PATH} = require('../config/basic')
+const {PROBLEM_SPJ_PATH, TEMP_PATH} = require('../../config/basic')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
-const getExt = require('../lib/extension').ext
+const getExt = require('../../lib/extension').ext
 
 router.post('/:pid', (req, res, next) => {
   if (!Number.isInteger(Number(req.params.pid))) return res.fatal(400)

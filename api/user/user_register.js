@@ -2,16 +2,16 @@ const router = require('express').Router()
 //const check = require('../lib/form-check')
 const { matchedData} = require('express-validator/filter');
 const {validationResult}=require('express-validator/check')
-const check=require('../lib/form-check1')
-const db = require('../database/db')
+const check=require('../../lib/form-check')
+const db = require('../../database/db')
 
-const md5 = require('../lib/md5')
-const captcha = require('../lib/captcha')
-const {limit, require_limit, apply_limit} = require('../lib/rate-limit')
+const md5 = require('../../lib/md5')
+const captcha = require('../../lib/captcha')
+const {limit, require_limit, apply_limit} = require('../../lib/rate-limit')
 
-const {DB_USER} = require('../config/redis')
-const redis = require('../lib/redis-util')(DB_USER)
-const {sendVerificationMail, banEmail} = require('../lib/mail')
+const {DB_USER} = require('../../config/redis')
+const redis = require('../../lib/redis-util')(DB_USER)
+const {sendVerificationMail, banEmail} = require('../../lib/mail')
 const regex_email = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/
 
 router.get('/verify/:email', captcha.check('sendmail'),check.email, limit('sendmail'), async (req, res) => {
@@ -35,7 +35,7 @@ router.get('/verify/:email', captcha.check('sendmail'),check.email, limit('sendm
 
   const code = Math.floor(Math.random() * 900000) + 100000
   const key = md5(email + code)
-  const link = `${require('../config/basic').BASE_URL}/api/u/verify/${key}/${code}`
+  const link = `${require('../../config/basic').BASE_URL}/api/u/verify/${key}/${code}`
 
   result = await redis.setAsync(key, code, 'NX', 'EX', 600)
   if (!result) return res.fail(500, 'unexpected hash conflict')
@@ -74,7 +74,7 @@ router.get('/verify/:key/:email', limit('sendmail'), async (req, res) => {
   const code = req.email_code
 
   if (key === md5(email + code)) {
-    const link = `${require('../config/basic').BASE_URL}/api/u/verify/${key}/${code}`
+    const link = `${require('../../config/basic').BASE_URL}/api/u/verify/${key}/${code}`
 
     //return res.ok({key: key, code: code})
 

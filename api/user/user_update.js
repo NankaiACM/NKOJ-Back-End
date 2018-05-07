@@ -1,17 +1,17 @@
 const router = require('express').Router()
 
-const db = require('../database/db')
-const check = require('../lib/form-check')
+const db = require('../../database/db')
+const check = require('../../lib/old-form-check')
 
 const multer = require('multer')
 const path = require('path')
 
-const {AVATAR_PATH} = require('../config/basic')
-const {check_perm} = require('../lib/perm-check')
-const md5 = require('../lib/md5')
+const {AVATAR_PATH} = require('../../config/basic')
+const {check_perm} = require('../../lib/perm-check')
+const md5 = require('../../lib/md5')
 
-const {DB_USER} = require('../config/redis')
-const redis = require('../lib/redis-util')(DB_USER)
+const {DB_USER} = require('../../config/redis')
+const redis = require('../../lib/redis-util')(DB_USER)
 
 const sharp = require('sharp')
 const fs = require('fs')

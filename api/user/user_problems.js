@@ -1,9 +1,9 @@
 const router = require('express').Router()
-const db = require('../database/db')
+const db = require('../../database/db')
 //const check = require('../lib/form-check')
 const { matchedData} = require('express-validator/filter');
 const {validationResult}=require('express-validator/check')
-const check=require('../lib/form-check1')
+const check=require('../../lib/form-check')
 
 router.get('/list',  async (req, res) => {
   'use strict'

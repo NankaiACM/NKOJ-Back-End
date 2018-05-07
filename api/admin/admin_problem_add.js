@@ -1,25 +1,16 @@
-const {generateFileString} = require('../lib/problem_utils')
+const {generateFileString} = require('../../lib/problem_utils')
 const router = require('express').Router()
-const db = require('../database/db')
-//const check = require('../lib/form-check')
+const db = require('../../database/db')
 const { matchedData} = require('express-validator/filter');
 const {validationResult}=require('express-validator/check')
-const check=require('../lib/form-check1')
-const {PROBLEM_PATH, TEMP_PATH} = require('../config/basic')
+const check=require('../../lib/form-check')
+const {PROBLEM_PATH, TEMP_PATH} = require('../../config/basic')
 const fs = require('fs')
 const path = require('path')
 
 const TYPE_PARTIAL_CONTENT = 0
 
 router.post('/',[check.title,check.cases,check.time_limit,check.memory_limit,check.type,check.special_judge,check.detail_judge,check.tags,check.level], async (req, res, next) => {
-
-  // basic information
-  /*const body = req.body
-  const keys = ['title', 'cases', 'time_limit', 'memory_limit', 'type', 'special_judge', 'detail_judge', 'tags', 'level']
-  const values = [body.title, body.cases, body.time_limit, body.memory_limit, body.type, body.special_judge, body.detail_judge, body.tags, body.level]
-
-  const rules = [undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, {empty: 'remove'}, {empty: 'remove'}]*/
-
   const errors = validationResult(req);
   if(!errors.isEmpty())
   {
@@ -27,19 +18,12 @@ router.post('/',[check.title,check.cases,check.time_limit,check.memory_limit,che
     return
   }
   req.form = matchedData(req);
-  //req.form = {}
-  //const ret = check(keys, values, rules, req.form)
-  //if (ret) return res.fail(1, ret)
   return next()
 })
 
 router.post('/', [check.description,check.input,check.output,check.sample_input,check.sample_output,check.hint],async (req, res, next) => {
   'use strict'
-  // noinspection EqualityComparisonWithCoercionJS
   if (req.form.type != TYPE_PARTIAL_CONTENT) return next()
-  /*const keys = ['description', 'input', 'output', 'sample_input', 'sample_output', 'hint']
-  const values = [req.body.description, req.body.input, req.body.output, req.body.sample_input, req.body.sample_output, req.body.hint]
-  const rules = undefined*/
   const form1 = req.form
   const errors = validationResult(req);
   if(!errors.isEmpty())
@@ -48,11 +32,7 @@ router.post('/', [check.description,check.input,check.output,check.sample_input,
     return
   }
   const checkres=matchedData(req)
-  const values = [checkres.description, checkres.input, checkres.output, checkres.sample_input, checkres.sample_output, checkres.hint]
   const form=Object.assign(form1,checkres);
-
-  /*const ret = check(keys, values, rules, form)
-  if (ret) return res.fail(1, ret)*/
 
   let tags = []
   let pid

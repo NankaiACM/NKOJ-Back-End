@@ -1,7 +1,7 @@
 const router = require('express').Router()
 
-const db = require('../database/db')
-const check = require('../lib/form-check')
+const db = require('../../database/db')
+const check = require('../../lib/old-form-check')
 
 router.get('/check/:type/:what', async (req, res, next) => {
   'use strict'

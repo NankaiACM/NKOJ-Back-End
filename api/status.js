@@ -11,23 +11,15 @@ const getAsync = promisify(client.get).bind(client)
 const multer = require('multer')
 const path = require('path')
 const md5 = require('../lib/md5')
-//const check = require('../lib/form-check')
-const { matchedData} = require('express-validator/filter');
+const { matchedData} = require('express-validator/filter')
 const {validationResult}=require('express-validator/check')
-const check=require('../lib/form-check1')
+const check=require('../lib/form-check')
 const {SOLUTION_PATH} = require('../config/basic')
 const {GET_CODE_SELF}=require('../lib/perm-check')
 const {check_perm}=require('../lib/perm-check')
 
 router.post('/list',[check.queryleft,check.queryright],  async (req, res) => {
   'use strict'
-  /*const keys = ['integer', 'integer']
-  const values = [req.body.queryleft, req.body.queryright]
-  const rules = []
-  const form = {}
-  let checkResult
-  checkResult = check(keys, values, rules, form)
-  if(checkResult) return res.fail(1, checkResult)*/
   const errors = validationResult(req);
   if(!errors.isEmpty())
   {
@@ -46,13 +38,6 @@ router.post('/list',[check.queryleft,check.queryright],  async (req, res) => {
 
 router.post('/code', check_perm(GET_CODE_SELF), check.solutionId, async (req, res) => {
   'use strict'
-  /*const keys = ['integer']
-  const values = [req.body.solutionId]
-  const rules = []
-  const form = {}
-  let checkResult
-  checkResult = check(keys, values, rules, form)
-  if(checkResult) return res.fail(1, checkResult)*/
   const errors = validationResult(req);
   if(!errors.isEmpty())
   {
@@ -78,14 +63,6 @@ router.post('/code', check_perm(GET_CODE_SELF), check.solutionId, async (req, re
 
 router.get('/:problemId',check.problemId,async (req, res) => {
   'use strict'
-  /*const problemId = req.params.problemId
-  const keys = ['integer']
-  const values = [problemId]
-  const rules = []
-  const form = {}
-  let checkResult
-  checkResult = check(keys, values, rules, form)
-  if(checkResult) return res.fail(1, checkResult)*/
 
   const errors = validationResult(req);
   if(!errors.isEmpty())

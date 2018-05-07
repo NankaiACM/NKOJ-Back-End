@@ -1,14 +1,14 @@
 const router = require('express').Router()
 const multer = require('multer')
 const path = require('path')
-const {CONTEST_PATH} = require('../config/basic')
+const {CONTEST_PATH} = require('../../config/basic')
 const redis = require('redis')
-const {DB_CONTEST} = require('../config/redis')
+const {DB_CONTEST} = require('../../config/redis')
 const client = redis.createClient()
 //const check = require('../lib/form-check')
 const { matchedData} = require('express-validator/filter');
 const {validationResult}=require('express-validator/check')
-const check=require('../lib/form-check1')
+const check=require('../../lib/form-check')
 client.select(DB_CONTEST)
 
 const upload = multer({

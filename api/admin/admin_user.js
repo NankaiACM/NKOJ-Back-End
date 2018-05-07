@@ -1,12 +1,12 @@
 const router = require('express').Router()
 const path = require('path')
-const {check_perm, MANAGE_ROLE, SUPER_ADMIN} = require('../lib/perm-check')
+const {check_perm, MANAGE_ROLE, SUPER_ADMIN} = require('../../lib/perm-check')
 const db = require(path.join(__dirname, '../database', 'db'))
 //const check = require('../lib/form-check')
 const { matchedData} = require('express-validator/filter');
 const {validationResult}=require('express-validator/check')
-const check=require('../lib/form-check1')
-const sessionStore = require('../lib/session-store')
+const check=require('../../lib/form-check')
+const sessionStore = require('../../lib/session-store')
 
 router.post('/add',[check.nickname,check.password,check.email,check.words,check.count], async (req, res) => {
   'use strict'

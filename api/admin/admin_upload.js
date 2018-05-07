@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const {PUBLIC_PATH} = require('../config/basic')
+const {PUBLIC_PATH} = require('../../config/basic')
 const multer = require('multer')
 const path = require('path')
 

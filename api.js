@@ -1,6 +1,6 @@
 const router = require('express').Router()
 
-const admin = require('./api/admin')
+const admin = require('./api/admin/admin')
 const avatar = require('./api/avatar')
 const contest = require('./api/contest')
 const contests = require('./api/contests')
@@ -10,7 +10,7 @@ const judge = require('./api/judge')
 const problem = require('./api/problem')
 const problems = require('./api/problems')
 const test = require('./api/test')
-const user = require('./api/user')
+const user = require('./api/user/user')
 const status = require('./api/status')
 const initData = require('./database/initData')
 

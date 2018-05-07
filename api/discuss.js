@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const { matchedData} = require('express-validator/filter');
 const {validationResult}=require('express-validator/check')
-const check=require('../lib/form-check1')
+const check=require('../lib/form-check')
 router.get('/', (req, res) => {
   'use strict'
   res.ok(JSON.parse('[{' +
@@ -39,14 +39,6 @@ router.get('/', (req, res) => {
 })
 router.get('/list', [check.l,check.r],async (req, res) => {
   'use strict'
-  /*const keys = ['l', 'r']
-  const values = [req.query.l, req.query.r]
-  const rule = {empty: 'remove', type: 'integer'}
-  const rules = [rule, rule]
-  const form = {}
-  let checkResult
-  if (checkResult = check(keys, values, rules, form))
-    return res.fail(1, checkResult)*/
 
   const errors=validationResult(req)
   if(!errors.isEmpty())

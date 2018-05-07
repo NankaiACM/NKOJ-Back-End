@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const db = require('../database/db')
+const db = require('../../database/db')
 
 Date.prototype.format = require('../lib/dateFormat')
 

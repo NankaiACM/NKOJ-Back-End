@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const {PROBLEM_DATA_PATH, TEMP_PATH} = require('../config/basic')
+const {PROBLEM_DATA_PATH, TEMP_PATH} = require('../../config/basic')
 const multer = require('multer')
 const AdmZip = require('adm-zip')
 const fs = require('fs')

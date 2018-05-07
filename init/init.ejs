@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Failed</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/message.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/container.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/segment.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/header.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/icon.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/form.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/button.css">
+    <style>textarea {
+            width: 90% !important;
+            margin-bottom: 1rem !important;
+        }</style>
+    <script>
+      g_database = `<%- locals.db_template %>`
+      g_path = `<%- locals.path_template %>`
+
+      function resetDB () {
+        document.getElementById('db_input').value = g_database
+      }
+
+      function resetPath () {
+        document.getElementById('path_input').value = g_path
+      }
+    </script>
+</head>
+<body>
+<div class="ui text segment container">
+    <div class="ui vertical segment">
+        <h3 class="ui center aligned icon header">
+            <img class="ui icon " src="ic_fix.png"/>
+            Server Startup Failed :-(
+        </h3>
+        <h4 class="ui header">The startup process reports...</h4>
+        <div class="ui warning message">
+            <div class="header"><%= locals.err.reason %></div>
+            <pre><%- locals.err.details %></pre>
+        </div>
+    </div>
+    <div class="ui vertical segment">
+        <h4 class="ui header">Database Settings</h4>
+        <form method="post" class="ui form">
+            <input name="act" value="db" type="hidden">
+            <textarea id="db_input" name="value"
+                      placeholder="An javascript object that contains [user, password, host, database]"><%= locals.database || locals.db_template %></textarea>
+            <button type="submit" class="ui right floated basic blue mini button">Submit</button>
+            <button type="button" class="ui basic right floated red mini button" onclick="resetDB()">Reset</button>
+            <div style="clear: both"></div>
+        </form>
+    </div>
+    <div class="ui vertical segment">
+        <h4 class="ui header">Data Path Settings</h4>
+        <form method="post" class="ui form">
+            <input name="act" value="path" type="hidden">
+            <textarea id="path_input" name="value"
+                      placeholder="An javascript object that contains [user, password, host, database]"><%= locals.path || locals.path_template %></textarea>
+            <button type="submit" class="ui right floated basic blue mini button">Submit</button>
+            <button type="button" class="ui basic right floated red mini button" onclick="resetPath()">Reset</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

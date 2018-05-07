@@ -18,3 +18,7 @@ selenium-debug.log
 
 /node_modules/
 config/postgres.js
+config/path.js
+
+package-lock.json
+database/temp.sql

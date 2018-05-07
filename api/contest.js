@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const db = require('../database/db')
 const fs = require('fs')
-const check = require('../lib/form-check')
+//const check = require('../lib/form-check')
 const redis = require('redis')
 const client = redis.createClient()
 const {DB_CONTEST} = require('../config/redis')
@@ -37,8 +37,7 @@ router.get('/:contest_id/rules', async (req, res) => {
   'use strict'
   const contestId = req.params.contest_id
   client.get('contest_rule:' + contestId, (err, filename) => {
-    let readDir = path.join('./public/', CONTEST_PATH)
-    readDir = path.join(readDir, filename)
+    let readDir = path.join(CONTEST_PATH, filename)
     if (!err) {
       return res.sendFile(path.resolve(readDir), (err) => {
         if (err) res.fail(1, err)
@@ -53,8 +52,7 @@ router.get('/:contest_id/about', async (req, res) => {
   'use strict'
   const contestId = req.params.contest_id
   client.get('contest_about:' + contestId, (err, filename) => {
-    let readDir = path.join('./public/', CONTEST_PATH)
-    readDir = path.join(readDir, filename)
+    let readDir = path.join(CONTEST_PATH, filename)
     if (!err) {
       res.sendFile(path.resolve(readDir), (err) => {
         if (err) res.fail(1, err)

@@ -10,18 +10,16 @@ router.get('/contest/register/:contest_id', async (req, res) => {
   let queryString = 'SELECT * FROM contests WHERE contest_id = $1'
   let result = await db.query(queryString, [contest_id])
   if (result.rows.length > 0) {
-    queryString = 'SELECT * FROM contests WHERE contest_id = $1 AND upper(during) > $2'
+    queryString = 'SELECT * FROM contests WHERE contest_id = $1 AND during @> $2'
     let nowtime = new Date().format("yyyy-MM-dd hh:mm:ss")
-    nowtime = nowtime.toString()
+    nowtime = '[' + nowtime.toString() + ',' + nowtime.toString() + ']'
     console.log(nowtime)
     result = await db.query(queryString, [contest_id, nowtime])
     if(result.rows.length > 0){
       queryString = 'INSERT INTO contest_users (contest_id, user_id) VALUES ($1, $2)'
-      db.query(queryString, [contest_id, req.session.user]).then( (res2) => {
-        res.ok(res2)
-      }, (res2) => {
-        res.fail(3, res2)
-      })
+      result = await db.query(queryString, [contest_id, req.session.user])
+      console.log(result)
+      res.ok('Success!')
     } else {
       res.fail(2, 'Contest was over!')
     }

@@ -1,31 +1,50 @@
 const router = require('express').Router()
 const db = require('../database/db')
-const check = require('../lib/form-check')
+//const check = require('../lib/form-check')
+const { matchedData} = require('express-validator/filter');
+const {validationResult}=require('express-validator/check')
+const check=require('../lib/form-check1')
 const fs=require('fs')
 const path=require('path')
 const {PROBLEM_PATH,PROBLEM_DATA_PATH}=require('../config/basic')
 
-router.post('/list', async (req, res) => {
+router.get('/list', [check.l,check.r],async (req, res) => {
   'use strict'
-  const keys = ['integer', 'integer']
-  const values = [req.body.queryleft, req.body.queryright]
-  const rules = []
+  /*const keys = ['l', 'r']
+  const values = [req.query.l, req.query.r]
+  const rule = {empty: 'remove', type: 'integer'}
+  const rules = [rule, rule]
   const form = {}
   let checkResult
-  if(checkResult = check(keys, values, rules, form)) return res.fail(1, checkResult)
-
-  const query = "SELECT * FROM problems WHERE problem_id BETWEEN $1 AND $2"
-  let result = await db.query(query, values)
-  if (result) {
-    return res.ok(result.rows)
+  if (checkResult = check(keys, values, rules, form))
+    return res.fail(1, checkResult)*/
+  const errors = validationResult(req);
+  if(!errors.isEmpty())
+  {
+    res.fail(1,errors.array())
+    return
   }
-  return res.fail(1, 'Unknown problems')
+  const checkres = matchedData(req);
+  let form={l:checkres.l,r:checkres.r}
+  let offset = form.l - 1 || 0
+  let requested = form.r ? (form.r - offset) : 20
+  let limit = requested > 50 ? 50 : requested
+  let result = await db.query('SELECT * FROM problems order by problem_id limit $1 offset $2', [limit, offset])
+  if (result.rows.length) {
+    return res.ok({
+      requested: requested,
+      served: result.rows.length,
+      is_end: result.rows.length !== limit,
+      list: result.rows
+    })
+  }
+  return res.fatal(404)
 })
 
 
-router.post('/update', async (req, res) => {
+router.post('/update',[check.id,check.title], async (req, res) => {
   'use strict'
-  const values = [req.body.id.valueOf(), req.body.title]
+  /*const values = [req.body.id.valueOf(), req.body.title]
   if(!Number.isInteger(values[0])){
     res.fail(1, {'error' : 'Not Integer!'})
     return
@@ -33,7 +52,16 @@ router.post('/update', async (req, res) => {
   if(values[2].length > 30) {
     res.fail(1, {'error' : 'Title is too long!'})
     return
+  }*/
+
+  const errors = validationResult(req);
+  if(!errors.isEmpty())
+  {
+    res.fail(1,errors.array())
+    return
   }
+  const checkres = matchedData(req);
+  const values=[req.id,req.title]
   const queryCheck = "SELECT * FROM problems WHERE problem_id = $1"
   let result = await db.query(queryCheck, values[0])
   if(result.rows.length > 0){

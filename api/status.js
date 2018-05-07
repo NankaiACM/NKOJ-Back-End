@@ -11,21 +11,31 @@ const getAsync = promisify(client.get).bind(client)
 const multer = require('multer')
 const path = require('path')
 const md5 = require('../lib/md5')
-const check = require('../lib/form-check')
+//const check = require('../lib/form-check')
+const { matchedData} = require('express-validator/filter');
+const {validationResult}=require('express-validator/check')
+const check=require('../lib/form-check1')
 const {SOLUTION_PATH} = require('../config/basic')
 const {GET_CODE_SELF}=require('../lib/perm-check')
 const {check_perm}=require('../lib/perm-check')
 
-router.post('/list',  async (req, res) => {
+router.post('/list',[check.queryleft,check.queryright],  async (req, res) => {
   'use strict'
-  const keys = ['integer', 'integer']
+  /*const keys = ['integer', 'integer']
   const values = [req.body.queryleft, req.body.queryright]
   const rules = []
   const form = {}
   let checkResult
   checkResult = check(keys, values, rules, form)
-  if(checkResult) return res.fail(1, checkResult)
-
+  if(checkResult) return res.fail(1, checkResult)*/
+  const errors = validationResult(req);
+  if(!errors.isEmpty())
+  {
+    res.fail(1,errors.array())
+    return
+  }
+  const checkres = matchedData(req);
+  const values=[checkres.queryleft, checkres.queryright]
   const queryString = 'SELECT * FROM status WHERE solution_id BETWEEN $1 AND $2'
   const result = await db.query(queryString, values)
   if(result.rows.length > 0){
@@ -34,21 +44,29 @@ router.post('/list',  async (req, res) => {
   return res.fail(1, 'No solutions!')
 })
 
-router.post('/code', check_perm(GET_CODE_SELF),  async (req, res) => {
+router.post('/code', check_perm(GET_CODE_SELF), check.solutionId, async (req, res) => {
   'use strict'
-  const keys = ['integer']
+  /*const keys = ['integer']
   const values = [req.body.solutionId]
   const rules = []
   const form = {}
   let checkResult
   checkResult = check(keys, values, rules, form)
-  if(checkResult) return res.fail(1, checkResult)
+  if(checkResult) return res.fail(1, checkResult)*/
+  const errors = validationResult(req);
+  if(!errors.isEmpty())
+  {
+    res.fail(1,errors.array())
+    return
+  }
+  const checkres = matchedData(req);
+  const values=[checkres.solutionId]
   const queryString = 'SELECT user_id FROM solutions WHERE solution_id = $1 '
   const result = await db.query(queryString, values)
   if(result.rows.length > 0){
     if(req.session.user===result.rows[0].user_id) {
-      if (fs.existsSync(`${SOLUTION_PATH}/${values[0]}`)) {
-        res.sendFile(`${SOLUTION_PATH}/${values[0]}`)
+      if (fs.existsSync(path.resolve(SOLUTION_PATH, values[0]))) {
+        res.sendFile(path.resolve(SOLUTION_PATH, values[0]))
       } else {
         res.fail(1,'No solution\'s file')
       }
@@ -58,16 +76,25 @@ router.post('/code', check_perm(GET_CODE_SELF),  async (req, res) => {
   return res.fail(1, 'No solutions!')
 })
 
-router.get('/:problemId',async (req, res) => {
+router.get('/:problemId',check.problemId,async (req, res) => {
   'use strict'
-  const problemId = req.params.problemId
+  /*const problemId = req.params.problemId
   const keys = ['integer']
   const values = [problemId]
   const rules = []
   const form = {}
   let checkResult
   checkResult = check(keys, values, rules, form)
-  if(checkResult) return res.fail(1, checkResult)
+  if(checkResult) return res.fail(1, checkResult)*/
+
+  const errors = validationResult(req);
+  if(!errors.isEmpty())
+  {
+    res.fail(1,errors.array())
+    return
+  }
+  const checkres = matchedData(req);
+  const values=[checkres.solutionId]
   const queryString = 'SELECT * FROM status WHERE problem_id = $1 ORDER BY time,memory'
   const result = await db.query(queryString, values)
   if(result.rows.length > 0){

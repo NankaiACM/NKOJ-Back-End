@@ -1,7 +1,7 @@
 module.exports = {
-  REASON_DATABASE_CONFIG: 'database configuration file is missing or failed to load',
-  REASON_DATABASE_CONNECT: 'database connection failed',
-  REASON_PATH_CONFIG: 'app path configuration file is missing or failed to load',
-  REASON_INACCESSIBLE_PATH: 'the path set in the configuration is not accessible',
-  REASON_REDIS_ERROR: '(PENDING REMOVAL) redis server connection failed'
+  REASON_DATABASE_CONFIG: 'Database Configuration File is Missing or Failed to Load',
+  REASON_DATABASE_CONNECT: 'Database Connection Failed',
+  REASON_PATH_CONFIG: 'Data Path Configuration File is Missing or Failed to Load',
+  REASON_INACCESSIBLE_PATH: 'The Data Path is Improper Set',
+  REASON_REDIS_ERROR: '(PENDING REMOVAL) Redis Server Connection Failed'
 }

@@ -76,11 +76,11 @@ app.get(/^.+$/, (req, res) => {
   res.sendFile(`${DIST_PATH}/index.html`, {acceptRanges: false})
 })
 
-app.all(/^.+$/, (req, res) => {
+app.use((req, res) => {
   res.fatal(404)
 })
 
-app.all(/^.+$/, (err, req, res) => {
+app.use((err, req, res) => {
   // DEV: remove
   res.fatal(500, err.stack || err)
 })

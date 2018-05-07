@@ -41,6 +41,7 @@ new Promise(async (resolve, reject) => {
 }).catch((err) => {
   console.error(`failed to start normal server, reason: ${err.reason},\n details: ${err.details}`)
   app = require('../init/init')
+  app.locals.err = err
 }).then(() => {
   const port = 80
   app.set('port', port)

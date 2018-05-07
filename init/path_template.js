@@ -1,6 +1,6 @@
 // Template File
 module.exports = {
-  DATA_BASE: 'D:/oj/data',
+  DATA_BASE: '/var/www/data',
   AVATAR_PATH: 'avatars',
   DIST_PATH: 'dist',
   PROBLEM_PATH: 'problems',

@@ -2,9 +2,9 @@ const router = require('express').Router()
 
 const db = require('../../database/db')
 //const check = require('../lib/form-check')
-const { matchedData} = require('express-validator/filter');
-const {validationResult}=require('express-validator/check')
-const check=require('../../lib/form-check')
+const {matchedData} = require('express-validator/filter')
+const {validationResult} = require('express-validator/check')
+const check = require('../../lib/form-check')
 const {check_perm} = require('../../lib/perm-check')
 
 const redis = require('redis')
@@ -28,7 +28,7 @@ router.get('/logout', async (req, res) => {
   res.ok()
 })
 
-router.post('/login', captcha.check('login'),[check.user,check.password], async (req, res) => {
+router.post('/login', captcha.check('login'), [check.user, check.password], async (req, res) => {
   'use strict'
 
   /*const keys = ['user', 'password']
@@ -38,15 +38,13 @@ router.post('/login', captcha.check('login'),[check.user,check.password], async 
   let err = check(keys, values, rules)
   if (err) return res.fail(400, err)*/
 
-  const errors = validationResult(req);
-  if(!errors.isEmpty())
-  {
-    res.fail(1,errors.array())
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    res.fail(1, errors.array())
     return
   }
-  const checkres = matchedData(req);
-  const values=[checkres.user, checkres.password]
-
+  const checkres = matchedData(req)
+  const values = [checkres.user, checkres.password]
 
   const errArr = [1, [{name: 'name', message: 'might be wrong'}, {
     name: 'password',

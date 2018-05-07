@@ -4,7 +4,7 @@ const login = require('./user_login')
 const register = require('./user_register')
 const user_check = require('./user_check')
 const update = require('./user_update')
-const problems=require('./user_problems')
+const problems = require('./user_problems')
 const contest = require('./user_contest')
 
 router.use(login)

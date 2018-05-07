@@ -8,7 +8,7 @@ Date.prototype.format = require('../lib/dateFormat')
 router.get('/', async (req, res) => {
   'use strict'
   const webstorm = new ws('ws://192.168.99.100:8000')
-  webstorm.on('open', function open() {
+  webstorm.on('open', function open () {
     webstorm.send('./')
     webstorm.send('1')
     webstorm.send('1001')
@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
     webstorm.send('0')
     webstorm.send('1')
   })
-  webstorm.on('close', function close() {
+  webstorm.on('close', function close () {
     res.ok('!!!')
   })
   /*

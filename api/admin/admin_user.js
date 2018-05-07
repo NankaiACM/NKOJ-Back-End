@@ -3,25 +3,24 @@ const path = require('path')
 const {check_perm, MANAGE_ROLE, SUPER_ADMIN} = require('../../lib/perm-check')
 const db = require(path.join(__dirname, '../database', 'db'))
 //const check = require('../lib/form-check')
-const { matchedData} = require('express-validator/filter');
-const {validationResult}=require('express-validator/check')
-const check=require('../../lib/form-check')
+const {matchedData} = require('express-validator/filter')
+const {validationResult} = require('express-validator/check')
+const check = require('../../lib/form-check')
 const sessionStore = require('../../lib/session-store')
 
-router.post('/add',[check.nickname,check.password,check.email,check.words,check.count], async (req, res) => {
+router.post('/add', [check.nickname, check.password, check.email, check.words, check.count], async (req, res) => {
   'use strict'
- /* const keys = ['nickname', 'password', 'email', 'words', 'count']
-  const values = [req.body.nickname, req.body.password, req.body.email, req.body.words, req.body.count]
-  const rules = [undefined, undefined, undefined, undefined, {type: 'integer'}]
-  const form = {}
-  check(keys, values, rules, form)*/
-  const errors = validationResult(req);
-  if(!errors.isEmpty())
-  {
-    res.fail(1,errors.array())
+  /* const keys = ['nickname', 'password', 'email', 'words', 'count']
+   const values = [req.body.nickname, req.body.password, req.body.email, req.body.words, req.body.count]
+   const rules = [undefined, undefined, undefined, undefined, {type: 'integer'}]
+   const form = {}
+   check(keys, values, rules, form)*/
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    res.fail(1, errors.array())
     return
   }
-  const form = matchedData(req);
+  const form = matchedData(req)
   console.log(form)
   if (!form.count || form.count === '1') form.count = 1
 

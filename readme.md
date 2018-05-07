@@ -1,6 +1,6 @@
 ### How To Install
 
-+ install node 9.5.0+
++ install node 10.0.0+
 + run `npm install` on this folder
 + run `npm install pm2 -g` to install pm2 and save it globally
 + run `pm2 start bin/init --name api --watch` on this folder
@@ -8,27 +8,18 @@
 
 ### Other DEPENDENCY This Project May Use
 
-+ postgres 10
-+ redis 4.0.8+
-+ A valid RSA key for encrypt and decrypt sensitive data
-+ gcc 6.4.0+
-
-  ( Configure them at `/config` )
++ postgres 10.3
++ run `./database/init.sh` to init the database
++ redis 4.0.8+ (Deprecated Dependency)
++ gcc 6.4.0+ (Configure it at `/config`)
 
 ### 在windows上的部署细节
 
 + 执行完install的命令后，还需要安装postgresql和redis，可以去官网查看安装配置方法
 + config中主要需要对postgresql进行配置，填写设置好的密码，其他都是默认设置，可以不用更改
 + 使用webstorm可以下载sql插件，执行create.sql文件建立数据库
-+ 访问http://localhost:8000/api/test/initproblems 可以加入一些用于测试的数据
 
 
-### 比赛和题目的接口
-+ get /api/test/initproblems   初始化题目数据，提供一些用于测试的题目
-+ get /api/test/initcontests   初始化比赛数据，提供一些用于测试的比赛
-+ post /api/problems/list      post的body中指定queryleft和queryright，返回这个id在这个区间的题目信息
-+ get /api/p/id                获取这个id的题目信息（md格式）
-+ post /api/contests/list      post的body中指定queryleft和queryright，返回这个id在这个区间的比赛信息
-+ get /api/contest/id          获取这个id的比赛信息
-+ get /api/contest/id/rule     获取这个id的比赛中的rule(md格式）
-+ get /api/contest/id/about    获取这个id的比赛中的about(md格式）
+### 已经实现的接口
+
++ 待补充...

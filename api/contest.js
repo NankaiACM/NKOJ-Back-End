@@ -20,10 +20,10 @@ router.get('/:contest_id', async (req, res) => {
   return res.fail(1, 'No contest!')
 })
 
-router.get('/:contest_id/getProblem', async(req, res) => {
+router.get('/:contest_id/getProblem', async (req, res) => {
   'use strict'
   const contestId = req.params.contest_id
-  const queryString = "WITH t AS (SELECT problems FROM contests WHERE contest_id = $1 LIMIT 1) SELECT problems.* FROM problems, t WHERE problem_id = ANY(t.problems)"
+  const queryString = 'WITH t AS (SELECT problems FROM contests WHERE contest_id = $1 LIMIT 1) SELECT problems.* FROM problems, t WHERE problem_id = ANY(t.problems)'
   let result = await db.query(queryString, [contestId])
   if (result.rows.length > 0) {
     return res.ok(result.rows)
@@ -67,7 +67,7 @@ router.get('/:contest_id/user', async (req, res) => {
   const contest_id = req.params.contest_id
   let queryString = 'SELECT * FROM contest_users WHERE contest_id = $1'
   let result = db.query(queryString, [contest_id])
-  if(result.rows.length > 0){
+  if (result.rows.length > 0) {
     return res.ok(result)
   } else return res.fail(1, 'No User!')
 })

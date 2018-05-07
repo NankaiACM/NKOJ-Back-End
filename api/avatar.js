@@ -15,7 +15,6 @@ const avatar = async (key) => {
   return 'default.png'
 }
 
-
 router.get('/:key', async (req, res) => {
   'use strict'
   const key = req.params.key

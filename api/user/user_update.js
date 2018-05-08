@@ -11,7 +11,7 @@ const {check_perm} = require('../../lib/perm-check')
 const md5 = require('../../lib/md5')
 
 const {DB_USER} = require('../../config/redis')
-const redis = require('../../lib/redis-util')(DB_USER)
+const redis = require('../../lib/redis-utils')(DB_USER)
 
 const sharp = require('sharp')
 const fs = require('fs')

@@ -17,8 +17,10 @@ selenium-debug.log
 *.sln
 
 /node_modules/
-config/postgres.js
-config/path.js
+/config/postgres.js
+/config/path.js
+/config/mail.js
+/config/rsa.js
 
 package-lock.json
 database/temp.sql

@@ -13,10 +13,10 @@ const lang_type={
   'go':'go'
 }
 const code={
-  'problem_id':,
-  'userid':,
-  'codebody':,
-  'lauguange':
+  'problem_id': 1001,
+  'userid': 1,
+  'codebody': '',
+  'lauguange': 'cpp'
 }
 const build_cmd = {
   "gcc"    : "gcc main.c -o main -Wall -lm -O2 -std=c99 --static -DONLINE_JUDGE",

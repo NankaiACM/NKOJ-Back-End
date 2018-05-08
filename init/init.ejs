@@ -2,65 +2,102 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Failed</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/message.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/container.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/segment.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/header.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/icon.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/form.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/components/button.css">
-    <style>textarea {
-            width: 90% !important;
-            margin-bottom: 1rem !important;
-        }</style>
+    <title>Init Progress...</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
+            integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+            crossorigin="anonymous"></script>
+
     <script>
-      g_database = `<%- locals.db_template %>`
-      g_path = `<%- locals.path_template %>`
-
-      function resetDB () {
-        document.getElementById('db_input').value = g_database
-      }
-
-      function resetPath () {
-        document.getElementById('path_input').value = g_path
+      defaults = {}
+              <%
+              var file_keys = Object.keys(locals.files)
+                      for(var i in file_keys) {
+              %>
+              <%- `defaults.${file_keys[i]}` %> = `<%- locals[`${file_keys[i]}_template`] %>`
+      <% } %>
+      function r (w) {
+        var t = document.getElementById(w)
+        t.value = defaults[w]
       }
     </script>
 </head>
 <body>
-<div class="ui text segment container">
-    <div class="ui vertical segment">
-        <h3 class="ui center aligned icon header">
-            <img class="ui icon " src="ic_fix.png"/>
-            Server Startup Failed :-(
-        </h3>
-        <h4 class="ui header">The startup process reports...</h4>
-        <div class="ui warning message">
-            <div class="header"><%= locals.err.reason %></div>
-            <pre><%- locals.err.details %></pre>
+<div class="container" style="padding-top: 1rem">
+    <div class="card">
+        <h4 class="card-header">An Exception Occurred During Server Startup... </h4>
+        <div class="card-body">
+            <div class="alert alert-danger" role="alert">
+                <b><%= locals.err.reason %></b>
+                <pre><%- locals.err.details %></pre>
+            </div>
+        </div>
+        <div class="float-right">
+            <hr>
+            <a class="btn btn-warning float-right" href="restart">
+                Shutdown Server
+            </a>
         </div>
     </div>
-    <div class="ui vertical segment">
-        <h4 class="ui header">Database Settings</h4>
-        <form method="post" class="ui form">
-            <input name="act" value="db" type="hidden">
-            <textarea id="db_input" name="value"
-                      placeholder="An javascript object that contains [user, password, host, database]"><%= locals.database || locals.db_template %></textarea>
-            <button type="submit" class="ui right floated basic blue mini button">Submit</button>
-            <button type="button" class="ui basic right floated red mini button" onclick="resetDB()">Reset</button>
-            <div style="clear: both"></div>
+    <%
+    var file_keys = Object.keys(locals.files)
+            for(var i in file_keys) {
+    %>
+    <div class="card">
+        <div class="card-header">Modify for <span class="badge badge-light"><%= files[file_keys[i]] %></span></div>
+        <form method="post">
+            <input type="hidden" name="type" value="<%= file_keys[i] %>">
+            <div style="margin-top: -1rem">
+                <label></label>
+                <textarea id="<%- file_keys[i] %>" class="form-control" rows="7"
+                          name="value"><%- locals[file_keys[i]] || locals[`${file_keys[i]}_template`] %></textarea>
+            </div>
+            <div class="float-right" role="group">
+                <button type="reset" class="btn btn-danger">Restore</button>
+                <button type="button" class="btn btn-primary" onclick="r('<%- file_keys[i] %>')">Defauts</button>
+                <button type="submit" class="btn btn-success">Submit</button>
+            </div>
         </form>
     </div>
-    <div class="ui vertical segment">
-        <h4 class="ui header">Data Path Settings</h4>
-        <form method="post" class="ui form">
-            <input name="act" value="path" type="hidden">
-            <textarea id="path_input" name="value"
-                      placeholder="An javascript object that contains [user, password, host, database]"><%= locals.path || locals.path_template %></textarea>
-            <button type="submit" class="ui right floated basic blue mini button">Submit</button>
-            <button type="button" class="ui basic right floated red mini button" onclick="resetPath()">Reset</button>
-        </form>
+    <% } %>
+</div>
+<div class="modal fade" id="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-body"></div>
+                <pre class="error" id="modal-error"></pre>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+            </div>
+        </div>
     </div>
 </div>
+<script>
+  jQuery('form').on('submit', function (e) {
+    e.preventDefault()
+    var data = $(this).serialize()
+    jQuery.post({
+      url: '/init',
+      data: data,
+      success: function (data) {
+        $('#modal-title').html(data.code === 0 ? 'Success!' : 'Failed?')
+        $('#modal-body').html(data.message || 'No other info...')
+        $('#modal-error').html(data.error || '')
+        $('#modal').modal('show')
+      }
+    })
+  })
+</script>
 </body>
 </html>

@@ -1,4 +1,3 @@
-// Template File
 module.exports = {
   DATA_BASE: 'D:/oj/data',
   AVATAR_PATH: 'avatars',

@@ -17,10 +17,12 @@ selenium-debug.log
 *.sln
 
 /node_modules/
+
+# Private Configurations
 /config/postgres.js
 /config/path.js
 /config/mail.js
 /config/rsa.js
 
-package-lock.json
-database/temp.sql
+# Temp files
+/database/temp.sql

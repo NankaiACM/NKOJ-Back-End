@@ -7,11 +7,11 @@ const multer = require('multer')
 const path = require('path')
 
 const {AVATAR_PATH} = require('../../config/basic')
-const {check_perm} = require('../../lib/perm-check')
+const {require_perm} = require('../../lib/permission')
 const md5 = require('../../lib/md5')
 
 const {DB_USER} = require('../../config/redis')
-const redis = require('../../lib/redis-utils')(DB_USER)
+const redis = require('../../lib/redis')(DB_USER)
 
 const sharp = require('sharp')
 const fs = require('fs')
@@ -37,7 +37,7 @@ const upload = multer({
   }
 })
 
-router.post('/update', upload.single('avatar'), check_perm(), async (req, res) => {
+router.post('/update', upload.single('avatar'), require_perm(), async (req, res) => {
   'use strict'
 
   const keys = ['nickname', 'email', 'gender', 'qq', 'phone', 'real_name', 'school', 'password', 'words']

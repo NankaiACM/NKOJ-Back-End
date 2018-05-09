@@ -3,7 +3,6 @@ const fs = require('fs')
 const db = require('../database/db')
 const ws = require('ws')
 const {SOLUTION_PATH} = require('../config/basic')
-Date.prototype.format = require('../lib/dateFormat')
 
 router.get('/', async (req, res) => {
   'use strict'

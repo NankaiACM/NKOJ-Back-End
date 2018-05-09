@@ -1,12 +1,12 @@
 const router = require('express').Router()
 const path = require('path')
-const {check_perm, MANAGE_ROLE, SUPER_ADMIN} = require('../../lib/perm-check')
+const {require_perm, MANAGE_ROLE, SUPER_ADMIN} = require('../../lib/permission')
 const db = require(path.join(__dirname, '../database', 'db'))
 //const check = require('../lib/form-check')
 const {matchedData} = require('express-validator/filter')
 const {validationResult} = require('express-validator/check')
 const check = require('../../lib/form-check')
-const sessionStore = require('../../lib/session-store')
+const session = require('../../lib/session')
 
 router.post('/add', [check.nickname, check.password, check.email, check.words, check.count], async (req, res) => {
   'use strict'
@@ -69,7 +69,7 @@ router.get('/remove/:who', async (req, res) => {
 
   if (ret.rows.length) {
     res.ok({removed: ret.rows[0].user_id})
-    sessionStore.logout(ret.rows[0].user_id)
+    session.logout(ret.rows[0].user_id)
   }
   else
     res.fail(1, 'no such user')
@@ -79,9 +79,9 @@ router.get('/logout/:who', async (req, res) => {
   'use strict'
   const who = req.params.who
   if (who === 'all') {
-    sessionStore.logoutAll()
+    session.logoutAll()
   } else {
-    sessionStore.logout(who)
+    session.logout(who)
   }
   res.ok()
 })

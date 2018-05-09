@@ -1,5 +1,5 @@
 const {DB_USER} = require('../config/redis')
-const redis = require('../lib/redis-utils')(DB_USER)
+const redis = require('../lib/redis')(DB_USER)
 const db = require('../database/db')
 const router = require('express').Router()
 const fs = require('fs')

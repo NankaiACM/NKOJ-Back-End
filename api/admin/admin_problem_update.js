@@ -6,7 +6,7 @@ const check = require('../../lib/form-check')
 const {PROBLEM_PATH, TEMP_PATH} = require('../../config/basic')
 const fs = require('fs')
 const path = require('path')
-const {generateFileString} = require('../../lib/problem_utils')
+const {generateFileString} = require('../../lib/problem')
 
 const TYPE_PARTIAL_CONTENT = 0
 

@@ -20,6 +20,7 @@ const evalInContext = (scr) => {
 }
 
 const files = {
+  session: path.resolve(__dirname, '../config/session.js'),
   db: path.resolve(__dirname, '../config/postgres.js'),
   path: path.resolve(__dirname, '../config/path.js'),
   mail: path.resolve(__dirname, '../config/mail.js'),
@@ -56,7 +57,7 @@ app.post('/init', (req, res) => {
   try {
     fs.writeFileSync(files[type], value)
   } catch (e) {
-    return res.json({code: 500, message: 'error when writing the file', error: e.stack || e})
+    return res.json({code: 500, message: 'error when write the file', error: e.stack || e})
   }
   res.send({code: 0})
 })

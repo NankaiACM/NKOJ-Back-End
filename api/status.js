@@ -15,8 +15,8 @@ const {matchedData} = require('express-validator/filter')
 const {validationResult} = require('express-validator/check')
 const check = require('../lib/form-check')
 const {SOLUTION_PATH} = require('../config/basic')
-const {GET_CODE_SELF} = require('../lib/perm-check')
-const {check_perm} = require('../lib/perm-check')
+const {GET_CODE_SELF} = require('../lib/permission')
+const {require_perm} = require('../lib/permission')
 
 router.post('/list', [check.queryleft, check.queryright], async (req, res) => {
   'use strict'
@@ -35,7 +35,7 @@ router.post('/list', [check.queryleft, check.queryright], async (req, res) => {
   return res.fail(1, 'No solutions!')
 })
 
-router.post('/code', check_perm(GET_CODE_SELF), check.solutionId, async (req, res) => {
+router.post('/code', require_perm(GET_CODE_SELF), check.solutionId, async (req, res) => {
   'use strict'
   const errors = validationResult(req)
   if (!errors.isEmpty()) {

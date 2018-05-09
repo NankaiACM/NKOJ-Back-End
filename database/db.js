@@ -1,5 +1,5 @@
 const pool = require('./init')
-const sessionStore = require('../lib/session-store')
+const session = require('../lib/session')
 const db = {}
 
 db.pool = () => pool
@@ -37,7 +37,7 @@ db.postLogin = (info, req, res) => {
   req.session.nickname = info.nickname
   req.session.save()
   delete info.password
-  sessionStore.login(info.user_id, req.session.id)
+  session.login(info.user_id, req.session.id)
   res.ok(info)
 }
 

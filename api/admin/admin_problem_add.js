@@ -1,4 +1,4 @@
-const {generateFileString} = require('../../lib/problem_utils')
+const {generateFileString} = require('../../lib/problem')
 const router = require('express').Router()
 const db = require('../../database/db')
 const {matchedData} = require('express-validator/filter')

@@ -3,9 +3,8 @@ const express = require('express')
 const app = express()
 
 const api = require('./api/api')
-const session = require('./lib/session-store')
+const session = require('./lib/session')
 const prototype = require('./lib/prototype')
-const captcha = require('./lib/captcha')
 
 const bodyParser = require('body-parser')
 const logger = require('morgan')
@@ -19,7 +18,7 @@ app.use(logger('dev'))
 // DEV: PPT JSON
 app.set('json spaces', 4)
 
-app.use(session.sessionParser)
+app.use(session)
 app.use(prototype.setResponsePrototype)
 
 // DEV: Added when debugging from localhost or other server
@@ -55,17 +54,6 @@ app.use(bodyParser.json({limit: '233kb'}))
 app.use(bodyParser.urlencoded({extended: true}))
 
 // Dispatch to router
-
-app.get('/api/captcha', (req, res) => {
-  'use strict'
-  return captcha.middleware(req.params.type)(req, res)
-})
-
-app.get('/api/captcha/:type', (req, res) => {
-  'use strict'
-  return captcha.middleware(req.params.type)(req, res)
-})
-
 app.use('/api', api)
 
 app.use('/', express.static(DIST_PATH, {fallthrough: true}))

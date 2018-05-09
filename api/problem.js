@@ -8,7 +8,7 @@ const path = require('path')
 const md5 = require('../lib/md5')
 const fs = require('fs')
 const db = require('../database/db')
-const {splitFileString} = require('../lib/problem_utils')
+const {splitFileString} = require('../lib/problem')
 client.select(DB_PROBLEM)
 
 router.get('/:pid', async (req, res) => {

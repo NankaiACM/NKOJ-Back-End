@@ -23,6 +23,7 @@ selenium-debug.log
 /config/path.js
 /config/mail.js
 /config/rsa.js
+/config/session.js
 
 # Temp files
 /database/temp.sql

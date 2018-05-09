@@ -1,11 +1,9 @@
 const router = require('express').Router()
 
 const db = require('../../database/db')
-//const check = require('../lib/form-check')
 const {matchedData} = require('express-validator/filter')
 const {validationResult} = require('express-validator/check')
 const check = require('../../lib/form-check')
-const {check_perm} = require('../../lib/perm-check')
 
 const redis = require('redis')
 const session_client = redis.createClient()
@@ -13,14 +11,6 @@ const {DB_SESSION_STORE} = require('../../config/redis')
 session_client.select(DB_SESSION_STORE)
 
 const captcha = require('../../lib/captcha')
-
-router.get('/', check_perm(), async (req, res) => {
-  'use strict'
-  const user = req.session.user
-  const result = await db.query('SELECT * FROM users WHERE user_id = $1', [user])
-  delete result.rows[0].password
-  res.ok(result.rows[0])
-})
 
 router.get('/logout', async (req, res) => {
   'use strict'

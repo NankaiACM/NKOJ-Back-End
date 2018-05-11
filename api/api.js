@@ -13,6 +13,7 @@ const problems = require('./problems')
 const test = require('./test')
 const user = require('./user/user')
 const status = require('./status')
+const version = require('./version')
 
 router.use('/admin', admin)
 router.use('/avatar', avatar)
@@ -29,8 +30,13 @@ router.use('/problems', problems)
 router.use('/u', user)
 router.use('/user', user)
 router.use('/status', status)
+router.use('/version', version)
 
 // DEV: test
 router.use('/test', test)
+
+router.use((req, res) => {
+  res.fatal(501)
+})
 
 module.exports = router

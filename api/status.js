@@ -8,10 +8,9 @@ const check = require('../lib/form-check')
 const {SOLUTION_PATH} = require('../config/basic')
 const {GET_CODE_SELF, GET_CODE_ALL, check_perm} = require('../lib/permission')
 
-router.get('/:limit(\\d+)?', async (req, res) => {
+router.get('/', async (req, res) => {
   'use strict'
-  let limit = Number(req.params.limit || 0)
-  limit = (limit > 0 && limit < 50) ? limit : 20
+  let limit = 20
   const queryString = 'SELECT * FROM user_solutions ORDER BY solution_id DESC LIMIT $1'
   const result = await db.query(queryString, [limit])
   if (result.rows.length > 0)
@@ -23,6 +22,7 @@ router.get('/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
   'use strict'
   let from = Number(req.params.from)
   let limit = Number(req.params.limit || 0)
+  if (limit > 50) limit = 50
 
   if (from < 0 || limit < 0) return next()
 

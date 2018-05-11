@@ -2,7 +2,7 @@ const path = require('path')
 const {
   DIST_PATH, PUBLIC_PATH, TEMP_PATH, PROBLEM_SPJ_PATH,
   AVATAR_PATH, CONTEST_PATH, DATA_BASE,
-  PROBLEM_DATA_PATH, PROBLEM_PATH, SOLUTION_PATH
+  PROBLEM_DATA_PATH, PROBLEM_PATH, SOLUTION_PATH, FRONT_END_PATH
 } = require('./path')
 
 module.exports = {
@@ -15,5 +15,7 @@ module.exports = {
   PUBLIC_PATH: path.resolve(DATA_BASE, PUBLIC_PATH),
   TEMP_PATH: path.resolve(DATA_BASE, TEMP_PATH),
   CONTEST_PATH: path.resolve(DATA_BASE, CONTEST_PATH),
-  SOLUTION_PATH: path.resolve(DATA_BASE, SOLUTION_PATH)
+  SOLUTION_PATH: path.resolve(DATA_BASE, SOLUTION_PATH),
+  FRONT_END_PATH: path.resolve(DATA_BASE, FRONT_END_PATH),
+  BACK_END_PATH: path.resolve(__dirname, '..')
 }

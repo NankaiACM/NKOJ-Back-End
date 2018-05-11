@@ -1,5 +1,6 @@
 // Template File
 module.exports = {
+  BASE_URL: 'http://localhost',
   DATA_BASE: '/var/www/data',
   AVATAR_PATH: 'avatars',
   DIST_PATH: 'dist',
@@ -10,5 +11,5 @@ module.exports = {
   TEMP_PATH: 'temp',
   CONTEST_PATH: 'contests',
   SOLUTION_PATH: 'solutions',
-  BASE_URL: 'http://localhost'
+  FRONT_END_PATH: '../alpha'
 }

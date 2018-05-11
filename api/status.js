@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
   const result = await db.query(queryString, [limit])
   if (result.rows.length > 0)
     return res.ok(result.rows)
-  return res.status(204)
+  return res.sendStatus(204)
 })
 
 router.get('/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
@@ -30,7 +30,7 @@ router.get('/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
   const result = await db.query(queryString, limit ? [limit, from] : [from])
   if (result.rows.length > 0)
     return res.ok(result.rows)
-  return res.status(204)
+  return res.sendStatus(204)
 })
 
 // router.get('/code/:solutionId(\\d+)?', check_perm(GET_CODE_SELF), async (req, res) => {

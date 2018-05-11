@@ -38,7 +38,7 @@ router.get('/rebuild/:type', require_perm(SUPER_ADMIN), async (req, res) => {
       break
     case 'backend':
       res.write('reset:\n')
-      res.write(JSON.stringify(git.back.resetAll()))
+      res.write(JSON.stringify(await git.back.resetAll()))
       res.write('\npull:\n')
       const bres = await git.back.pull()
       res.write(JSON.stringify(bres))

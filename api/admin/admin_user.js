@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const path = require('path')
 const {require_perm, MANAGE_ROLE, SUPER_ADMIN} = require('../../lib/permission')
-const db = require(path.join(__dirname, '../database', 'db'))
+const db = require('../../database/db')
 //const check = require('../lib/form-check')
 const {matchedData} = require('express-validator/filter')
 const {validationResult} = require('express-validator/check')

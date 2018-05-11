@@ -8,8 +8,9 @@ const port = 80
 
 let app = undefined
 let httpServer = http.createServer()
+
 new Promise(async (resolve, reject) => {
-  const {REASON_PATH_CONFIG, REASON_DATABASE_CONFIG, REASON_INACCESSIBLE_PATH, REASON_DATABASE_CONNECT, REASON_REDIS_ERROR} = require('../init/reason')
+  const {REASON_PATH_CONFIG, REASON_DATABASE_CONFIG, REASON_INACCESSIBLE_PATH, REASON_DATABASE_CONNECT, REASON_REDIS_ERROR, REASON_RSA_CONFIG, REASON_RSA_Decrypt} = require('../init/reason')
   if (!fs.existsSync(path.resolve(__dirname, '../config/postgres.js')))
     return reject({reason: REASON_DATABASE_CONFIG})
   try {
@@ -34,14 +35,28 @@ new Promise(async (resolve, reject) => {
   } catch (e) {
     return reject({reason: REASON_INACCESSIBLE_PATH, details: e.stack || e})
   }
+
+  if (!fs.existsSync(path.resolve(__dirname, '../config/rsa.js')))
+    return reject({reason: REASON_RSA_CONFIG})
+
+  const {encrypt, decrypt} = require('../lib/rsa')
+  if (decrypt(encrypt('hello')) !== 'hello') {
+    return reject({
+      reason: REASON_RSA_Decrypt,
+      details: `message: hello, encrypt result: ${encrypt('hello')}, descrypt result: ${decrypt(encrypt('hello'))}`
+    })
+  }
+
   const redis = require('redis')
   const client = redis.createClient()
   client.on('ready', () => resolve())
   client.on('error', () => reject({reason: REASON_REDIS_ERROR}))
 }).then(() => {
-  chat = require('../lib/chat')(httpServer)
+  require('../lib/chat')(httpServer)
   app = require('../app')
 }).catch((err) => {
+  err.reason = err.reason || err
+  err.details = err.details || err.stack || err
   console.error(`failed to start normal server, reason: ${err.reason},\n details: ${err.details}`)
   app = require('../init/init')
   app.locals.err = err

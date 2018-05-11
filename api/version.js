@@ -37,6 +37,7 @@ router.get('/rebuild/:type', require_perm(SUPER_ADMIN), async (req, res) => {
       res.send('\nnpm_install:\n')
       res.send(git.front.install())
       res.send('\nfinished. will restart.\n')
+      process.exit(-1)
       break
     default:
       res.send('type unknown\n')

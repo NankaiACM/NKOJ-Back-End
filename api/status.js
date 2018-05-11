@@ -1,23 +1,13 @@
 const router = require('express').Router()
 const db = require('../database/db')
 const fs = require('fs')
-const redis = require('redis')
-const client = redis.createClient()
-const {DB_PROBLEM} = require('../config/redis')
-const {DB_CONTEST} = require('../config/redis')
-const {promisify} = require('util')
-const setAsync = promisify(client.set).bind(client)
-const getAsync = promisify(client.get).bind(client)
-const multer = require('multer')
 const path = require('path')
-const md5 = require('../lib/md5')
 //const check = require('../lib/form-check')
 const { matchedData} = require('express-validator/filter');
 const {validationResult}=require('express-validator/check')
-const check=require('../lib/form-check1')
+const check = require('../lib/form-check')
 const {SOLUTION_PATH} = require('../config/basic')
-const {GET_CODE_SELF}=require('../lib/perm-check')
-const {check_perm}=require('../lib/perm-check')
+const {GET_CODE_SELF, require_perm} = require('../lib/permission')
 
 router.get('/init',async (req, res) => {
   'use strict'
@@ -41,19 +31,9 @@ router.get('/init',async (req, res) => {
 
 router.post('/list',[check.queryleft,check.queryright],  async (req, res) => {
   'use strict'
-  /*const keys = ['integer', 'integer']
-  const values = [req.body.queryleft, req.body.queryright]
-  const rules = []
-  const form = {}
-  let checkResult
-  checkResult = check(keys, values, rules, form)
-  if(checkResult) return res.fail(1, checkResult)*/
   const errors = validationResult(req);
   if(!errors.isEmpty())
-  {
-    res.fail(1,errors.array())
-    return
-  }
+    return res.fail(1, errors.array())
   const checkres = matchedData(req);
   const values=[checkres.queryleft, checkres.queryright]
   const queryString = 'SELECT s.*, s2.* FROM solutions AS s INNER JOIN solution_status AS s2' +
@@ -61,13 +41,12 @@ router.post('/list',[check.queryleft,check.queryright],  async (req, res) => {
     ' WHERE s.solution_id BETWEEN $1 AND $2' +
     ' ORDER BY s.solution_id'
   const result = await db.query(queryString, values)
-  if(result.rows.length > 0){
+  if (result.rows.length > 0)
     return res.ok(result.rows)
-  }
   return res.fail(1, 'No solutions!')
 })
 
-router.post('/code', check_perm(GET_CODE_SELF), check.solutionId, async (req, res) => {
+router.post('/code', require_perm(GET_CODE_SELF), check.solutionId, async (req, res) => {
   'use strict'
   /*const keys = ['integer']
   const values = [req.body.solutionId]

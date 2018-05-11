@@ -4,6 +4,10 @@ const fs = require('fs')
 const path = require('path')
 const http = require('http')
 
+const httpServer = http.createServer()
+const chat = require('../lib/chat')(httpServer)
+const port = 80
+
 let app = undefined
 new Promise(async (resolve, reject) => {
   const {REASON_PATH_CONFIG, REASON_DATABASE_CONFIG, REASON_INACCESSIBLE_PATH, REASON_DATABASE_CONNECT, REASON_REDIS_ERROR} = require('../init/reason')
@@ -37,15 +41,13 @@ new Promise(async (resolve, reject) => {
   client.on('error', () => reject({reason: REASON_REDIS_ERROR}))
 }).then(() => {
   app = require('../app')
-  require('../lib/chat')
 }).catch((err) => {
   console.error(`failed to start normal server, reason: ${err.reason},\n details: ${err.details}`)
   app = require('../init/init')
   app.locals.err = err
 }).then(() => {
-  const port = 80
   app.set('port', port)
-  const httpServer = http.createServer(app)
+  httpServer.on('request', app)
   httpServer.listen(port)
   httpServer.on('listening', () => console.log('Listening on ' + port))
 }).catch((err) => {

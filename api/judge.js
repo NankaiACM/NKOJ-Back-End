@@ -6,7 +6,6 @@ const ws = require('ws')
 const {SOLUTION_PATH} = require('../config/basic')
 const {PROBLEM_DATA_PATH} = require('../config/basic')
 const {DATA_BASE} = require('../config/basic')
-Date.prototype.format = require('../lib/dateFormat')
 
 router.post('/', async (req, res) => {
   'use strict'

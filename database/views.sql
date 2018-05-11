@@ -14,4 +14,8 @@ CREATE VIEW user_danmaku AS
     LEFT OUTER JOIN users ON _danmaku.user_id = users.user_id
     INNER JOIN ipaddr ON _danmaku.ipaddr_id = ipaddr.ipaddr_id;
 
+CREATE VIEW user_solutions AS
+    SELECT solutions.*, solution_status.msg_short, solution_status.msg_en, solution_status.msg_cn FROM solutions INNER JOIN solution_status ON solutions.status_id = solution_status.status_id;
+
+
 COMMIT;

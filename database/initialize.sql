@@ -36,6 +36,20 @@ CREATE SEQUENCE users_defaultname_seq OWNED BY user_info.user_id;
 
 ALTER SEQUENCE IF EXISTS _danmaku_danmaku_id_seq MAXVALUE 1000 CYCLE;
 
+INSERT INTO solution_status (status_id, msg_short, msg_cn, msg_en) VALUES
+('100', 'RU', '运行中', 'Running'),
+('101', 'CE', '编译错误', 'Compile Error'),
+('120', 'CI', '正在编译', 'Compiling'),
+('102', 'WA', '答案错误', 'Wrong Answer'),
+('103', 'RE', '运行错误', 'Runtime Error'),
+('104', 'MLE', '内存超限', 'Memory Limit Exceed'),
+('105', 'TLE', '时间超限', 'Time Limit Exceed'),
+('106', 'OLE', '输出超限', 'Output Limit Exceed'),
+('107', 'AC', '答案正确', 'Accepted'),
+('108', 'PE', '格式错误', 'Presentation Error'),
+('109', 'FL', '函数调用不合法', 'Function Limit Exceed'),
+('118', 'SE', '未知错误', 'System Error');
+
 COMMIT;
 
 SET custom_settings.hash_prefix = 'not production';

@@ -174,5 +174,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION cal_solution_limit(last_id integer) RETURNS integer AS
+$$
+DECLARE
+v_value integer;
+BEGIN
+    select last_value - last_id - 1 from solutions_solution_id_seq into v_value;
+    v_value := CASE WHEN v_value > 150 THEN 150 ELSE v_value END;
+    RETURN CASE WHEN v_value < 0 THEN 0 ELSE v_value END;
+END;
+$$ LANGUAGE plpgsql COST 1;
 
 COMMIT;

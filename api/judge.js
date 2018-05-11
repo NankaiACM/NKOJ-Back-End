@@ -1,25 +1,19 @@
 const router = require('express').Router()
 const fs = require('fs')
-const path = require("path")
 const db = require('../database/db')
 const ws = require('ws')
-const {SOLUTION_PATH} = require('../config/basic')
-const {PROBLEM_DATA_PATH} = require('../config/basic')
-const {DATA_BASE} = require('../config/basic')
+const {SOLUTION_PATH, DATA_BASE} = require('../config/basic')
+const {require_perm} = require('../lib/permission')
 
-router.post('/', async (req, res) => {
+// TODO: 太魔法了
+router.post('/', require_perm(), async (req, res) => {
   'use strict'
-  if(!req.session.user) return res.fail(3, 'Not login!')
   const problem = req.body.pid
   const lang = 1
   const code = req.body.code
   const user = req.session.user
   const ip = req.ip
   let ipaddr_id = ''
-
-  // const initString = 'INSERT INTO solution_status (status_id, msg_short, msg_cn, msg_en)' +
-  //   'VALUES ($1, $2, $3, $4)'
-  // await db.query(initString, [1, "ac", "ac", "ac"])
 
   const queryString = 'INSERT INTO solutions (user_id, problem_id, language, ipaddr_id, status_id)' +
     ' VALUES ($1, $2, $3, $4, 1) RETURNING solution_id'
@@ -33,7 +27,6 @@ router.post('/', async (req, res) => {
     result = await db.query(ipquery, [ip])
     ipaddr_id = result.rows[0].ipaddr_id
   }
-  console.log('ipaddr_id')
   let langString = 'cpp'
   db.query(queryString, [user, problem, lang, ipaddr_id]).then(suc => {
     const solution_id = suc.rows[0].solution_id
@@ -47,8 +40,7 @@ router.post('/', async (req, res) => {
     if(fs.existsSync(`${SOLUTION_PATH}/${solution_id}/codes`))
     fs.open(`${SOLUTION_PATH}/${solution_id}/codes/${solution_id}.${langString}`, "w", err => {
       if (err) {
-        console.log(err)
-        res.fail(2, err)
+        throw err
       }
       else {
         fs.writeFile(`${SOLUTION_PATH}/${solution_id}/codes/${solution_id}.${langString}`, code, err => {
@@ -67,11 +59,11 @@ router.post('/', async (req, res) => {
             })
             webstorm.on('close', function close() {
               fs.readFile(`${SOLUTION_PATH}/${solution_id}/temp/${solution_id}_error`, "utf-8", (err, data) => {
-                if(err) res.fail(2, err)
-                else res.ok(data)
+                if (err) return res.fail(2, err)
+                else return res.ok(data)
               })
               fs.readFile(`${SOLUTION_PATH}/${solution_id}/temp/${solution_id}_result`, "utf-8", (err, data) => {
-                if(err) console.log(err)
+                if (err) throw err
                 else {
                   const alterString = "UPDATE solutions SET status_id = $1 WHERE solution_id = $2"
                   db.query(alterString, [data, solution_id])
@@ -80,12 +72,12 @@ router.post('/', async (req, res) => {
             })
             //return res.ok('Submit Successfully!')
           }
-          else return res.fail(2, err)
+          else throw err
         })
       }
     })
   }, err => {
-    res.fail(1, err)
+    throw err
   })
 })
 

@@ -4,11 +4,10 @@ const fs = require('fs')
 const path = require('path')
 const http = require('http')
 
-const httpServer = http.createServer()
-const chat = require('../lib/chat')(httpServer)
 const port = 80
 
 let app = undefined
+let httpServer = http.createServer()
 new Promise(async (resolve, reject) => {
   const {REASON_PATH_CONFIG, REASON_DATABASE_CONFIG, REASON_INACCESSIBLE_PATH, REASON_DATABASE_CONNECT, REASON_REDIS_ERROR} = require('../init/reason')
   if (!fs.existsSync(path.resolve(__dirname, '../config/postgres.js')))
@@ -40,6 +39,7 @@ new Promise(async (resolve, reject) => {
   client.on('ready', () => resolve())
   client.on('error', () => reject({reason: REASON_REDIS_ERROR}))
 }).then(() => {
+  chat = require('../lib/chat')(httpServer)
   app = require('../app')
 }).catch((err) => {
   console.error(`failed to start normal server, reason: ${err.reason},\n details: ${err.details}`)

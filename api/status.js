@@ -8,9 +8,9 @@ const check = require('../lib/form-check')
 const {SOLUTION_PATH} = require('../config/basic')
 const {GET_CODE_SELF, GET_CODE_ALL, check_perm} = require('../lib/permission')
 
-router.get('/list/:limit(\\d+)?', async (req, res) => {
+router.get('/:limit(\\d+)?', async (req, res) => {
   'use strict'
-  let limit = int(req.params.limit || 0)
+  let limit = Number(req.params.limit || 0)
   limit = (limit > 0 && limit < 50) ? limit : 20
   const queryString = 'SELECT * FROM user_solutions ORDER BY solution_id DESC LIMIT $1'
   const result = await db.query(queryString, [limit])
@@ -19,10 +19,10 @@ router.get('/list/:limit(\\d+)?', async (req, res) => {
   return res.status(204)
 })
 
-router.get('/list/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
+router.get('/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
   'use strict'
-  let from = int(req.params.from)
-  let limit = int(req.params.limit || 0)
+  let from = Number(req.params.from)
+  let limit = Number(req.params.limit || 0)
 
   if (from < 0 || limit < 0) return next()
 

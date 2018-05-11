@@ -22,7 +22,7 @@ router.get('/rebuild/:type', require_perm(SUPER_ADMIN), async (req, res) => {
     'X-Content-Type-Options': 'nosniff'
   })
   switch (req.params.type) {
-    case 'front':
+    case 'frontend':
       res.write('reset:\n')
       res.write(JSON.stringify(await git.front.resetAll()))
       res.write('\npull:\n')
@@ -47,10 +47,10 @@ router.get('/rebuild/:type', require_perm(SUPER_ADMIN), async (req, res) => {
       res.write('\nnpm_install:\n')
       res.write(JSON.stringify(await git.back.install()))
       res.write('\nfinished, will restart.\n')
-      process.exit(-1)
+      setTimeout(() => process.exit(-1), 1000)
       break
     default:
-      res.send('type unknown\n')
+      res.end('type unknown\n')
   }
 })
 

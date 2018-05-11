@@ -41,7 +41,7 @@ router.get('/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
 //
 //   const result = await db.query('SELECT user_id FROM solutions WHERE solution_id = $1 ', [sid])
 //   if(result.rows.length > 0){
-//     if(req.session.user===result.rows[0].user_id || check_perm(GET_CODE_ALL)) {
+//     if(req.session.user===result.rows[0].user_id || check_perm(req, GET_CODE_ALL)) {
 //       if (fs.existsSync(path.resolve(SOLUTION_PATH, sid))) {
 //         res.sendFile(path.resolve(SOLUTION_PATH, sid))
 //       } else {

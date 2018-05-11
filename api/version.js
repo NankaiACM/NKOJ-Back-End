@@ -16,44 +16,36 @@ router.get('/', async (req, res) => {
 })
 
 router.get('/rebuild/:type', require_perm(SUPER_ADMIN), async (req, res) => {
-  res.set('Content-Type', 'text/plain; charset=utf-8')
+  res.writeHead(200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Transfer-Encoding': 'chunked',
+    'X-Content-Type-Options': 'nosniff'
+  })
   switch (req.params.type) {
     case 'front':
       res.write('reset:\n')
-      res.flush()
       res.write(await git.front.resetAll())
-      res.flush()
       res.write('\npull:\n')
       const fres = await git.front.pull()
       res.write(fres)
-      res.flush()
       if (fres.stdout === 'Already up to date.\n')
         return res.end('\nNothing to be done.\n')
       res.write('\nnpm_install:\n')
-      res.flush()
       res.write(await git.front.install())
-      res.flush()
       res.write('\nnpm_build:\n')
-      res.flush()
       res.write(await git.front.rebuild())
-      res.flush()
       res.end('\nfinished.\n')
       break
     case 'backend':
       res.write('reset:\n')
-      res.flush()
       res.write(git.back.resetAll())
-      res.flush()
       res.write('\npull:\n')
-      const bres = await git.front.pull()
+      const bres = await git.back.pull()
       res.write(bres)
-      res.flush()
       if (bres.stdout === 'Already up to date.\n')
         return res.end('\nNothing to be done.\n')
       res.write('\nnpm_install:\n')
-      res.flush()
-      res.write(git.front.install())
-      res.flush()
+      res.write(git.back.install())
       res.write('\nfinished, will restart.\n')
       process.exit(-1)
       break

@@ -10,8 +10,8 @@ const logger = require('morgan')
 
 // DEV: remove
 const proxy = require('http-proxy-middleware')
-app.use('/old', proxy({target: 'http://220.113.20.2/new', changeOrigin: false}))
-app.use('/nkcoj', proxy({target: 'http://220.113.20.2/nkcoj', changeOrigin: false}))
+app.use('/old', proxy({target: 'http://220.113.20.2/', changeOrigin: false}))
+app.use('/nkcoj', proxy({target: 'http://220.113.20.2/', changeOrigin: false}))
 // DEV: temporary workaround
 app.get('/new', (req, res) => {
   res.redirect(301, '/')

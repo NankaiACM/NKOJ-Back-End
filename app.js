@@ -1,13 +1,21 @@
 const {PUBLIC_PATH, DIST_PATH} = require('./config/basic')
 const express = require('express')
 const app = express()
-
 const api = require('./api/api')
 const session = require('./lib/session')
 const prototype = require('./lib/prototype')
 
 const bodyParser = require('body-parser')
 const logger = require('morgan')
+
+// DEV: remove
+const proxy = require('http-proxy-middleware')
+app.use('/old', proxy({target: 'http://220.113.20.2/new', changeOrigin: false}))
+app.use('/nkcoj', proxy({target: 'http://220.113.20.2/nkcoj', changeOrigin: false}))
+// DEV: temporary workaround
+app.get('/new', (req, res) => {
+  res.redirect(301, '/')
+})
 
 // Disable Header 'X-Powered-By' added by express.
 app.disable('x-powered-by')

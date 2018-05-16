@@ -1,28 +1,13 @@
 const router = require('express').Router()
-const path = require('path')
 const {require_perm, MANAGE_ROLE, SUPER_ADMIN} = require('../../lib/permission')
 const db = require('../../database/db')
-//const check = require('../lib/form-check')
-const {matchedData} = require('express-validator/filter')
-const {validationResult} = require('express-validator/check')
-const check = require('../../lib/form-check')
+const fc = require('../../lib/form-check')
 const session = require('../../lib/session')
 
-router.post('/add', [check.nickname, check.password, check.email, check.words, check.count], async (req, res) => {
+// TODO: test
+router.post('/add', fc.all(['nickname', 'password', 'email', 'words', 'count']), async (req, res) => {
   'use strict'
-  /* const keys = ['nickname', 'password', 'email', 'words', 'count']
-   const values = [req.body.nickname, req.body.password, req.body.email, req.body.words, req.body.count]
-   const rules = [undefined, undefined, undefined, undefined, {type: 'integer'}]
-   const form = {}
-   check(keys, values, rules, form)*/
-  const errors = validationResult(req)
-  if (!errors.isEmpty()) {
-    res.fail(1, errors.array())
-    return
-  }
-  const form = matchedData(req)
-  console.log(form)
-  if (!form.count || form.count === '1') form.count = 1
+  const form = req.fcResult
 
   if (form.count === 1) {
     const password = form.password || Math.random().toString(36).substring(2)
@@ -58,7 +43,7 @@ FROM (SELECT nextval('users_defaultname_seq') as val) AS t RETURNING nickname`
 router.get('/remove/:who', async (req, res) => {
   'use strict'
   const user = req.params.who
-  if (user === '' || user === undefined || user === req.session.user)
+  if (user === req.session.user)
     return res.fail(1)
 
   let ret

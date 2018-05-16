@@ -1,9 +1,7 @@
 const router = require('express').Router()
 
 const db = require('../../database/db')
-const {matchedData} = require('express-validator/filter')
-const {validationResult} = require('express-validator/check')
-const check = require('../../lib/form-check')
+const fc = require('../../lib/form-check')
 
 const redis = require('redis')
 const session_client = redis.createClient()
@@ -18,32 +16,17 @@ router.get('/logout', async (req, res) => {
   res.ok()
 })
 
-router.post('/login', captcha.check('login'), [check.user, check.password], async (req, res) => {
+router.post('/login', captcha.check('login'), fc.all(['name', 'password']), async (req, res) => {
   'use strict'
 
-  /*const keys = ['user', 'password']
-  const values = [req.body.user, req.body.password]
-  const rules = [{toLower: true}, {}]
-
-  let err = check(keys, values, rules)
-  if (err) return res.fail(400, err)*/
-
-  const errors = validationResult(req)
-  if (!errors.isEmpty()) {
-    res.fail(1, errors.array())
-    return
-  }
-  const checkres = matchedData(req)
-  const values = [checkres.user, checkres.password]
-
-  const errArr = [1, [{name: 'name', message: 'might be wrong'}, {
+  const errArr = [422, [{name: 'name', message: 'might be wrong'}, {
     name: 'password',
     message: 'might be wrong'
   }], 'login failed']
 
   const query = 'SELECT * FROM users WHERE (lower(nickname) = $1 OR email = $1) AND password = hash_password($2) LIMIT 1'
 
-  let result = await db.query(query, values)
+  let result = await db.query(query, [req.fcResult.name, req.fcResult.password])
   if (result.rows.length > 0)
     db.postLogin(result.rows[0], req, res)
   else

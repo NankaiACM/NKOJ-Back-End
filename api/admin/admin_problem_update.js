@@ -1,39 +1,24 @@
 const router = require('express').Router()
 const db = require('../../database/db')
-const {matchedData} = require('express-validator/filter')
-const {validationResult} = require('express-validator/check')
-const check = require('../../lib/form-check')
-const {PROBLEM_PATH, TEMP_PATH} = require('../../config/basic')
+const {PROBLEM_PATH} = require('../../config/basic')
 const fs = require('fs')
 const path = require('path')
+const fc = require('../../lib/form-check')
 const {generateFileString} = require('../../lib/problem')
 
 const TYPE_PARTIAL_CONTENT = 0
 
-router.post('/:pid', [check.pid, check.title, check.cases, check.time_limit, check.memory_limit,
-  check.type, check.special_judge, check.detail_judge, check.tags, check.level], (req, res, next) => {
-  // basic information
-  const errors = validationResult(req)
-  if (!errors.isEmpty()) {
-    res.fail(1, errors.array())
-    return
-  }
-  req.form = matchedData(req)
+router.post('/:pid',
+  fc.all(['pid', 'title', 'cases', 'time_limit', 'memory_limit', 'type', 'special_judge', 'detail_judge', 'tags', 'level']),
+  (req, res, next) => {
+    req.form = req.fcResult
   return next()
 })
 
-router.post('/:pid', [check.description, check.input, check.output, check.sample_input, check.sample_output, check.hint], async (req, res, next) => {
-
-  const form = req.form
-  // noinspection EqualityComparisonWithCoercionJS
-  if (req.form.type == TYPE_PARTIAL_CONTENT) {
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      res.fail(1, errors.array())
-      return
-    }
-    const checkres = matchedData(req)
-  }
+router.post('/:pid',
+  fc.all(['description', 'input', 'output', 'sample_input', 'sample_output', 'hint']),
+  async (req, res, next) => {
+    const form = Object.assign(req.form, req.fcResult)
   let tags = []
   let pid = Number(form.pid)
   try {

@@ -5,7 +5,6 @@ const {CONTEST_PATH} = require('../../config/basic')
 const redis = require('redis')
 const {DB_CONTEST} = require('../../config/redis')
 const client = redis.createClient()
-//const check = require('../lib/form-check')
 const {matchedData} = require('express-validator/filter')
 const {validationResult} = require('express-validator/check')
 const check = require('../../lib/form-check')
@@ -37,9 +36,10 @@ const upload = multer({
   }
 })
 
-router.post('/', upload.fields({name: 'rule', maxCount: 1}, {name: 'about', maxCount: 1}), [check.id, check.role_title,
-  check.role_description, check.problems, check.start, check.end], async (req, res) => {
-
+// TODO: fix
+router.post('/', upload.fields({name: 'rule', maxCount: 1}, {name: 'about', maxCount: 1}),
+  [check.id, check.role_title, check.role_description, check.problems, check.start, check.end],
+  async (req, res) => {
   if (req.idErr) { res.fail(1, req.idErr) }
   if (req.fileErr) { res.fail(2, req.fileErr) }
 

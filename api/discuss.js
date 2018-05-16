@@ -1,7 +1,5 @@
 const router = require('express').Router()
-const {matchedData} = require('express-validator/filter')
-const {validationResult} = require('express-validator/check')
-const check = require('../lib/form-check')
+const fc = require('../lib/form-check')
 router.get('/', (req, res) => {
   'use strict'
   res.ok(JSON.parse('[{' +
@@ -37,16 +35,10 @@ router.get('/', (req, res) => {
     '  ]'
   ))
 })
-router.get('/list', [check.l, check.r], async (req, res) => {
+// TODO: unify list logic, test
+router.get('/list', fc.all(['l', 'r']), async (req, res) => {
   'use strict'
-
-  const errors = validationResult(req)
-  if (!errors.isEmpty()) {
-    res.fail(1, errors.array())
-    return
-  }
-
-  const form = matchedData(req)
+  const form = req.fcResult
 
   let requested = form.r ? (form.r - (form.l || 0)) : 20
   let limit = requested > 50 ? 50 : requested

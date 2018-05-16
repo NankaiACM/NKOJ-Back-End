@@ -1,12 +1,5 @@
 const router = require('express').Router()
 const db = require('../database/db')
-const fs = require('fs')
-const path = require('path')
-const {matchedData} = require('express-validator/filter')
-const {validationResult}=require('express-validator/check')
-const check = require('../lib/form-check')
-const {SOLUTION_PATH} = require('../config/basic')
-const {GET_CODE_SELF, GET_CODE_ALL, check_perm} = require('../lib/permission')
 
 router.get('/', async (req, res) => {
   'use strict'

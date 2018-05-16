@@ -1,18 +1,11 @@
 const router = require('express').Router()
 const db = require('../database/db')
-const {matchedData} = require('express-validator/filter')
-const {validationResult} = require('express-validator/check')
-const check = require('../lib/form-check')
+const fc = require('../lib/form-check')
 
-router.post('/list', [check.queryleft, check.queryright], async (req, res) => {
+// TODO: unify list logic, test
+router.get('/list', fc.all(['l', 'r']), async (req, res) => {
   'use strict'
-  const errors = validationResult(req)
-  if (!errors.isEmpty()) {
-    res.fail(1, errors.array())
-    return
-  }
-  const checkres = matchedData(req)
-  const values = [checkres.queryleft, checkres.queryright]
+  const values = [req.fcResult.l, req.fcResult.r]
   const query = 'SELECT * FROM contests WHERE contest_id BETWEEN $1 AND $2'
 
   let result = await db.query(query, values)

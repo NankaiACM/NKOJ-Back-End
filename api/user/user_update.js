@@ -40,6 +40,8 @@ const upload = multer({
 router.post('/update', upload.single('avatar'), require_perm(), async (req, res) => {
   'use strict'
 
+  // TODO: move to new check
+
   const keys = ['nickname', 'email', 'gender', 'qq', 'phone', 'real_name', 'school', 'password', 'words']
   const values = [req.body.nickname, req.body.email, req.body.gender, req.body.qq, req.body.phone, req.body.real_name, req.body.school, req.body.password, req.body.words]
   const rule_allow_nonexist = {nonexist: 'allow'}

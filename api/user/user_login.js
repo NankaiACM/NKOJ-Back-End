@@ -16,7 +16,7 @@ router.get('/logout', async (req, res) => {
   res.ok()
 })
 
-router.post('/login', captcha.check('login'), fc.all(['name', 'password']), async (req, res) => {
+router.post('/login', captcha.check('login'), fc.all(['user', 'password']), async (req, res) => {
   'use strict'
 
   const errArr = [422, [{name: 'name', message: 'might be wrong'}, {

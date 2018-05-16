@@ -18,50 +18,50 @@ router.post('/',
 router.post('/',
   fc.all(['description', 'input', 'output', 'sample_input', 'sample_output', 'hint']),
   async (req, res, next) => {
-  'use strict'
-  // noinspection EqualityComparisonWithCoercionJS
-  if (req.form.type != TYPE_PARTIAL_CONTENT) return next()
+    'use strict'
+    // noinspection EqualityComparisonWithCoercionJS
+    if (req.form.type != TYPE_PARTIAL_CONTENT) return next()
     const form = Object.assign(req.form, req.fcResult)
 
-  let tags = []
-  let pid
-  try {
-    if (form.tags) {
-      const t = typeof form.tags === 'string' ? JSON.parse(form.tags) : form.tags
-      const r = await db.query('select insert_tags($1) as tags', [t])
-      if (r.rows.length) {
-        tags = r.rows[0].tags
+    let tags = []
+    let pid
+    try {
+      if (form.tags) {
+        const t = typeof form.tags === 'string' ? JSON.parse(form.tags) : form.tags
+        const r = await db.query('select insert_tags($1) as tags', [t])
+        if (r.rows.length) {
+          tags = r.rows[0].tags
+        }
       }
+
+      const r = await db.query('insert into problems (title, restriction_id, cases, special_judge, detail_judge, level, time_limit, memory_limit)' +
+        ' values ($1, NULL, $2, $3::boolean, $4::boolean, $5::integer, $6::integer, $7::integer) returning problem_id', [form.title, form.cases, form.special_judge, form.detail_judge, form.level, form.time_limit, form.memory_limit])
+      if (r.rows.length !== 1) return res.fail(520, 'database returns neither an error nor a successful insert')
+
+      pid = r.rows[0].problem_id
+      for (let tag in tags) {
+        if (!tags.hasOwnProperty(tag)) continue
+        await db.query('INSERT INTO problem_tag_assoc(problem_id, tag_id, official) VALUES ($1, $2, TRUE)', [pid, tags[tag]])
+      }
+
+    } catch (e) {
+      console.log(e.stack || e)
+      return res.fail(520, e.stack || e)
     }
 
-    const r = await db.query('insert into problems (title, restriction_id, cases, special_judge, detail_judge, level, time_limit, memory_limit)' +
-      ' values ($1, NULL, $2, $3::boolean, $4::boolean, $5::integer, $6::integer, $7::integer) returning problem_id', [form.title, form.cases, form.special_judge, form.detail_judge, form.level, form.time_limit, form.memory_limit])
-    if (r.rows.length !== 1) return res.fail(520, 'database returns neither an error nor a successful insert')
+    const filename = `${pid}.md`
+    const content = generateFileString({
+      description: form.description,
+      input: form.input,
+      output: form.output,
+      sample_input: `<pre>${form.sample_input}</pre>`,
+      sample_output: `<pre>${form.sample_output}</pre>`,
+      hint: form.hint
+    })
 
-    pid = r.rows[0].problem_id
-    for (let tag in tags) {
-      if (!tags.hasOwnProperty(tag)) continue
-      await db.query('INSERT INTO problem_tag_assoc(problem_id, tag_id, official) VALUES ($1, $2, TRUE)', [pid, tags[tag]])
-    }
+    fs.writeFileSync(path.resolve(PROBLEM_PATH, filename), content)
 
-  } catch (e) {
-    console.log(e.stack || e)
-    return res.fail(520, e.stack || e)
-  }
-
-  const filename = `${pid}.md`
-  const content = generateFileString({
-    description: form.description,
-    input: form.input,
-    output: form.output,
-    sample_input: `<pre>${form.sample_input}</pre>`,
-    sample_output: `<pre>${form.sample_output}</pre>`,
-    hint: form.hint
+    res.ok({problem_id: pid, filename: filename, content: content})
   })
-
-  fs.writeFileSync(path.resolve(PROBLEM_PATH, filename), content)
-
-  res.ok({problem_id: pid, filename: filename, content: content})
-})
 
 module.exports = router

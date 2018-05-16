@@ -26,7 +26,7 @@ router.post('/login', captcha.check('login'), fc.all(['user', 'password']), asyn
 
   const query = 'SELECT * FROM users WHERE (lower(nickname) = $1 OR email = $1) AND password = hash_password($2) LIMIT 1'
 
-  let result = await db.query(query, [req.fcResult.name, req.fcResult.password])
+  let result = await db.query(query, [req.fcResult.user, req.fcResult.password])
   if (result.rows.length > 0)
     db.postLogin(result.rows[0], req, res)
   else

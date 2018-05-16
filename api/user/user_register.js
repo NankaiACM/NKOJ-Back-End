@@ -91,6 +91,7 @@ router.post('/register', fc.all(['nickname', 'password', 'email', 'school', 'gen
     res.fail(520, err)
     throw err
   }
+  req.session.nickname = form.nickname
   req.session.user = result.rows[0].user_id
   req.session.save()
   res.ok(result.rows[0])

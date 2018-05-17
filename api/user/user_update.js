@@ -1,7 +1,7 @@
 const router = require('express').Router()
 
 const db = require('../../database/db')
-const check = require('../../lib/old-form-check')
+const fc = require('../../lib/form-check')
 
 const multer = require('multer')
 const path = require('path')
@@ -37,53 +37,46 @@ const upload = multer({
   }
 })
 
-router.post('/update', upload.single('avatar'), require_perm(), async (req, res) => {
-  'use strict'
+router.post('/update',
+  require_perm(),
+  upload.single('avatar'),
+  fc.all(['nickname/optional', 'email/optional', 'gender/optional', 'qq/optional', 'phone', 'real_name', 'school', 'password/optional', 'words']),
+  async (req, res) => {
+    'use strict'
 
-  // TODO: move to new check
+    const form = req.fcResult
 
-  const keys = ['nickname', 'email', 'gender', 'qq', 'phone', 'real_name', 'school', 'password', 'words']
-  const values = [req.body.nickname, req.body.email, req.body.gender, req.body.qq, req.body.phone, req.body.real_name, req.body.school, req.body.password, req.body.words]
-  const rule_allow_nonexist = {nonexist: 'allow'}
-  const rule_allow_all = {nonexist: 'allow', empty: 'allow'}
-  const rules = [rule_allow_nonexist, rule_allow_nonexist, rule_allow_nonexist, rule_allow_all, rule_allow_all, rule_allow_all, rule_allow_all, rule_allow_nonexist, rule_allow_all]
-  const form = {}
+    const ret = {}
 
-  const result = check(keys, values, rules, form)
-
-  if (result) return res.fail(1, result)
-
-  const ret = {}
-
-  // TODO: permission check
-  if (req.file) {
-    try {
-      await sharp(req.file.path).resize(512, 512).max().jpeg({quality: 60}).toFile(`${req.file.path}.sharped.jpg`)
-    } catch (err) {
+    if (req.file) {
+      try {
+        await sharp(req.file.path).resize(512, 512).max().jpeg({quality: 60}).toFile(`${req.file.path}.sharped.jpg`)
+      } catch (err) {
+        fs.unlinkSync(req.file.path)
+        return res.gen422('avatar', 'invalid picture')
+      }
       fs.unlinkSync(req.file.path)
-      return res.fail(400, 'invalid picture')
+      await redis.setAsync(`avatar:${req.session.user}`, `${req.file.filename}.sharped.jpg`)
+      ret.avatar = 'changed'
+    } else if (req.fileErr) {
+      return res.gen422('avatar', 'invalid type: ' + req.fileErr)
     }
-    fs.unlinkSync(req.file.path)
-    await redis.setAsync(`avatar:${req.session.user}`, `${req.file.filename}.sharped.jpg`)
-    ret.avatar = 'changed'
-  } else if (req.fileErr) {
-    return res.fail(400, `file rejected as it is ${req.fileErr}`)
-  }
 
-  try {
-    const result = await db.query(`UPDATE users SET nickname = $1, email = $2, gender = $3, qq = $4, phone = $5, real_name = $6, school = $7, password = $8, words = $9 WHERE user_id = ${req.session.user} 
-    RETURNING nickname, email, gender, qq, phone, real_name, school, password, words`, values)
-    if (result.rows.length) {
-      Object.keys(result.rows[0]).forEach((k) => {
-        if (result.rows[0][k]) ret[k] = 'changed'
-      })
-      return res.ok(ret)
+    try {
+      const result = await db.query(`UPDATE users SET nickname = $1, email = $2, gender = $3, qq = $4, phone = $5, real_name = $6, school = $7, password = $8, words = $9 WHERE user_id = ${req.session.user} 
+    RETURNING nickname, email, gender, qq, phone, real_name, school, password, words`
+        , [form.nickname, form.email, form.gender, form.qq, form.phone, form.real_name, form.shcool, form.password, form.words])
+      if (result.rows.length) {
+        Object.keys(result.rows[0]).forEach((k) => {
+          if (result.rows[0][k]) ret[k] = 'changed'
+        })
+        return res.ok(ret)
+      }
+      else return res.fail(500, 'user id not found or no values could be changed')
+    } catch (err) {
+      res.fatal(520, err)
+      throw err
     }
-    else return res.fail(500, 'user id not found or no values could be changed')
-  } catch (err) {
-    res.fatal(520, err)
-    throw err
-  }
-})
+  })
 
 module.exports = router

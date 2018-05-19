@@ -7,7 +7,8 @@ const fs = require('fs')
 const getExt = require('../../lib/extension').ext
 
 router.post('/:pid', (req, res, next) => {
-  if (!Number.isInteger(Number(req.params.pid))) return res.fatal(400)
+  if (!Number.isInteger(Number(req.params.pid)))
+    return res.fatal(422)
   next()
 })
 

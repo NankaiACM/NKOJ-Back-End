@@ -218,7 +218,7 @@ CREATE TABLE discussions (
     ipaddr_id       integer         REFERENCES ipaddr(ipaddr_id)
 );
 
-CREATE TABLE _danmaku (
+CREATE UNLOGGED TABLE _danmaku (
     danmaku_id serial primary key,
     user_id integer,
     ipaddr_id integer,

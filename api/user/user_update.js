@@ -65,7 +65,7 @@ router.post('/update',
     try {
       const result = await db.query(`UPDATE users SET nickname = $1, email = $2, gender = $3, qq = $4, phone = $5, real_name = $6, school = $7, password = $8, words = $9 WHERE user_id = ${req.session.user} 
     RETURNING nickname, email, gender, qq, phone, real_name, school, password, words`
-        , [form.nickname, form.email, form.gender, form.qq, form.phone, form.real_name, form.shcool, form.password, form.words])
+        , [form.nickname, form.email, form.gender, form.qq, form.phone, form.real_name, form.school, form.password, form.words])
       if (result.rows.length) {
         Object.keys(result.rows[0]).forEach((k) => {
           if (result.rows[0][k]) ret[k] = 'changed'

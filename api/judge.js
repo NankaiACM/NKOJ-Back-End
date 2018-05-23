@@ -5,7 +5,7 @@ const ws = require('ws')
 const {DATA_BASE} = require('../config/basic')
 const {require_perm} = require('../lib/permission')
 const fc = require('../lib/form-check')
-const {getSolutionStruct, unlinkTempFolder} = require('../lib/judge')
+const {getSolutionStructure, unlinkTempFolder} = require('../lib/judge')
 
 router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, res) => {
   'use strict'
@@ -31,7 +31,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   const result = await db.query('INSERT INTO solutions (user_id, problem_id, language, ipaddr_id, status_id) VALUES ($1, $2, $3, get_ipaddr_id($4), 1) RETURNING solution_id', [user, problem, lang, ip])
 
   const solution_id = result.rows[0].solution_id
-  const struct = getSolutionStruct(solution_id)
+  const struct = getSolutionStructure(solution_id)
 
   fs.writeFileSync(`${struct.path.solution}/main.${langString}`, code)
 

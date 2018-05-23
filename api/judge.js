@@ -48,7 +48,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
     const memory = fs.readFileSync(struct.file.memory, 'utf8').split('\n')[0]
     const compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
 
-    await db.query('UPDATE solutions SET status_id = $1, `time` = $2, `memory` = $3 WHERE solution_id = $4', [result, time, memory, solution_id])
+    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3 WHERE solution_id = $4', [result, time, memory, solution_id])
 
     if (result !== '') res.ok({solution_id, time, memory, result, compile_info})
     else res.fail(500, 'seems something wrong, contact admin...')

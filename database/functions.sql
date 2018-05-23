@@ -5,6 +5,14 @@ RETURNS text AS $$
     SELECT md5(current_setting('custom_settings.hash_prefix') || pwd)::text;
 $$ LANGUAGE SQL STABLE RETURNS NULL ON NULL INPUT PARALLEL SAFE;
 
+CREATE OR REPLACE FUNCTION get_ipaddr_id(ip inet) RETURNS integer AS
+$$
+BEGIN
+    INSERT INTO ipaddr(ipaddr) VALUES (ip) ON CONFLICT DO NOTHING;
+    RETURN (SELECT ipaddr_id FROM ipaddr WHERE ipaddr = ip LIMIT 1);
+END;
+$$ LANGUAGE plpgsql STABLE RETURNS NULL ON NULL INPUT ;
+
 CREATE OR REPLACE FUNCTION cal_perm (who integer) RETURNS jsonb AS $$
 DECLARE
     v_return jsonb;
@@ -140,13 +148,9 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION upsert_user_danmaku() RETURNS TRIGGER AS
 $$
-DECLARE
-v_ipaddr_id integer;
 BEGIN
-    INSERT INTO ipaddr(ipaddr) VALUES (NEW.ipaddr) ON CONFLICT DO NOTHING;
-    SELECT ipaddr_id FROM ipaddr WHERE ipaddr = NEW.ipaddr LIMIT 1 into v_ipaddr_id;
-    INSERT INTO _danmaku(user_id, ipaddr_id, message) VALUES (NEW.user_id, v_ipaddr_id, NEW.message)
-        ON conflict(danmaku_id) DO UPDATE SET user_id = NEW.user_id, ipaddr_id = v_ipaddr_id, message = NEW.message, "when" = DEFAULT;
+    INSERT INTO _danmaku(user_id, ipaddr_id, message) VALUES (NEW.user_id, get_ipaddr_id(NEW.ipaddr), NEW.message)
+        ON conflict(danmaku_id) DO UPDATE SET user_id = NEW.user_id, ipaddr_id = get_ipaddr_id(NEW.ipaddr), message = NEW.message, "when" = DEFAULT;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

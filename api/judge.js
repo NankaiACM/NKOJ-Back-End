@@ -2,82 +2,59 @@ const router = require('express').Router()
 const fs = require('fs')
 const db = require('../database/db')
 const ws = require('ws')
-const {SOLUTION_PATH, DATA_BASE} = require('../config/basic')
+const {DATA_BASE} = require('../config/basic')
 const {require_perm} = require('../lib/permission')
+const fc = require('../lib/form-check')
+const {getSolutionStruct, unlinkTempFolder} = require('../lib/judge')
 
-// TODO: 太魔法了
-router.post('/', require_perm(), async (req, res) => {
+router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, res) => {
   'use strict'
-  const problem = req.body.pid
-  const lang = 1
-  const code = req.body.code
+  const form = req.fcResult
+  const problem = form.pid
+  const lang = form.lang
+  const code = form.code
   const user = req.session.user
   const ip = req.ip
-  let ipaddr_id = ''
 
-  const queryString = 'INSERT INTO solutions (user_id, problem_id, language, ipaddr_id, status_id)' +
-    ' VALUES ($1, $2, $3, $4, 1) RETURNING solution_id'
-  let ipquery = 'SELECT * FROM ipaddr WHERE ipaddr = $1'
+  let ret = await db.query('SELECT time_limit, memory_limit, cases, special_judge::integer, detail_judge::integer FROM problems WHERE problem_id = $1', [problem])
+  if (ret.rows.length === 0)
+    return res.fail(404, 'problem not found')
 
-  let result = await db.query(ipquery, [ip])
-  if (result.rows.length > 0) {
-    ipaddr_id = result.rows[0].ipaddr_id
-  } else {
-    ipquery = 'INSERT INTO ipaddr (ipaddr) VALUES ($1) RETURNING ipaddr_id'
-    result = await db.query(ipquery, [ip])
-    ipaddr_id = result.rows[0].ipaddr_id
-  }
+  const row = ret.rows[0]
+  const time_limit = row.time_limit
+  const memory_limit = row.memory_limit
+  const cases = row.cases
+  const special_judge = row.special_judge
+  const detail_judge = row.detail_judge
+
   let langString = 'cpp'
-  db.query(queryString, [user, problem, lang, ipaddr_id]).then(suc => {
-    const solution_id = suc.rows[0].solution_id
-    if (!fs.existsSync(`${SOLUTION_PATH}/${solution_id}`)) fs.mkdirSync(`${SOLUTION_PATH}/${solution_id}`)
-    if (!fs.existsSync(`${SOLUTION_PATH}/${solution_id}/temp`)) fs.mkdirSync(`${SOLUTION_PATH}/${solution_id}/temp`)
-    if (!fs.existsSync(`${SOLUTION_PATH}/${solution_id}/exec`)) fs.mkdirSync(`${SOLUTION_PATH}/${solution_id}/exec`)
-    if (!fs.existsSync(`${SOLUTION_PATH}/${solution_id}/cmperr`)) fs.mkdirSync(`${SOLUTION_PATH}/${solution_id}/cmperr`)
-    if (!fs.existsSync(`${SOLUTION_PATH}/${solution_id}/execout`)) fs.mkdirSync(`${SOLUTION_PATH}/${solution_id}/execout`)
-    if (!fs.existsSync(`${SOLUTION_PATH}/${solution_id}/diff`)) fs.mkdirSync(`${SOLUTION_PATH}/${solution_id}/diff`)
-    if (!fs.existsSync(`${SOLUTION_PATH}/${solution_id}/codes`)) fs.mkdirSync(`${SOLUTION_PATH}/${solution_id}/codes`)
-    if(fs.existsSync(`${SOLUTION_PATH}/${solution_id}/codes`))
-    fs.open(`${SOLUTION_PATH}/${solution_id}/codes/${solution_id}.${langString}`, "w", err => {
-      if (err) {
-        throw err
-      }
-      else {
-        fs.writeFile(`${SOLUTION_PATH}/${solution_id}/codes/${solution_id}.${langString}`, code, err => {
-          if (!err) {
-            const webstorm = new ws('ws://127.0.0.1:8888')
-            webstorm.on('open', function open() {
-              webstorm.send(DATA_BASE + "/")
-              webstorm.send(solution_id)
-              webstorm.send(problem)
-              webstorm.send('1')
-              webstorm.send('1001')
-              webstorm.send('2560000')
-              webstorm.send('1')
-              webstorm.send('0')
-              webstorm.send('1')
-            })
-            webstorm.on('close', function close() {
-              fs.readFile(`${SOLUTION_PATH}/${solution_id}/temp/${solution_id}_error`, "utf-8", (err, data) => {
-                if (err) return res.fail(2, err)
-                else return res.ok(data)
-              })
-              fs.readFile(`${SOLUTION_PATH}/${solution_id}/temp/${solution_id}_result`, "utf-8", (err, data) => {
-                if (err) throw err
-                else {
-                  const alterString = "UPDATE solutions SET status_id = $1 WHERE solution_id = $2"
-                  db.query(alterString, [data, solution_id])
-                }
-              })
-            })
-            //return res.ok('Submit Successfully!')
-          }
-          else throw err
-        })
-      }
-    })
-  }, err => {
-    throw err
+  const result = await db.query('INSERT INTO solutions (user_id, problem_id, language, ipaddr_id, status_id) VALUES ($1, $2, $3, get_ipaddr_id($4), 1) RETURNING solution_id', [user, problem, lang, ip])
+
+  const solution_id = result.rows[0].solution_id
+  const struct = getSolutionStruct(solution_id)
+
+  fs.writeFileSync(`${struct.path.solution}/main.${langString}`, code)
+
+  const socket = new ws('ws://127.0.0.1:8888')
+  socket.on('message', function (msg) {
+    console.log(msg)
+  })
+  socket.on('open', function open () {
+    socket.send([DATA_BASE, solution_id, problem, langString, time_limit, memory_limit, cases, special_judge, detail_judge].join('\n'))
+  })
+  socket.on('close', async function close () {
+    const data = fs.readFileSync(struct.file.data)
+    const result = fs.readFileSync(struct.file.result).split('\n')[0]
+    const time = fs.readFileSync(struct.file.time).split('\n')[0]
+    const memory = fs.readFileSync(struct.file.memory).split('\n')[0]
+    const compile_info = fs.readFileSync(struct.file.compile_info)
+
+    await db.query('UPDATE solutions SET status_id = $1, `time` = $2, `memory` = $3 WHERE solution_id = $4', [result, time, memory, solution_id])
+
+    if (data !== '') res.ok({solution_id, time, memory, result, compile_info})
+    else res.fail(500, 'seems something wrong, contact admin...')
+
+    unlinkTempFolder(solution_id)
   })
 })
 

@@ -43,10 +43,10 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
     socket.send([DATA_BASE, solution_id, problem, langString, time_limit, memory_limit, cases, special_judge, detail_judge].join('\n'))
   })
   socket.on('close', async function close () {
-    const result = fs.readFileSync(struct.file.result).split('\n')[0]
-    const time = fs.readFileSync(struct.file.time).split('\n')[0]
-    const memory = fs.readFileSync(struct.file.memory).split('\n')[0]
-    const compile_info = fs.readFileSync(struct.file.compile_info)
+    const result = fs.readFileSync(struct.file.result, 'utf8').split('\n')[0]
+    const time = fs.readFileSync(struct.file.time, 'utf8').split('\n')[0]
+    const memory = fs.readFileSync(struct.file.memory, 'utf8').split('\n')[0]
+    const compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
 
     await db.query('UPDATE solutions SET status_id = $1, `time` = $2, `memory` = $3 WHERE solution_id = $4', [result, time, memory, solution_id])
 

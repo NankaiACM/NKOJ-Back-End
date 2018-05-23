@@ -27,6 +27,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   const special_judge = row.special_judge
   const detail_judge = row.detail_judge
 
+  // TODO: always cpp...
   let langString = 'cpp'
   const result = await db.query('INSERT INTO solutions (user_id, problem_id, language, ipaddr_id, status_id) VALUES ($1, $2, $3, get_ipaddr_id($4), 1) RETURNING solution_id', [user, problem, lang, ip])
 
@@ -36,6 +37,9 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   fs.writeFileSync(`${struct.path.solution}/main.${langString}`, code)
 
   const socket = new ws('ws://127.0.0.1:8888')
+  socket.on('error', function (err) {
+    throw err
+  })
   socket.on('message', function (msg) {
     console.log(msg)
   })
@@ -47,14 +51,16 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
     const time = fs.readFileSync(struct.file.time, 'utf8').split('\n')[0]
     const memory = fs.readFileSync(struct.file.memory, 'utf8').split('\n')[0]
     const compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
+    const code_length = Buffer.byteLength(code, 'utf8')
 
-    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3 WHERE solution_id = $4', [result, time, memory, solution_id])
+    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4 WHERE solution_id = $5', [result, time, memory, code_length, solution_id])
 
     if (result !== '') res.ok({solution_id, time, memory, result, compile_info})
     else res.fail(500, 'seems something wrong, contact admin...')
 
     unlinkTempFolder(solution_id)
   })
+
 })
 
 module.exports = router

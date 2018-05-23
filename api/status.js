@@ -1,5 +1,8 @@
 const router = require('express').Router()
 const db = require('../database/db')
+const fs = require('fs')
+const {check_perm, GET_CODE_SELF, GET_CODE_ALL} = require('../lib/permission')
+const {getSolutionStructure} = require('../lib/judge')
 
 router.get('/', async (req, res) => {
   'use strict'
@@ -26,24 +29,27 @@ router.get('/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
   return res.sendStatus(204)
 })
 
-// router.get('/code/:solutionId(\\d+)?', check_perm(GET_CODE_SELF), async (req, res) => {
-//   'use strict'
-//
-//   const sid = int(req.params.sid)
-//   if(sid <= 0) return next()
-//
-//   const result = await db.query('SELECT user_id FROM solutions WHERE solution_id = $1 ', [sid])
-//   if(result.rows.length > 0){
-//     if(req.session.user===result.rows[0].user_id || check_perm(req, GET_CODE_ALL)) {
-//       if (fs.existsSync(path.resolve(SOLUTION_PATH, sid))) {
-//         res.sendFile(path.resolve(SOLUTION_PATH, sid))
-//       } else {
-//         res.fail(500, 'code file not found')
-//       }
-//     }
-//     return res.fail(401)
-//   }
-//   return res.fail(404)
-// })
+router.get('/detail/:sid(\\d+)?', async (req, res) => {
+  'use strict'
+
+  const sid = Number(req.params.sid)
+
+  if (!Number.isInteger(sid))
+    res.fail(422)
+
+  const result = await db.query('SELECT * FROM user_solutions WHERE solution_id = $1 LIMIT 1', [sid])
+  if (result.rows.length > 0) {
+    const row = result.rows[0]
+    const {ipaddr_id, ...ret} = {...row}
+    if ((req.session.user === row.user_id && check_perm(GET_CODE_SELF)) || check_perm(req, GET_CODE_ALL)) {
+      const struct = getSolutionStructure(sid)
+      ret.compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
+      // TODO: always cpp...
+      ret.code = fs.readFileSync(struct.file.code_base + 'cpp', 'utf8')
+    }
+    return res.ok(ret)
+  }
+  return res.fail(404)
+})
 
 module.exports = router

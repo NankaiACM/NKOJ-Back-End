@@ -21,6 +21,16 @@ router.get('/:pid', async (req, res) => {
   }
 })
 
+router.get('/:pid/tag', async (req, res) => {
+  const pid = Number(req.params.pid)
+  const user_id = req.session.user
+  if(!user_id) return res.fail(1, 'Not logged in')
+  if (!Number.isInteger(pid)) return next()
+  const queryString = 'SELECT * FROM problem_tag_votes WHERE user_id = $1 AND problem_id = $2'
+  const dbres = await db.query(queryString, [user_id, pid])
+  return res.ok(dbres.rows)
+})
+
 router.get('/:pid/:type/:tid', async (req, res, next) => {
   const pid = Number(req.params.pid)
   const tid = Number(req.params.tid)

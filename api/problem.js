@@ -4,6 +4,7 @@ const path = require('path')
 const fs = require('fs')
 const db = require('../database/db')
 const {splitFileString} = require('../lib/problem')
+const {require_perm} = require('../lib/permission')
 
 router.get('/:pid', async (req, res) => {
   'use strict'
@@ -21,7 +22,7 @@ router.get('/:pid', async (req, res) => {
   }
 })
 
-router.get('/:pid/:type/:tid', async (req, res, next) => {
+router.get('/:pid/:type/:tid', require_perm(), async (req, res, next) => {
   const pid = Number(req.params.pid)
   const tid = Number(req.params.tid)
   if (!Number.isInteger(pid) || !Number.isInteger(tid))

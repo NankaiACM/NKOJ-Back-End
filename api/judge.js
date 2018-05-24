@@ -47,17 +47,20 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
     socket.send([DATA_BASE, solution_id, problem, langString, time_limit, memory_limit, cases, special_judge, detail_judge].join('\n'))
   })
   socket.on('close', async function close () {
-    const result = fs.readFileSync(struct.file.result, 'utf8').split('\n')[0]
-    const time = fs.readFileSync(struct.file.time, 'utf8').split('\n')[0]
-    const memory = fs.readFileSync(struct.file.memory, 'utf8').split('\n')[0]
-    const compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
-    const code_length = Buffer.byteLength(code, 'utf8')
+    try {
+      const result = fs.readFileSync(struct.file.result, 'utf8').split('\n')[0]
+      const time = fs.readFileSync(struct.file.time, 'utf8').split('\n')[0]
+      const memory = fs.readFileSync(struct.file.memory, 'utf8').split('\n')[0]
+      const compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
+      const code_length = Buffer.byteLength(code, 'utf8')
 
-    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4 WHERE solution_id = $5', [result, time, memory, code_length, solution_id])
-
-    if (result !== '') res.ok({solution_id, time, memory, result, compile_info})
-    else res.fail(500, 'seems something wrong, contact admin...')
-
+      await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4 WHERE solution_id = $5', [result, time, memory, code_length, solution_id])
+      if (result !== '') res.ok({solution_id, time, memory, result, compile_info})
+      else res.fail(500, 'seems something wrong, contact admin...')
+    } catch (e) {
+      // TODO: DEV
+      res.fail(500, e)
+    }
     unlinkTempFolder(solution_id)
   })
 

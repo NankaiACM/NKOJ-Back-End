@@ -11,4 +11,8 @@ CREATE TRIGGER insert_danmaku INSTEAD OF INSERT ON user_danmaku FOR EACH ROW EXE
 
 CREATE TRIGGER insert_solutions AFTER INSERT ON solutions FOR EACH ROW EXECUTE PROCEDURE update_problem_sol();
 CREATE TRIGGER update_solutions AFTER UPDATE ON solutions FOR EACH ROW EXECUTE PROCEDURE update_problem_sol();
+
+-- TODO: delete this...
+CREATE TRIGGER update_solutions BEFORE DELETE ON problems FOR EACH ROW EXECUTE PROCEDURE delete_problem();
+
 COMMIT;

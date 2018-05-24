@@ -205,4 +205,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- TODO: delete this.....
+CREATE OR REPLACE FUNCTION delete_problem() RETURNS trigger AS
+$$
+BEGIN
+    DELETE FROM solutions WHERE problem_id = OLD.problem_id;
+    DELETE FROM problem_tag_assoc WHERE problem_id = OLD.problem_id;
+    DELETE FROM problem_tag_votes WHERE problem_id = OLD.problem_id;
+    DELETE FROM contest_problems WHERE problem_id = OLD.problem_id;
+    RETURN OLD;
+END
+$$ LANGUAGE plpgsql;
+
+
 COMMIT;

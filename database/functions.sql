@@ -189,4 +189,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql COST 1;
 
+CREATE OR REPLACE FUNCTION update_problem_sol() RETURNS trigger AS
+$$
+BEGIN
+    IF TG_OP='INSERT' THEN
+        UPDATE problems SET "all" = "all" + 1 WHERE problem_id = NEW.problem_id;
+    ELSEIF TG_OP='UPDATE' THEN
+        IF NEW.status_id = 107 AND OLD.status_id != 107 THEN
+            UPDATE problems SET "ac" = "ac" + 1 WHERE problem_id = NEW.problem_id;
+        ELSEIF NEW.status_id != 107 AND OLD.status_id = 107 THEN
+            UPDATE problems SET "ac" = "ac" - 1 WHERE problem_id = NEW.problem_id;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 COMMIT;

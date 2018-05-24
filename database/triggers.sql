@@ -8,4 +8,7 @@ CREATE TRIGGER insert_users INSTEAD OF INSERT ON users FOR EACH ROW EXECUTE PROC
 CREATE TRIGGER update_users INSTEAD OF UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_existing_user();
 CREATE TRIGGER insert_danmaku INSTEAD OF INSERT ON user_danmaku FOR EACH ROW EXECUTE PROCEDURE upsert_user_danmaku();
 
+
+CREATE TRIGGER insert_solutions AFTER INSERT ON solutions FOR EACH ROW EXECUTE PROCEDURE update_problem_sol();
+CREATE TRIGGER update_solutions AFTER UPDATE ON solutions FOR EACH ROW EXECUTE PROCEDURE update_problem_sol();
 COMMIT;

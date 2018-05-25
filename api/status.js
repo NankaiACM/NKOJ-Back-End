@@ -29,6 +29,7 @@ router.get('/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
   return res.sendStatus(204)
 })
 
+// TODO: get each file actual size and return whether should we load it by default
 router.get('/detail/:sid(\\d+)', async (req, res) => {
   'use strict'
 
@@ -53,6 +54,7 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
   return res.fail(404)
 })
 
+// TODO: return 20 lines by default
 router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
   'use strict'
 

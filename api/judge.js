@@ -29,7 +29,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
 
   // TODO: always cpp...
   let langString = 'cpp'
-  const result = await db.query('INSERT INTO solutions (user_id, problem_id, language, ipaddr_id, status_id) VALUES ($1, $2, $3, get_ipaddr_id($4), 1) RETURNING solution_id', [user, problem, lang, ip])
+  const result = await db.query('INSERT INTO solutions (user_id, problem_id, language, ipaddr_id, status_id) VALUES ($1, $2, $3, get_ipaddr_id($4), 100) RETURNING solution_id', [user, problem, lang, ip])
 
   const solution_id = result.rows[0].solution_id
 

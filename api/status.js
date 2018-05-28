@@ -65,7 +65,7 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
     if ((req.session.user === row.user_id && await check_perm(req, GET_CODE_SELF)) || await check_perm(req, GET_CODE_ALL)) {
       const struct = getSolutionStructure(sid)
       ret.compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
-      ret.compile_info= ret.compile_info.replace(/\/var\/www\/data\//g,'hh/')
+      ret.compile_info = ret.compile_info.replace(/\/var\/www\/data\//g, `f:\\${sid}\\`)
       // TODO: always cpp...
       ret.code = fs.readFileSync(struct.file.code_base + 'cpp', 'utf8')
     }
@@ -112,7 +112,5 @@ router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
   }
   return res.fail(404)
 })
-
-
 
 module.exports = router

@@ -4,6 +4,33 @@ const fs = require('fs')
 const {check_perm, GET_CODE_SELF, GET_CODE_ALL, VIEW_OUTPUT_SELF, VIEW_OUTPUT_ALL} = require('../lib/permission')
 const {getSolutionStructure, getProblemStructure} = require('../lib/judge')
 
+
+function get_in_out_data(path,encoding)
+{
+  return new Promise((resolve, reject) => {
+    'use strict'
+    const stream=fs.createReadStream(path,{
+      start:0,
+      end:500,
+      autoClose:true,
+      encoding:encoding,
+      flags: 'r'
+    })
+    let res=''
+    stream.on('data', (data) => {
+        res+=data
+      }
+    )
+    stream.on('end',()=>
+    {
+      if(res==='')
+        reject('empty file')
+      else
+        resolve(res)
+    })
+  })
+}
+
 router.get('/', async (req, res) => {
   'use strict'
   let limit = 20
@@ -46,6 +73,7 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
     if ((req.session.user === row.user_id && await check_perm(req, GET_CODE_SELF)) || await check_perm(req, GET_CODE_ALL)) {
       const struct = getSolutionStructure(sid)
       ret.compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
+      ret.compile_info= ret.compile_info.replace(/\/var\/www\/data\//g,'hh/')
       // TODO: always cpp...
       ret.code = fs.readFileSync(struct.file.code_base + 'cpp', 'utf8')
     }
@@ -76,14 +104,18 @@ router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
 
     const solution = getSolutionStructure(sid)
     const problem = getProblemStructure(pid)
+
     try {
-      ret.stdin = fs.readFileSync(`${problem.path.data}/${i}.in`, 'utf8')
-      ret.stdout = fs.readFileSync(`${problem.path.data}/${i}.out`, 'utf8')
+      //ret.stdin = fs.readFileSync(`${problem.path.data}/${i}.in`, 'utf8')
+      //ret.stdout = fs.readFileSync(`${problem.path.data}/${i}.out`, 'utf8')
+      ret.stdin = get_in_out_data(`${problem.path.data}/${i}.in`, 'utf8')
+      ret.stdout= get_in_out_data(`${problem.path.data}/${i}.out`, 'utf8')
     } catch (e) {
       return res.fail(404)
     }
     try {
-      ret.execout = fs.readFileSync(`${solution.path.exec_out}/${i}.out`, 'utf8')
+      ret.execout = get_in_out_data(`${solution.path.exec_out}/${i}.out`, 'utf8')
+      //ret.execout = fs.readFileSync(`${solution.path.exec_out}/${i}.out`, 'utf8')
     } catch (e) {
       ret.execout = null
     }
@@ -91,5 +123,7 @@ router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
   }
   return res.fail(404)
 })
+
+
 
 module.exports = router

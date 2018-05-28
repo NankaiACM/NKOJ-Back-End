@@ -9,9 +9,9 @@ const contest = require('./user_contest')
 const db = require('../../database/db')
 const {require_perm} = require('../../lib/permission')
 
-router.get('/', require_perm(), async (req, res) => {
+router.get('/:user_code', require_perm(), async (req, res) => {
   'use strict'
-  const user = req.session.user
+  const user = req.params.user_code||req.session.user
   const result = await db.query('SELECT * FROM users WHERE user_id = $1', [user])
   delete result.rows[0].password
   res.ok(result.rows[0])

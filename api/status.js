@@ -4,6 +4,26 @@ const fs = require('fs')
 const {check_perm, GET_CODE_SELF, GET_CODE_ALL, VIEW_OUTPUT_SELF, VIEW_OUTPUT_ALL} = require('../lib/permission')
 const {getSolutionStructure, getProblemStructure} = require('../lib/judge')
 
+function loadPartialData (path) {
+  return new Promise((resolve, reject) => {
+    const stream = fs.createReadStream(path, {
+      start: 0,
+      end: 1000,
+      autoClose: true,
+      encoding: 'utf8'
+    })
+    let res = ''
+    stream.on('data', data => res += data)
+    stream.on('end', () => {
+      let arr = res.split('\n')
+      if (arr.length > 20) arr = [...arr.slice(0, 20), '<...>']
+      resolve(arr.join('\n'))
+    })
+    stream.on('error', (err) => reject(err))
+  })
+}
+
+
 router.get('/', async (req, res) => {
   'use strict'
   let limit = 20
@@ -29,7 +49,6 @@ router.get('/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
   return res.sendStatus(204)
 })
 
-// TODO: get each file actual size and return whether should we load it by default
 router.get('/detail/:sid(\\d+)', async (req, res) => {
   'use strict'
 
@@ -54,12 +73,12 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
   return res.fail(404)
 })
 
-// TODO: return 20 lines by default
 router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
   'use strict'
 
   const sid = Number(req.params.sid)
   const i = Number(req.params.i)
+  const isFullData = req.query.all
 
   if (!Number.isInteger(sid) || !Number.isInteger(i))
     res.fail(422)
@@ -77,13 +96,13 @@ router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
     const solution = getSolutionStructure(sid)
     const problem = getProblemStructure(pid)
     try {
-      ret.stdin = fs.readFileSync(`${problem.path.data}/${i}.in`, 'utf8')
-      ret.stdout = fs.readFileSync(`${problem.path.data}/${i}.out`, 'utf8')
+      ret.stdin = await (isFullData ? fs.readFileSync(`${problem.path.data}/${i}.in`, 'utf8') : loadPartialData(`${problem.path.data}/${i}.in`))
+      ret.stdout = await (isFullData ? fs.readFileSync(`${problem.path.data}/${i}.out`, 'utf8') : loadPartialData(`${problem.path.data}/${i}.out`))
     } catch (e) {
       return res.fail(404)
     }
     try {
-      ret.execout = fs.readFileSync(`${solution.path.exec_out}/${i}.out`, 'utf8')
+      ret.execout = await (isFullData ? fs.readFileSync(`${solution.path.exec_out}/${i}.out`, 'utf8') : loadPartialData(`${solution.path.exec_out}/${i}.out`))
     } catch (e) {
       ret.execout = null
     }

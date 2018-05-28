@@ -57,4 +57,6 @@ router.get('/:pid/:type/:tid', require_perm(), async (req, res, next) => {
   res.ok({affected: ret.rowCount})
 })
 
+// TODO: admin download data
+
 module.exports = router

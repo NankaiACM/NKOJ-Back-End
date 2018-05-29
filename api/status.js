@@ -64,7 +64,11 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
     ret.canViewOutput = await check_perm(req, VIEW_OUTPUT_SELF)
     if ((req.session.user === row.user_id && await check_perm(req, GET_CODE_SELF)) || await check_perm(req, GET_CODE_ALL)) {
       const struct = getSolutionStructure(sid)
-      ret.compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
+      try {
+        ret.compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
+      } catch (e) {
+        ret.compile_info = '评测机内核没有正常运行... 请通知馆里猿0...0'
+      }
       ret.compile_info = ret.compile_info.replace(/\/var\/www\/data\//g, `f:\\${sid}\\`)
       // TODO: always cpp...
       ret.code = fs.readFileSync(struct.file.code_base + 'cpp', 'utf8')

@@ -92,8 +92,11 @@ ALTER TABLE user_nick ADD FOREIGN KEY (user_id) REFERENCES user_info(user_id) DE
 CREATE TABLE user_apikey (
     user_id         integer         NOT NULL REFERENCES user_info(user_id),
     enabled         boolean         NOT NULL DEFAULT 't'::boolean,
-    app_key         varchar(50)     UNIQUE,
-    app_secret      varchar(50)
+    key_name        varchar(36),
+    app_key         varchar(32)     NOT NULL CHECK(length(app_key)=32),
+    -- TODO: find a better way or logic
+    hashed_key      varchar(64)     NOT NULL CHECK(length(hashed_key)=64),
+    since           timestamp       DEFAULT current_timestamp
 );
 
 CREATE UNIQUE INDEX ON user_apikey(app_key);

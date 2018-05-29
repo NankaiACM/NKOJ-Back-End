@@ -2,7 +2,6 @@ const {PUBLIC_PATH, DIST_PATH} = require('./config/basic')
 const express = require('express')
 const app = express()
 const api = require('./api/api')
-const session = require('./lib/session')
 const prototype = require('./lib/prototype')
 
 const bodyParser = require('body-parser')
@@ -26,7 +25,6 @@ app.use(logger('dev'))
 // DEV: PPT JSON
 app.set('json spaces', 4)
 
-app.use(session)
 app.use(prototype.setResponsePrototype)
 
 app.use('/public', express.static(PUBLIC_PATH, {fallthrough: false}))
@@ -35,6 +33,8 @@ app.use(bodyParser.json({limit: '233kb'}))
 
 // This defaults to 100kb
 app.use(bodyParser.urlencoded({extended: true}))
+
+app.use(require('./lib/apikey'))
 
 // Dispatch to router
 app.use('/api', api)

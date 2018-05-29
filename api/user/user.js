@@ -18,7 +18,7 @@ const queryUserInfo = async function (uid) {
 
   let row = result.rows[0]
   let {password, old_password, ...ret} = row
-  return {ret, ...ac.rows[0]}
+  return {...ret, ...ac.rows[0]}
 }
 
 router.get('/:uid(\\d+)?', require_perm(), async (req, res) => {

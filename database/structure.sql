@@ -89,17 +89,17 @@ CREATE UNIQUE INDEX ON user_info(email, email_suffix_id, "password");
 
 ALTER TABLE user_nick ADD FOREIGN KEY (user_id) REFERENCES user_info(user_id) DEFERRABLE INITIALLY DEFERRED;
 
-CREATE TABLE user_apikey (
+CREATE TABLE user_api (
     user_id         integer         NOT NULL REFERENCES user_info(user_id),
     enabled         boolean         NOT NULL DEFAULT 't'::boolean,
-    key_name        varchar(36),
-    app_key         varchar(32)     NOT NULL CHECK(length(app_key)=32),
+    api_name        varchar(36),
+    api_key         varchar(32)     NOT NULL CHECK(length(api_key)=32),
     -- TODO: find a better way or logic
-    hashed_key      varchar(64)     NOT NULL CHECK(length(hashed_key)=64),
+    api_hashed      varchar(64)     NOT NULL CHECK(length(api_hashed)=64),
     since           timestamp       DEFAULT current_timestamp
 );
 
-CREATE UNIQUE INDEX ON user_apikey(app_key);
+CREATE UNIQUE INDEX ON user_api (api_key);
 
 CREATE TYPE type_problem_restriction AS (
     "NO_VIEW_BEFORE_START"          bit,

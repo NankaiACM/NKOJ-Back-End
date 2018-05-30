@@ -2,11 +2,12 @@ const router = require('express').Router()
 const db = require('../database/db')
 const fc = require('../lib/form-check')
 
-router.get('/list', fc.all(['l', 'r']), async (req, res) => {
+const listProblem = async (req, res) => {
   'use strict'
+  console.log(req.params)
   let form = req.fcResult
-  let offset = form.l - 1 || 0
-  let requested = form.r ? (form.r - offset) : 20
+  let offset = form.l || 0
+  let requested = form.r || 20
   let limit = requested > 50 ? 50 : requested
   let result = await db.query('SELECT * FROM problems order by problem_id limit $1 offset $2', [limit, offset])
   return res.ok({
@@ -15,6 +16,9 @@ router.get('/list', fc.all(['l', 'r']), async (req, res) => {
     is_end: result.rows.length < limit,
     list: result.rows
   })
-})
+}
+
+router.get('/:l(\\d+)?/:r(\\d+)?', fc.all(['l', 'r']), listProblem)
+router.get('/list/:l(\\d+)?/:r(\\d+)?', fc.all(['l', 'r']), listProblem)
 
 module.exports = router

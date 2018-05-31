@@ -205,6 +205,7 @@ CREATE TABLE solutions (
     status_id       integer         NOT NULL REFERENCES solution_status,
     language        integer,
     code_size       integer,
+    shared          boolean         NOT NULL DEFAULT 'f'::boolean,
     "time"          integer,
     "memory"        integer,
     "when"          timestamp       DEFAULT current_timestamp,

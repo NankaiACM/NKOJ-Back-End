@@ -62,12 +62,14 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
     const row = result.rows[0]
     const {ipaddr_id, ...ret} = {...row}
     ret.canViewOutput = await check_perm(req, VIEW_OUTPUT_SELF)
-    if ((req.session.user === row.user_id && await check_perm(req, GET_CODE_SELF)) || await check_perm(req, GET_CODE_ALL)) {
+    if ((req.session.user === row.user_id && await check_perm(req, GET_CODE_SELF))
+      || await check_perm(req, GET_CODE_ALL)
+      || ret.shared) {
       const struct = getSolutionStructure(sid)
       try {
         ret.compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
       } catch (e) {
-        ret.compile_info = '评测机内核没有正常运行... 请通知馆里猿0...0'
+        ret.compile_info = '评测机内核没有正常运行... 请通知馆里猿0v0'
       }
       ret.compile_info = ret.compile_info.replace(/\/var\/www\/data\//g, `f:\\${sid}\\`)
       // TODO: always cpp...
@@ -114,6 +116,23 @@ router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
     }
     return res.ok(ret)
   }
+  return res.fail(404)
+})
+
+router.get('/share/:type(add|remove)/:sid(\\d+)', async (req, res) => {
+  'use strict'
+
+  const sid = Number(req.params.sid)
+
+  if (!Number.isInteger(sid))
+    res.fail(422)
+
+  if (await check_perm(req, GET_CODE_SELF)) {
+    const result = await db.query('UPDATE solutions SET shared = $1 WHERE solution_id = $2 AND user_id = $3 AND shared <> $1 RETURNING solution_id, shared'
+      , [req.params.type === 'add', sid, req.session.user])
+    if (result.rows.length) return res.ok(result.rows[0])
+  }
+
   return res.fail(404)
 })
 

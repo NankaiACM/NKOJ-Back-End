@@ -4,7 +4,7 @@ const {PROBLEM_SPJ_PATH, TEMP_PATH} = require('../../config/basic')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
-const getExt = require('../../lib/extension').ext
+const ext = require('../../lib/extension')
 
 router.post('/:pid', (req, res, next) => {
   if (!Number.isInteger(Number(req.params.pid)))
@@ -24,7 +24,7 @@ router.post('/:pid', upload.single('file'), (req, res, next) => {
   // TODO:
   const pid = req.params.pid
   const language = req.body.lang || 'cpp'
-  const ext = getExt(language)
+  const ext = ext[language]
   const filename = `${PROBLEM_SPJ_PATH}/${pid}.${ext}`
   if (req.file) fs.rename(req.file.path, filename)
   else {

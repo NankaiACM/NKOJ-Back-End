@@ -21,4 +21,15 @@ CREATE OR REPLACE VIEW user_solutions AS
 
 -- TODO: add new table to map language_id with language?
 
+CREATE OR REPLACE VIEW user_contests AS
+    SELECT contests.contest_id, contests.title, contests.description, contests.during, contests.perm, contests.private,
+    COALESCE(a.problems, '{}'::json ARRAY) AS problems
+    FROM contests
+    LEFT OUTER JOIN (
+        SELECT contest_id, array_agg(
+            json_build_object('pid', problem_id, 'ac', submit_ac, 'all', submit_all)
+        )
+        as problems FROM contest_problems GROUP BY contest_problems.contest_id
+    ) a ON a.contest_id = contests.contest_id;
+
 COMMIT;

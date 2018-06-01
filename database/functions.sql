@@ -194,11 +194,20 @@ $$
 BEGIN
     IF TG_OP='INSERT' THEN
         UPDATE problems SET "all" = "all" + 1 WHERE problem_id = NEW.problem_id;
+        IF NEW.contest_id IS NOT NULL THEN
+            UPDATE contest_problems SET submit_all = submit_all + 1 WHERE problem_id = NEW.problem_id AND contest_id = NEW.contest_id;
+        END IF;
     ELSEIF TG_OP='UPDATE' THEN
         IF NEW.status_id = 107 AND OLD.status_id != 107 THEN
             UPDATE problems SET "ac" = "ac" + 1 WHERE problem_id = NEW.problem_id;
+            IF NEW.contest_id IS NOT NULL THEN
+                UPDATE contest_problems SET submit_ac = submit_ac + 1 WHERE problem_id = NEW.problem_id AND contest_id = NEW.contest_id;
+            END IF;
         ELSEIF NEW.status_id != 107 AND OLD.status_id = 107 THEN
             UPDATE problems SET "ac" = "ac" - 1 WHERE problem_id = NEW.problem_id;
+            IF NEW.contest_id IS NOT NULL THEN
+                UPDATE contest_problems SET submit_ac = submit_ac - 1 WHERE problem_id = NEW.problem_id AND contest_id = NEW.contest_id;
+            END IF;
         END IF;
     END IF;
     RETURN NEW;
@@ -214,8 +223,7 @@ BEGIN
     DELETE FROM problem_tag_votes WHERE problem_id = OLD.problem_id;
     DELETE FROM contest_problems WHERE problem_id = OLD.problem_id;
     RETURN OLD;
-END
+END;
 $$ LANGUAGE plpgsql;
-
 
 COMMIT;

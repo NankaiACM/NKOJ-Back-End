@@ -101,23 +101,6 @@ CREATE TABLE user_api (
 
 CREATE UNIQUE INDEX ON user_api (api_key);
 
-CREATE TYPE type_problem_restriction AS (
-    "NO_VIEW_BEFORE_START"          bit,
-    "NO_RESULT_BEFORE_END_SELF"     bit,
-    "NO_RESULT_BEFORE_END_OTHERS"   bit,
-    "NO_VIEW_BEFORE_END"            bit,
-    "NO_RESULT_BEFORE_END_ALL"      bit
-);
-
-CREATE TABLE problem_restriction (
-    restriction_id  serial          PRIMARY KEY,
-    title           varchar(16)     NOT NULL,
-    description     text,
-    enabled         boolean         NOT NULL DEFAULT 't'::boolean,
-    during          tsrange         NOT NULL,
-    perm            type_problem_restriction NOT NULL,
-    insiders        integer ARRAY   NOT NULL DEFAULT '{}'
-);
 
 CREATE TABLE problem_tags (
     tag_id          serial      PRIMARY KEY,
@@ -126,12 +109,30 @@ CREATE TABLE problem_tags (
 
 CREATE UNIQUE INDEX ON problem_tags(tag_name);
 
+CREATE TYPE type_problem_restriction AS (
+    "NO_VIEW_BEFORE_START"          bit,
+    "NO_RESULT_BEFORE_END_SELF"     bit,
+    "NO_RESULT_BEFORE_END_OTHERS"   bit,
+    "NO_VIEW_BEFORE_END"            bit,
+    "NO_RESULT_BEFORE_END_ALL"      bit
+);
+
+CREATE TABLE contests (
+    contest_id      serial          PRIMARY KEY,
+    title           varchar(255)    NOT NULL,
+    description     text,
+    enabled         boolean         NOT NULL DEFAULT 't'::boolean,
+    during          tsrange         NOT NULL,
+    perm            type_problem_restriction NOT NULL DEFAULT ('1', '0', '0', '0', '0'),
+    private         boolean         NOT NULL DEFAULT 'f'::boolean
+);
+
 CREATE TABLE problems (
     problem_id      serial          PRIMARY KEY,
     title           varchar(255)    NOT NULL,               -- content stores in file (use svn)
     "ac"            integer         NOT NULL DEFAULT 0,
     "all"           integer         NOT NULL DEFAULT 0,
-    restriction_id  integer         REFERENCES problem_restriction(restriction_id),
+    contest_id      integer         REFERENCES contests(contest_id),
     special_judge   boolean         NOT NULL DEFAULT 'f'::boolean,
     detail_judge    boolean         NOT NULL DEFAULT 't'::boolean,
     cases           integer         NOT NULL DEFAULT 1,
@@ -139,6 +140,10 @@ CREATE TABLE problems (
     memory_limit    integer         NOT NULL DEFAULT 10000,
     "level"         integer
 );
+
+
+CREATE INDEX ON problems(title);
+CREATE INDEX ON problems(contest_id);
 
 CREATE TABLE problem_tag_assoc (
     tag_id      integer references problem_tags(tag_id),
@@ -157,20 +162,12 @@ CREATE TABLE problem_tag_votes (
     primary key (user_id, tag_id, problem_id)
 );
 
-CREATE TABLE contests (
-    contest_id      serial          PRIMARY KEY,
-    title           varchar(255)    NOT NULL,
-    during          tsrange         NOT NULL,
-    description     text,
-    extra           boolean         NOT NULL DEFAULT 'f'::boolean,
-    problems        integer ARRAY
-);
-
 CREATE TABLE contest_problems (
     contest_id      integer         NOT NULL REFERENCES contests(contest_id),
     problem_id      integer         NOT NULL REFERENCES problems(problem_id),
     submit_ac       integer         NOT NULL DEFAULT 0,
-    submit_all      integer         NOT NULL DEFAULT 0
+    submit_all      integer         NOT NULL DEFAULT 0,
+    PRIMARY KEY(contest_id, problem_id)
 );
 
 CREATE TABLE contest_users (
@@ -203,6 +200,7 @@ CREATE TABLE solutions (
     user_id         integer         NOT NULL REFERENCES user_info(user_id),
     problem_id      integer         NOT NULL REFERENCES problems(problem_id),
     status_id       integer         NOT NULL REFERENCES solution_status,
+    contest_id      integer         REFERENCES contests(contest_id),
     language        integer,
     code_size       integer,
     shared          boolean         NOT NULL DEFAULT 'f'::boolean,

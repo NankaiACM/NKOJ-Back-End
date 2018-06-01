@@ -34,7 +34,7 @@ router.post('/',
         }
       }
 
-      const r = await db.query('insert into problems (title, restriction_id, cases, special_judge, detail_judge, level, time_limit, memory_limit)' +
+      const r = await db.query('insert into problems (title, contest_id, cases, special_judge, detail_judge, level, time_limit, memory_limit)' +
         ' values ($1, NULL, $2, $3::boolean, $4::boolean, $5::integer, $6::integer, $7::integer) returning problem_id', [form.title, form.cases, form.special_judge, form.detail_judge, form.level, form.time_limit, form.memory_limit])
       if (r.rows.length !== 1) return res.fail(520, 'database returns neither an error nor a successful insert')
 

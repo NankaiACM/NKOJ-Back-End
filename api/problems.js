@@ -4,7 +4,6 @@ const fc = require('../lib/form-check')
 
 const listProblem = async (req, res) => {
   'use strict'
-  console.log(req.params)
   let form = req.fcResult
   let offset = form.l || 0
   let requested = form.r || 20

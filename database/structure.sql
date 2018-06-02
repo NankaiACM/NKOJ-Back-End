@@ -218,9 +218,10 @@ CREATE TABLE post (
     content         text,
     problem_id      integer         REFERENCES problems(problem_id),
     since           timestamp       DEFAULT current_timestamp,
-    last_edit_date  timestamp       DEFAULT current_timestamp,
+    last_edit_date  timestamp       DEFAULT NULL,
     last_editor_id  integer         REFERENCES user_info(user_id),
     last_active_date timestamp      DEFAULT current_timestamp,
+    last_active_user integer        REFERENCES user_info(user_id),
     closed_date     timestamp,
     removed_date    timestamp,
     positive        integer         NOT NULL DEFAULT 0,
@@ -233,8 +234,25 @@ CREATE TABLE post_reply (
     reply_to        integer         NOT NULL REFERENCES post(post_id),
     user_id         integer         NOT NULL REFERENCES user_info(user_id),
     score           integer         NOT NULL DEFAULT 0,
+    removed_date    timestamp,
     since           timestamp       DEFAULT current_timestamp,
     content         varchar(600),
+    ipaddr_id       integer         REFERENCES ipaddr(ipaddr_id)
+);
+
+CREATE UNLOGGED TABLE post_vote (
+    post_id         integer         NOT NULL REFERENCES post(post_id),
+    user_id         integer         NOT NULL REFERENCES user_info(user_id),
+    attitude        boolean         NOT NULL,
+    since           timestamp       DEFAULT current_timestamp,
+    primary key(post_id, user_id)
+);
+
+CREATE UNLOGGED TABLE reply_vote (
+    reply_id        integer         NOT NULL REFERENCES post(post_id),
+    user_id         integer         NOT NULL REFERENCES user_info(user_id),
+    since           timestamp       DEFAULT current_timestamp,
+    primary key(reply_id, user_id)
 );
 
 CREATE UNLOGGED TABLE _danmaku (

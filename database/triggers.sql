@@ -12,7 +12,14 @@ CREATE TRIGGER insert_danmaku INSTEAD OF INSERT ON user_danmaku FOR EACH ROW EXE
 CREATE TRIGGER insert_solutions AFTER INSERT ON solutions FOR EACH ROW EXECUTE PROCEDURE update_problem_sol();
 CREATE TRIGGER update_solutions AFTER UPDATE ON solutions FOR EACH ROW EXECUTE PROCEDURE update_problem_sol();
 
--- TODO: delete this...
-CREATE TRIGGER update_solutions BEFORE DELETE ON problems FOR EACH ROW EXECUTE PROCEDURE delete_problem();
+CREATE TRIGGER after_insert_post_vote AFTER INSERT ON post_vote FOR EACH ROW EXECUTE PROCEDURE update_post_vote();
+CREATE TRIGGER after_update_post_vote AFTER UPDATE ON post_vote FOR EACH ROW EXECUTE PROCEDURE update_post_vote();
+CREATE TRIGGER after_delete_post_vote AFTER DELETE ON post_vote FOR EACH ROW EXECUTE PROCEDURE update_post_vote();
+
+CREATE TRIGGER after_insert_reply_vote AFTER INSERT ON reply_vote FOR EACH ROW EXECUTE PROCEDURE update_reply_vote();
+CREATE TRIGGER after_delete_reply_vote AFTER DELETE ON reply_vote FOR EACH ROW EXECUTE PROCEDURE update_reply_vote();
+
+CREATE TRIGGER after_insert_post AFTER INSERT ON post FOR EACH ROW EXECUTE PROCEDURE insert_update_post();
+CREATE TRIGGER after_update_post AFTER UPDATE ON post FOR EACH ROW EXECUTE PROCEDURE insert_update_post();
 
 COMMIT;

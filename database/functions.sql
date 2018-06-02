@@ -214,15 +214,72 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- TODO: delete this.....
-CREATE OR REPLACE FUNCTION delete_problem() RETURNS trigger AS
+CREATE OR REPLACE FUNCTION update_post_vote() RETURNS trigger AS
 $$
 BEGIN
-    DELETE FROM solutions WHERE problem_id = OLD.problem_id;
-    DELETE FROM problem_tag_assoc WHERE problem_id = OLD.problem_id;
-    DELETE FROM problem_tag_votes WHERE problem_id = OLD.problem_id;
-    DELETE FROM contest_problems WHERE problem_id = OLD.problem_id;
-    RETURN OLD;
+    IF TG_OP='DELETE' THEN
+        IF OLD.attitude THEN
+            UPDATE post SET positive = positive - 1 WHERE post_id = OLD.post_id;
+        ELSE
+            UPDATE post SET negative = negative - 1 WHERE post_id = OLD.post_id;
+        END IF;
+    ELSEIF TG_OP='INSERT' THEN
+        IF NEW.attitude THEN
+            UPDATE post SET positive = positive + 1 WHERE post_id = NEW.post_id;
+        ELSE
+            UPDATE post SET negative = negative + 1 WHERE post_id = NEW.post_id;
+        END IF;
+    ELSEIF NEW.attitude IS DISTINCT FROM OLD.attitude THEN
+        IF NEW.attitude THEN
+            UPDATE post SET positive = positive + 1 WHERE post_id = NEW.post_id;
+            UPDATE post SET negative = negative - 1 WHERE post_id = NEW.post_id;
+        ELSE
+            UPDATE post SET positive = positive - 1 WHERE post_id = NEW.post_id;
+            UPDATE post SET negative = negative + 1 WHERE post_id = NEW.post_id;
+        END IF;
+    END IF;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'no data found';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION update_reply_vote() RETURNS trigger AS
+$$
+BEGIN
+    IF TG_OP='DELETE' THEN
+        UPDATE post_reply SET score = score - 1 WHERE reply_id = NEW.reply_id;
+    ELSEIF TG_OP='INSERT' THEN
+        UPDATE post_reply SET score = score + 1 WHERE reply_id = NEW.reply_id;
+    END IF;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'no data found';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_update_post() RETURNS trigger AS
+$$
+BEGIN
+    IF TG_OP='INSERT' THEN
+        IF NEW.parent_id IS NOT NULL THEN
+            UPDATE post SET last_active_date = NEW.since, last_active_user = NEW.user_id WHERE post_id = NEW.parent_id;
+        END IF;
+    ELSEIF TG_OP='UPDATE' THEN
+        IF NEW.removed_date IS NOT NULL THEN
+            UPDATE post SET removed_date = NEW.removed_date WHERE parent_id = NEW.post_id;
+        ELSE
+            UPDATE post SET removed_date = NULL WHERE parent_id = NEW.post_id AND removed_date = OLD.removed_date;
+        END IF;
+        IF NEW.closed_date IS NOT NULL THEN
+            UPDATE post SET closed_date = NEW.closed_date WHERE parent_id = NEW.post_id;
+        ELSE
+            UPDATE post SET closed_date = NULL WHERE parent_id = NEW.post_id AND closed_date = OLD.closed_date;
+        END IF;
+    END IF;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 

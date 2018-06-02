@@ -2,17 +2,21 @@ const router = require('express').Router()
 const db = require('../database/db')
 const fc = require('../lib/form-check')
 
-// TODO: unify list logic, test
-router.get('/list', fc.all(['l', 'r']), async (req, res) => {
-  'use strict'
-  const values = [req.fcResult.l, req.fcResult.r]
-  const query = 'SELECT * FROM contests WHERE contest_id BETWEEN $1 AND $2'
+const listContest = async (req, res) => {
+  let form = req.fcResult
+  let offset = form.l || 0
+  let requested = form.r || 20
+  let limit = requested > 50 ? 50 : requested
+  let result = await db.query('SELECT * FROM user_contests order by contest_id desc limit $1 offset $2', [limit, offset])
+  return res.ok({
+    requested: requested,
+    served: result.rows.length,
+    is_end: result.rows.length < limit,
+    list: result.rows
+  })
+}
 
-  let result = await db.query(query, values)
-  if (result) {
-    return res.ok(result.rows)
-  }
-  return res.fail(1, 'Unknown problems')
-})
+router.get('/:l(\\d+)?/:r(\\d+)?', fc.all(['l', 'r']), listContest)
+router.get('/list/:l(\\d+)?/:r(\\d+)?', fc.all(['l', 'r']), listContest)
 
 module.exports = router

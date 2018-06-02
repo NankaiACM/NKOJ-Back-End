@@ -1,72 +1,177 @@
 const router = require('express').Router()
 const multer = require('multer')
 const path = require('path')
-const {CONTEST_PATH} = require('../../config/basic')
-const redis = require('redis')
-const {DB_CONTEST} = require('../../config/redis')
-const client = redis.createClient()
-const {matchedData} = require('express-validator/filter')
-const {validationResult} = require('express-validator/check')
-const check = require('../../lib/form-check')
+const {CONTEST_PATH, TEMP_PATH} = require('../../config/basic')
+const fc = require('../../lib/form-check')
 const db = require('../../database/db')
-client.select(DB_CONTEST)
+const fs = require('fs')
+
+// 添加一个新的竞赛
 
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, path.resolve(path.join('../public', CONTEST_PATH)))
+      cb(null, TEMP_PATH)
     },
     filename: (req, file, cb) => {
-      cb(null, 'contest_' + file.fieldname + '_' + req.id + '.md')
+      cb(null, `${Date.now().toString(36)}${Math.floor(Math.random() * 100).toString(36)}${path.extname(file.originalname)}`)
     }
-  }),
-  fileSize: '2048000',
-  files: 1,
-  fileFilter: async (req, file, cb) => {
-    const queryString = 'SELECT MAX(contest_id) AS maxid FROM contests'
-    let result = await db.query(queryString, {})
-    if (req.body.id <= result.rows[0].maxid) {
-      req.idErr = 'Id conflict'
-      cb(null, false)
-    } else if (path.extname(file.originalname) !== '.md') {
-      req.fileErr = 'Not md file!'
-      cb(null, false)
-    }
-    else cb(null, true)
-  }
+  })
 })
 
-// TODO: fix
-router.post('/', upload.fields({name: 'rule', maxCount: 1}, {name: 'about', maxCount: 1}),
-  [check.id, check.role_title, check.role_description, check.problems, check.start, check.end],
-  async (req, res) => {
-  if (req.idErr) { res.fail(1, req.idErr) }
-  if (req.fileErr) { res.fail(2, req.fileErr) }
+router.post('/', upload.single('file')
+  , fc.all(['title', 'description', 'start', 'end', 'perm', 'private'])
+  , async (req, res) => {
 
-  const errors = validationResult(req)
-  if (!errors.isEmpty()) {
-    res.fail(1, errors.array())
-    return
-  }
-  const checkres = matchedData(req)
-  const id = checkres.id
-  client.set('contest_rule:' + id, 'contest_rule_' + id + '.md')
-  client.set('contest_about:' + id, 'contest_about_' + id + '.md')
-  const title = checkres.title
-  const start = checkres.start
-  const end = checkres.end
-  const description = checkres.discription
-  const problems = checkres.problems
-  const values = [title, description]
+    const form = req.fcResult
+    const during = '[' + form.start + ',' + form.end + ']'
 
-  const queryString = 'INSERT INTO contests (title, during, description, problems) VALUES ($1, $2, $3, $4)'
-  const during = '[' + start + ',' + end + ']'
-  db.query(queryString, [title, during, description, problems]).then(suc => {
-    res.ok('Success Add!')
-  }, err => {
-    res.fail(1, err)
+    try {
+      const ret = await db.query(
+        'INSERT INTO contests (title, during, description, perm, private) VALUES ($1, $2, $3, $4, $5) RETURNING *'
+        , [form.title, during, form.description, form.perm, form.private]
+      )
+      const cid = ret.rows[0].contest_id
+      let desc
+      if (req.file) {
+        const file = req.file
+        fs.renameSync(`${file.destination}/${file.filename}`, `${CONTEST_PATH}/${cid}.md`)
+        desc = fs.readFileSync(`${CONTEST_PATH}/${cid}.md`, 'utf8')
+      }
+
+      return res.ok({file: desc, ...ret.rows[0]})
+
+    } catch (e) {
+      if (req.file) {
+        fs.unlinkSync(`${req.file.destination}/${req.file.filename}`)
+      }
+      return res.fail(500, e.stack || e)
+    }
   })
 
+// 获得已有竞赛信息
+router.get('/:cid', fc.all(['cid']), async (req, res) => {
+  const cid = req.fcResult.cid
+  // 基本信息
+  const basic = await db.query('SELECT * FROM user_contests WHERE contest_id = $1', [cid])
+  if (basic.rows.length === 0) return res.fail(404)
+
+  // 人员信息
+  const participants = await db.query('SELECT user_id, nickname FROM contest_users NATURAL JOIN user_info NATURAL JOIN user_nick WHERE contest_id = $1', [cid])
+
+  // 描述文件
+  let file
+  try {
+    file = fs.readFileSync(`${CONTEST_PATH}/${cid}.md`, 'utf8')
+  } catch (e) {
+
+  }
+  res.ok({...basic.rows[0], participants: participants.rows, file})
 })
+
+// 添加 / 删除竞赛用户
+
+router.get('/:cid/user/:type(add|remove)/:uid', fc.all(['cid']), async (req, res) => {
+  const form = req.fcResult
+  const debug = {debug: {type: req.params.type, ...form}}
+  let ret
+  // DEBUG:
+  ret = await db.query('SELECT private FROM contests WHERE contest_id = $1', [form.cid])
+  if (!ret.rows.length) return res.fail(404)
+  else if (!ret.rows[0].private) return res.fail(422, debug, 'operation not supported on non-private contest')
+
+  let successCount = 0
+  const uid = req.params.uid.split(',')
+  switch (req.params.type) {
+    case 'add':
+      if (!uid.every(u => Number.isInteger(Number(u)))) return res.gen422('uid', 'some of them is not integer')
+      for (let u of uid) {
+        ret = await db.query('INSERT INTO contest_users(contest_id, user_id) VALUES($1, $2) ON CONFLICT DO NOTHING', [form.cid, u])
+        successCount += ret.rowCount
+      }
+      break
+    case 'remove':
+      if (uid[0] === 'all') {
+        ret = await db.query('DELETE FROM contest_users WHERE contest_id = $1', [form.cid])
+        successCount += ret.rowCount
+      } else {
+        if (!uid.every(u => Number.isInteger(Number(u)))) return res.gen422('uid', 'some of them is not integer')
+        for (let u of uid) {
+          ret = await db.query('DELETE FROM contest_users WHERE contest_id = $1 AND user_id = $2', [form.cid, u])
+          successCount += ret.rowCount
+        }
+      }
+      break
+  }
+
+  if (successCount) return res.ok({success: successCount})
+  return res.fail(404, debug, 'operation succeeded but nothing changed')
+})
+
+// 添加 / 删除竞赛题目
+router.get('/:cid/problem/:type(add|remove)/:pid', fc.all(['cid', 'pid']), async (req, res) => {
+  const form = req.fcResult
+  let ret
+  switch (req.params.type) {
+    case 'add':
+      ret = await db.query('UPDATE problems SET contest_id = $1 WHERE problem_id = $2 AND contest_id IS NULL', [form.cid, form.pid])
+      if (ret.rowCount)
+        await db.query('INSERT INTO contest_problems(problem_id, contest_id) VALUES ($1, $2)', [form.pid, form.cid])
+      break
+    case 'remove':
+      ret = await db.query('UPDATE problems SET contest_id = NULL WHERE problem_id = $1 AND contest_id = $2', [form.pid, form.cid])
+      if (ret.rowCount)
+        await db.query('DELETE FROM contest_problems WHERE problem_id = $1 AND contest_id = $2', [form.pid, form.cid])
+      break
+  }
+  if (ret.rowCount) return res.ok(ret.rows[0])
+  return res.fail(404, {debug: {type: req.params.type, ...form}})
+})
+
+// 修改竞赛
+router.post('/:cid'
+  , upload.single('file')
+  , fc.all(['title/optional', 'description/optional', 'start/optional', 'end/optional', 'perm/optional', 'private'])
+  , async (req, res) => {
+
+    const cid = Number(req.params.cid)
+    const basic = await db.query('SELECT * FROM user_contests WHERE contest_id = $1', [cid])
+    if (basic.rows.length === 0) {
+      if (req.file) {
+        fs.unlinkSync(`${req.file.destination}/${req.file.filename}`)
+      }
+      return res.fail(404)
+    }
+
+    if (req.file) {
+      const file = req.file
+      fs.renameSync(`${file.destination}/${file.filename}`, `${CONTEST_PATH}/${cid}.md`)
+    }
+    let file
+    try {
+      file = fs.readFileSync(`${CONTEST_PATH}/${cid}.md`, 'utf8')
+    } catch (e) {
+
+    }
+
+    const {start, end, ...form} = req.fcResult
+    form.during = '[' + start + ',' + end + ']'
+    const query = []
+    const value = []
+    let c = 1
+    for (let i in form) {
+      if (!form.hasOwnProperty(i)) continue
+      query.push(`"${i}" = $${c}`)
+      value.push(form[i])
+      c++
+    }
+    if (query.length !== 0) {
+      const result =
+        await db.query(`UPDATE contests SET ${query.join(', ')} WHERE contest_id = $${c} RETURNING *`, [...value, cid])
+      if (result.rows.length)
+        return res.ok({file, ...result.rows[0]})
+    }
+    return res.fail(422)
+  })
 
 module.exports = router

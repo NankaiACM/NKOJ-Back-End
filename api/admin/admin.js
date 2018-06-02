@@ -6,6 +6,8 @@ const user = require('./admin_user')
 const problem = require('./admin_problem')
 const upload = require('./admin_upload')
 const rank = require('../rank')
+const post = require('./admin_post')
+const report = require('./admin_report')
 const {require_perm, MANAGE_ROLE, SUPER_ADMIN, EDIT_CONTEST_ALL} = require('../../lib/permission')
 
 router.use('/contest', require_perm(EDIT_CONTEST_ALL), contest)
@@ -14,6 +16,8 @@ router.use('/role', require_perm(MANAGE_ROLE), role)
 router.use('/user', require_perm(MANAGE_ROLE), user)
 router.use('/rank', rank)
 router.use('/problem', problem)
+router.use('/post', post)
+router.use('/report', report)
 router.use('/upload', upload)
 
 module.exports = router

@@ -210,14 +210,31 @@ CREATE TABLE solutions (
     ipaddr_id       integer         REFERENCES ipaddr(ipaddr_id)
 );
 
-CREATE TABLE discussions (
+CREATE TABLE post (
     post_id         serial          PRIMARY KEY,
-    parent_post_id  integer         NOT NULL DEFAULT 0,
+    parent_id       integer         DEFAULT NULL REFERENCES post(post_id),
+    user_id         integer         NOT NULL REFERENCES user_info(user_id),
     title           text,
     content         text,
+    problem_id      integer         REFERENCES problems(problem_id),
     since           timestamp       DEFAULT current_timestamp,
-    updated         timestamp       DEFAULT current_timestamp,
+    last_edit_date  timestamp       DEFAULT current_timestamp,
+    last_editor_id  integer         REFERENCES user_info(user_id),
+    last_active_date timestamp      DEFAULT current_timestamp,
+    closed_date     timestamp,
+    removed_date    timestamp,
+    positive        integer         NOT NULL DEFAULT 0,
+    negative        integer         NOT NULL DEFAULT 0,
     ipaddr_id       integer         REFERENCES ipaddr(ipaddr_id)
+);
+
+CREATE TABLE post_reply (
+    reply_id        serial          PRIMARY KEY,
+    reply_to        integer         NOT NULL REFERENCES post(post_id),
+    user_id         integer         NOT NULL REFERENCES user_info(user_id),
+    score           integer         NOT NULL DEFAULT 0,
+    since           timestamp       DEFAULT current_timestamp,
+    content         varchar(600),
 );
 
 CREATE UNLOGGED TABLE _danmaku (

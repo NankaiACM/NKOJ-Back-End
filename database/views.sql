@@ -33,13 +33,13 @@ CREATE OR REPLACE VIEW user_contests AS
     ) a ON a.contest_id = contests.contest_id;
 
 CREATE OR REPLACE VIEW posts AS
-    SELECT post.*, row_number() OVER () as n, comments FROM post NATURAL JOIN (
+    SELECT post.*, row_number() OVER () as n, comments FROM post LEFT OUTER JOIN (
 
         WITH t AS (
             SELECT row_number() OVER (PARTITION BY reply_to) as n, reply_id, reply_to, user_id, score, since, content
                 FROM post_reply WHERE removed_date IS NULL
         ) SELECT t.reply_to as post_id, json_agg(t) as comments FROM t GROUP BY reply_to
 
-    ) AS a ;
+    ) a ON a.post_id = post.post_id;
 
 COMMIT;

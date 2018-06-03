@@ -179,8 +179,10 @@ CREATE TABLE contest_users (
 
 CREATE TABLE messages (
     message_id      serial          PRIMARY KEY,
-    a               integer         NOT NULL REFERENCES user_info(user_id),
+    a               integer         REFERENCES user_info(user_id),
     b               integer         NOT NULL REFERENCES user_info(user_id),
+    title           varchar(60),
+    content         text,
     since           timestamp       DEFAULT current_timestamp,
     deleted_a       boolean         NOT NULL DEFAULT 'f'::boolean,
     deleted_b       boolean         NOT NULL DEFAULT 'f'::boolean
@@ -253,6 +255,22 @@ CREATE UNLOGGED TABLE reply_vote (
     user_id         integer         NOT NULL REFERENCES user_info(user_id),
     since           timestamp       DEFAULT current_timestamp,
     primary key(reply_id, user_id)
+);
+
+CREATE TABLE reports (
+    report_id       serial          PRIMARY KEY,
+    reporter        integer         NOT NULL REFERENCES user_info(user_id),
+    reportee        integer         NOT NULL REFERENCES user_info(user_id),
+    type            integer         NOT NULL, -- comment, post, message, avatar, info
+    which           integer,
+    handler         integer         NOT NULL REFERENCES user_info(user_id),
+    "when"          timestamp       DEFAULT current_timestamp
+);
+
+CREATE TABLE user_blocks (
+    blocker       serial          PRIMARY KEY,
+    blockee       integer         NOT NULL REFERENCES user_info(user_id),
+    since         timestamp       DEFAULT current_timestamp
 );
 
 CREATE UNLOGGED TABLE _danmaku (

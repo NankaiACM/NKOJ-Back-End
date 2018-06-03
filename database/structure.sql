@@ -180,12 +180,13 @@ CREATE TABLE contest_users (
 CREATE TABLE messages (
     message_id      serial          PRIMARY KEY,
     a               integer         REFERENCES user_info(user_id),
-    b               integer         NOT NULL REFERENCES user_info(user_id),
+    b               integer         REFERENCES user_info(user_id),
     title           varchar(60),
     content         text,
     since           timestamp       DEFAULT current_timestamp,
     deleted_a       boolean         NOT NULL DEFAULT 'f'::boolean,
-    deleted_b       boolean         NOT NULL DEFAULT 'f'::boolean
+    deleted_b       boolean         NOT NULL DEFAULT 'f'::boolean,
+    CHECK (a <> b)
 );
 
 CREATE INDEX ON messages(a, b);
@@ -263,14 +264,25 @@ CREATE TABLE reports (
     reportee        integer         NOT NULL REFERENCES user_info(user_id),
     type            integer         NOT NULL, -- comment, post, message, avatar, info
     which           integer,
-    handler         integer         NOT NULL REFERENCES user_info(user_id),
-    "when"          timestamp       DEFAULT current_timestamp
+    handler         integer         REFERENCES user_info(user_id),
+    result          boolean,
+    "when"          timestamp       DEFAULT current_timestamp,
+    UNIQUE(reporter, reportee, type, which)
 );
 
+CREATE TABLE report_types (
+    report_type_id  integer         PRIMARY KEY,
+    message         text            UNIQUE NOT NULL
+);
+
+CREATE INDEX ON report_types(message);
+
 CREATE TABLE user_blocks (
-    blocker       serial          PRIMARY KEY,
+    blocker       serial          NOT NULL,
     blockee       integer         NOT NULL REFERENCES user_info(user_id),
-    since         timestamp       DEFAULT current_timestamp
+    since         timestamp       DEFAULT current_timestamp,
+    PRIMARY KEY(blocker, blockee),
+    CHECK (blocker <> blockee)
 );
 
 CREATE UNLOGGED TABLE _danmaku (

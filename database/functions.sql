@@ -39,6 +39,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE RETURNS NULL ON NULL INPUT PARALLEL SAFE;
 
+CREATE OR REPLACE FUNCTION get_report_type_id(msg text)
+ RETURNS integer AS
+$$
+BEGIN
+RETURN (SELECT report_type_id FROM report_types WHERE message = msg);
+END;
+$$ LANGUAGE plpgsql STABLE RETURNS NULL ON NULL INPUT PARALLEL SAFE;
+
 
 CREATE OR REPLACE FUNCTION update_tag_votes()
   RETURNS trigger AS

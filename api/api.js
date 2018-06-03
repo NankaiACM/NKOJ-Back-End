@@ -1,4 +1,5 @@
 const router = require('express').Router()
+const {require_perm} = require('../lib/permission')
 
 const admin = require('./admin/admin')
 const avatar = require('./avatar')
@@ -24,8 +25,8 @@ router.use('/captcha', captcha)
 router.use('/contest', contest)
 router.use('/contests', contests)
 router.use('/danmaku', danmaku)
-router.use('/message', message)
-router.use('/judge', judge)
+router.use('/message', require_perm(), message)
+router.use('/judge', require_perm(), judge)
 router.use('/p', problem) // '/api/p/1001', '/api/problem/1001'
 router.use('/post', post)
 router.use('/posts', posts)

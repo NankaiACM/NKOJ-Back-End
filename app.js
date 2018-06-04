@@ -18,6 +18,12 @@ app.get('/new', (req, res) => {
 
 // Disable Header 'X-Powered-By' added by express.
 app.disable('x-powered-by')
+app.use((req, res, next) => {
+  res.set({
+    'Content-Security-Policy': "default-src 'self' ; script-src 'self' 'unsafe-inline' 'unsafe-eval' ; style-src 'self' 'unsafe-inline' ; font-src 'self' data: ; img-src 'self' data: ; reflected-xss block; referrer origin; report-uri https://sunrisefox.report-uri.com/r/d/csp/enforce"
+  })
+  next()
+})
 
 // DEV: request logger
 app.use(logger('dev'))

@@ -39,7 +39,9 @@ app.use('/', express.static(DIST_PATH, {fallthrough: true}))
 
 app.get(/^.+$/, (req, res) => {
   res.set({
-    'Content-Security-Policy': "default-src 'self' ; script-src 'self' 'unsafe-inline' 'unsafe-eval' ; style-src 'self' 'unsafe-inline' ; font-src 'self' data: ; img-src 'self' data: ; connect-src 'self' ws://acm.nankai.edu.cn; reflected-xss block; referrer origin; report-uri https://sunrisefox.report-uri.com/r/d/csp/enforce"
+    'Content-Security-Policy': "default-src 'self' ; script-src 'self' 'unsafe-inline' 'unsafe-eval' ; style-src 'self' 'unsafe-inline' ; font-src 'self' data: ; img-src 'self' data: ; connect-src 'self' ws://acm.nankai.edu.cn; report-uri https://sunrisefox.report-uri.com/r/d/csp/enforce",
+    'Referrer-Policy': 'same-origin',
+    'X-XSS-Protection': '1; report=https://sunrisefox.report-uri.com/r/d/csp/enforce'
   })
   res.sendFile(`${DIST_PATH}/index.html`, {acceptRanges: false})
 })

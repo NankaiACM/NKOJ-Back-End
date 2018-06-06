@@ -45,8 +45,8 @@ router.post('/:pid', upload.single('file'), (req, res, next) => {
       const out = zip.getEntry(`${path.basename(zipEntry.entryName, '.in')}.out`)
       if (out) {
         i++
-        fs.writeFileSync(`${data_path}/${i}.in`, zipEntry.data)
-        fs.writeFileSync(`${data_path}/${i}.out`, out.data)
+        fs.writeFileSync(`${data_path}/${i}.in`, zipEntry.getData())
+        fs.writeFileSync(`${data_path}/${i}.out`, out.getData())
       }
     }
   })

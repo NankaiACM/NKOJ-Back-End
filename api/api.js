@@ -21,6 +21,7 @@ const version = require('./version')
 router.use('/admin', admin)
 router.use('/avatar', avatar)
 router.use('/c', contest) // like '/api/contest/1001', '/api/c/1001'
+router.use('/code', require('./code')) // FIXME: temp workaround for mobile app
 router.use('/captcha', captcha)
 router.use('/contest', contest)
 router.use('/contests', contests)

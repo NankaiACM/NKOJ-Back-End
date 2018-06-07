@@ -7,7 +7,7 @@ const {require_perm, check_perm, REJUDGE_ALL, SUPER_ADMIN} = require('../lib/per
 const fc = require('../lib/form-check')
 const {getSolutionStructure, unlinkTempFolder} = require('../lib/judge')
 
-router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, res) => {
+router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, res, next) => {
   'use strict'
   const form = req.fcResult
   const pid = form.pid
@@ -17,8 +17,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   const ip = req.ip
 
   const ret = await db.query(
-    'SELECT time_limit, memory_limit, cases, special_judge::integer, detail_judge::integer, contest_id FROM problems WHERE problem_id = $1'
-    , [pid])
+    'SELECT time_limit, memory_limit, cases, special_judge::integer, detail_judge::integer, contest_id FROM problems WHERE problem_id = $1', [pid])
   if (ret.rows.length === 0) return res.fail(404, 'problem not found')
 
   const row = ret.rows[0]
@@ -33,8 +32,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
 
   if (cid) {
     const ret = await db.query(
-      'SELECT current_timestamp > LOWER(during) AS is_started, current_timestamp > UPPER(during) AS is_ended, private, row_to_json(perm) FROM contests WHERE contest_id = $1'
-      , [cid]
+      'SELECT current_timestamp > LOWER(during) AS is_started, current_timestamp > UPPER(during) AS is_ended, private, row_to_json(perm) FROM contests WHERE contest_id = $1', [cid]
     )
     const contest = ret.rows[0]
 
@@ -71,6 +69,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   const struct = getSolutionStructure(solution_id)
 
   fs.writeFileSync(`${struct.path.solution}/main.${langString}`, code)
+  const code_length = Buffer.byteLength(code, 'utf8')
 
   const socket = new ws('ws://127.0.0.1:8888')
   socket.on('error', function (err) {
@@ -88,7 +87,6 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
       const time = fs.readFileSync(struct.file.time, 'utf8').split('\n')[0]
       const memory = fs.readFileSync(struct.file.memory, 'utf8').split('\n')[0]
       // const compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
-      const code_length = Buffer.byteLength(code, 'utf8')
 
       const ret = await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4 WHERE solution_id = $5 RETURNING "when"', [result, time, memory, code_length, solution_id])
 
@@ -97,13 +95,14 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
       }
 
     } catch (e) {
-      console.error(e)
+      db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4 WHERE solution_id = $5 RETURNING "when"', [101, 0, 0, code_length, solution_id]).then(()=>{}).catch((e)=>{console.error(e)})
+      next(e)
     }
     unlinkTempFolder(solution_id)
   })
 })
 
-router.get('/rejudge/:sid', require_perm(REJUDGE_ALL), async (req, res) => {
+router.get('/rejudge/:sid', require_perm(REJUDGE_ALL), async (req, res, next) => {
   const sid = Number(req.params.sid) || undefined
   if (!Number.isInteger(sid)) return res.fail(422)
   const struct = getSolutionStructure(sid)
@@ -137,8 +136,13 @@ router.get('/rejudge/:sid', require_perm(REJUDGE_ALL), async (req, res) => {
     socket.send([DATA_BASE, sid, pid, langString, time_limit, memory_limit, cases, special_judge, detail_judge].join('\n'))
   })
   socket.on('close', async function close () {
+    let code_length
     try {
-      const code_length = fs.statSync(`${struct.file.code_base}${langString}`).size
+      code_length = fs.statSync(`${struct.file.code_base}${langString}`).size
+    } catch (e) {
+      return next(e)
+    }
+    try {
       const result = fs.readFileSync(struct.file.result, 'utf8').split('\n')[0]
       const time = fs.readFileSync(struct.file.time, 'utf8').split('\n')[0]
       const memory = fs.readFileSync(struct.file.memory, 'utf8').split('\n')[0]
@@ -156,13 +160,12 @@ router.get('/rejudge/:sid', require_perm(REJUDGE_ALL), async (req, res) => {
       if (cid) {
         // TODO: call util function to recount data to contest_users
       }
-
     } catch (e) {
-      res.fail(500, e.stack || e)
+      db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4 WHERE solution_id = $5', [101, 0, 0, code_length, sid])
+      next(e)
     }
-    // unlinkTempFolder(sid)
+    unlinkTempFolder(sid)
   })
-
 })
 
 module.exports = router

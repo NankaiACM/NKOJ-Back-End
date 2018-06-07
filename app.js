@@ -50,7 +50,7 @@ app.use((req, res) => {
   res.fatal(404)
 })
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   // DEV: remove
   if (!res.headersSent)
     res.fatal(err.status || 500, err.stack || err)

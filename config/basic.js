@@ -1,9 +1,9 @@
-const path = require('path')
+const path = require('path');
 const {
   DIST_PATH, PUBLIC_PATH, TEMP_PATH, PROBLEM_SPJ_PATH,
   AVATAR_PATH, CONTEST_PATH, DATA_BASE,
   PROBLEM_DATA_PATH, PROBLEM_PATH, SOLUTION_PATH, FRONT_END_PATH
-} = require('./path')
+} = require('./path');
 
 module.exports = {
   DATA_BASE: DATA_BASE,
@@ -18,4 +18,4 @@ module.exports = {
   SOLUTION_PATH: path.resolve(DATA_BASE, SOLUTION_PATH),
   FRONT_END_PATH: path.resolve(DATA_BASE, FRONT_END_PATH),
   BACK_END_PATH: path.resolve(__dirname, '..')
-}
+};

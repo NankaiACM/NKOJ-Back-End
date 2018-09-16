@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const db = require('../database/db')
 const fc = require('../lib/form-check')
-const striptags = require('striptags')
+const striptags = require('xss');
 const {limit} = require('../lib/rate-limit')
 const {require_perm, POST_NEW_POST, REPLY_POST} = require('../lib/permission')
 
@@ -33,7 +33,7 @@ router.post('/:pid'
     const uid = req.session.user
     const title = req.fcResult.title
 
-    const content = striptags(req.fcResult.content, ['span', 'strong', 'color', 'img', 'b', 'a'])
+    const content = striptags(req.fcResult.content);
 
     const ret = await db.query(
       'INSERT INTO post (user_id, title, content, problem_id, ipaddr_id)' +
@@ -55,7 +55,7 @@ router.post('/reply/:parent'
     if (!Number.isInteger(parent)) return next()
 
     const uid = req.session.user
-    const content = striptags(req.fcResult.content, ['span', 'strong', 'color', 'img', 'b', 'a'])
+    const content = striptags(req.fcResult.content);
 
     const p = await db.query('SELECT parent_id, problem_id, closed_date, removed_date FROM post WHERE post_id = $1', [parent])
     if (!p.rows.length)
@@ -125,7 +125,7 @@ router.post('/comment/:post', require_perm(REPLY_POST), limit('post')
     if (row.closed_date || row.removed_date)
       return res.fail(422, 'origin post not support comment')
 
-    const content = striptags(req.fcResult.content, ['span', 'strong', 'color', 'img', 'b', 'a'])
+    const content = striptags(req.fcResult.content);
 
     const ret = await db.query(
       'INSERT INTO post_reply (reply_to, user_id, content, ipaddr_id)' +

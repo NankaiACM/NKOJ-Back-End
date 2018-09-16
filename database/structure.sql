@@ -68,6 +68,7 @@ CREATE TABLE user_info (
     gender          smallint        NOT NULL DEFAULT 0 CHECK (gender < 4), -- iso standard
     email           varchar(64)     NOT NULL,    -- lower case only
     email_suffix_id integer         NOT NULL REFERENCES email_suffix(suffix_id),
+    email_verify    text            DEFAULT NULL,
     qq              varchar(15),
     phone           varchar(15),
     real_name       varchar(20),

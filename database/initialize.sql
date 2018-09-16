@@ -2,15 +2,17 @@ BEGIN;
 
 ALTER SEQUENCE user_role_role_id_seq RESTART WITH 10;
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (1, 'Default Group', 'This is a default user group.', ('1','0','0','1','1','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (1, 'default', 'default user group.', ('1','0','0','1','1','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (2, 'Muted', 'Muted from sociaty', ('0','1','1','0','0','0','1','1','1','1','1','0','1','0','0','0','0','0','0','0','0','0'), 't');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (2, 'emailVerified', 'email verified users', ('1','0','0','1','1','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (3, 'Banned', 'Read Only',('0','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'), 't');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (3, 'muted', 'Muted from society', ('0','1','1','0','0','0','1','1','1','1','1','0','1','0','0','0','0','0','0','0','0','0'), 't');
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (4, 'Verified Users', 'Real-name Authentication Passed', ('1','1','1','1','1','0','1','1','1','1','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (4, 'banned', 'Read Only',('0','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'), 't');
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (9, 'Super Admin', 'Super Admin', ('1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'), 'f');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (5, 'identityVerified', 'Real-name Authentication Passed', ('1','1','1','1','1','0','1','1','1','1','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
+
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (9, 'superAdmin', 'Super Admin', ('1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'), 'f');
 
 ALTER SEQUENCE problems_problem_id_seq RESTART WITH 1001;
 

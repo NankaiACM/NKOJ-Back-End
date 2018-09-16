@@ -3,10 +3,7 @@ const router = require('express').Router()
 const db = require('../../database/db')
 const fc = require('../../lib/form-check')
 
-const redis = require('redis')
-const session_client = redis.createClient()
-const {DB_SESSION_STORE} = require('../../config/redis')
-session_client.select(DB_SESSION_STORE)
+const session_client = require('../../lib/redis')('session');
 
 const captcha = require('../../lib/captcha')
 

@@ -24,6 +24,7 @@ selenium-debug.log
 /config/mail.js
 /config/rsa.js
 /config/session.js
+/config/redis.js
 
 # Temp files
 /database/temp.sql

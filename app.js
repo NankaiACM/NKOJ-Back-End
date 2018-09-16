@@ -31,7 +31,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(require('./lib/apikey'));
 
 // Dispatch to router
-app.use('/api', require('./api/api'));
+app.use('/api', require('./api/index'));
 
 app.use('/', express.static(DIST_PATH, {fallthrough: true}));
 

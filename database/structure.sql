@@ -61,28 +61,28 @@ CREATE TABLE user_role (
 );
 
 CREATE TABLE user_info (
-  user_id         serial PRIMARY KEY,
-  nick_id         integer                                      NOT NULL REFERENCES user_nick (nick_id),
-  user_ip         integer                                      NOT NULL REFERENCES ipaddr (ipaddr_id),
-  last_login      timestamp                                             DEFAULT current_timestamp, -- store failed tries in redis
+  user_id         serial              PRIMARY KEY,
+  nick_id         integer             NOT NULL REFERENCES user_nick (nick_id),
+  user_ip         integer             NOT NULL REFERENCES ipaddr (ipaddr_id),
+  last_login      timestamp           DEFAULT current_timestamp, -- store failed tries in redis
   password        varchar(50),
-  gender          smallint                                     NOT NULL DEFAULT 0 CHECK (gender < 4), -- iso standard
-  email           varchar(64)                                  NOT NULL, -- lower case only
-  email_suffix_id integer                                      NOT NULL REFERENCES email_suffix (suffix_id),
-  email_verify    text                                                  DEFAULT NULL,
+  gender          smallint            NOT NULL DEFAULT 0 CHECK (gender < 4), -- iso standard
+  email           varchar(64)         NOT NULL, -- lower case only
+  email_suffix_id integer             NOT NULL REFERENCES email_suffix (suffix_id),
+  email_verify    text                DEFAULT NULL,
   qq              varchar(15),
   phone           varchar(15),
-  verified_as     jsonb                                                 DEFAULT NULL,
+  verified_as     jsonb               DEFAULT NULL,
   school          varchar(80),
   words           varchar(100),
-  credits         integer                                               DEFAULT 0,
-  submit_ac       integer                                               DEFAULT 0,
-  submit_all      integer                                               DEFAULT 0,
-  user_role       integer ARRAY DEFAULT '{1}' :: integer ARRAY NOT NULL,
-  current_badge   integer                                               DEFAULT 0,
+  credits         integer             DEFAULT 0,
+  submit_ac       integer             DEFAULT 0,
+  submit_all      integer             DEFAULT 0,
+  user_role       integer ARRAY       DEFAULT '{1}' :: integer ARRAY NOT NULL,
+  current_badge   integer             DEFAULT 0,
   achievement     integer ARRAY,
-  join_time       timestamp                                             DEFAULT current_timestamp,
-  removed         boolean                                               DEFAULT 'f' :: boolean,
+  join_time       timestamp           DEFAULT current_timestamp,
+  removed         boolean             DEFAULT 'f' :: boolean,
   UNIQUE (email, email_suffix_id)
 );
 CREATE UNIQUE INDEX ON user_info (nick_id, "password");
@@ -294,6 +294,26 @@ CREATE TABLE user_blocks (
   since   timestamp DEFAULT current_timestamp,
   PRIMARY KEY (blocker, blockee),
   CHECK (blocker <> blockee)
+);
+
+CREATE TABLE user_follows (
+  follower  integer not null references user_info (user_id),
+  followee  integer not null references user_info (user_id),
+  since     timestamp not null default current_timestamp,
+  muted     boolean not null default false,
+  CHECK (follower <> followee)
+);
+
+CREATE TABLE user_feed (
+  feed_id     serial primary key,
+  message     text
+);
+
+CREATE TABLE action_log (
+  actor       integer references user_info (user_id),
+  action_type integer,
+  since       timestamp not null default current_timestamp,
+  feed_id     integer references user_feed (feed_id)
 );
 
 CREATE UNLOGGED TABLE _danmaku (

@@ -14,4 +14,4 @@ module.exports = {
     from: '"Display Name" <who@yourhost.com>',
     subject: 'Your Subject'
   }
-}
+};

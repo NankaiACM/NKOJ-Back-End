@@ -1,4 +1,4 @@
-const {PUBLIC_PATH, DIST_PATH} = require('./config/basic');
+const {PUBLIC_PATH, DIST_PATH} = require('$config/basic');
 const express = require('express');
 const app = express();
 
@@ -19,7 +19,7 @@ app.use(logger('dev'));
 // DEV: pretty-print JSON output
 app.set('json spaces', 4);
 
-app.use(require('./lib/prototype'));
+app.use(require('$lib/prototype'));
 
 app.use('/public', express.static(PUBLIC_PATH, {fallthrough: false}));
 
@@ -28,10 +28,10 @@ app.use(bodyParser.json({limit: '233kb'}));
 // This defaults to 100kb
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.use(require('./lib/session-middleware'));
+app.use(require('$lib/session-middleware'));
 
 // Dispatch to router
-app.use('/api', require('./api/index'));
+app.use('/api', require('$api'));
 
 app.use('/', express.static(DIST_PATH, {fallthrough: true}));
 

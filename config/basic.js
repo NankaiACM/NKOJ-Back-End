@@ -3,7 +3,7 @@ const {
   DIST_PATH, PUBLIC_PATH, TEMP_PATH, PROBLEM_SPJ_PATH,
   AVATAR_PATH, CONTEST_PATH, DATA_BASE,
   PROBLEM_DATA_PATH, PROBLEM_PATH, SOLUTION_PATH, FRONT_END_PATH
-} = require('./path');
+} = require('$config/path');
 
 module.exports = {
   DATA_BASE: DATA_BASE,

@@ -1,5 +1,5 @@
-const pool = require('./init');
-const session = require('../lib/session');
+const pool = require('$db/init');
+const session = require('$lib/session');
 const index = {};
 
 index.pool = () => pool;

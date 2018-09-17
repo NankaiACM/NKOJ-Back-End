@@ -28,3 +28,4 @@ selenium-debug.log
 
 # Temp files
 /database/temp.sql
+test.js

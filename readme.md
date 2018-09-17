@@ -1,6 +1,6 @@
 ### How To Install
 
-+ install node 10.0.0+
++ install node 10.0.10+
 + run `npm install` on this folder
 + run `npm install pm2 -g` to install pm2 and save it globally
 + run `pm2 start bin/init --name api --watch` on this folder
@@ -8,9 +8,9 @@
 
 ### Other DEPENDENCY This Project May Use
 
-+ postgres 10.3
++ postgres 10.5
 + run `./database/init.sh` to init the database
-+ redis 4.0.8+ (Deprecated Dependency)
++ redis 4.0.8+
 + gcc 6.4.0+ (Configure it at `/config`)
 
 ### 在windows上的部署细节

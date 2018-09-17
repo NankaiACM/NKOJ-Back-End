@@ -1,29 +1,29 @@
-const {DB_USER} = require('../config/redis')
-const redis = require('../lib/redis')(DB_USER)
-const db = require('../database/index')
-const router = require('express').Router()
-const fs = require('fs')
-const {AVATAR_PATH} = require('../config/basic')
+const redis = require('$ib/redis')('user');
+const db = require('$db');
+const router = require('express').Router();
+const fs = require('fs');
+const {AVATAR_PATH} = require('$config/basic');
 const avatar = async (key) => {
-  'use strict'
+  'use strict';
   if (Number.isInteger(Number(key)))
-    return await redis.getAsync(`avatar:${key}`)
+    return await redis.get(`avatar:${key}`);
   else {
-    key = await db.query('SELECT user_id FROM users WHERE nickname = $1', [key])
-    if (key.rows.length) return await redis.getAsync(`avatar:${key.rows[0].user_id}`)
+    const {user_id} = await db.only('SELECT user_id FROM users WHERE nickname = $1', [key]);
+    if (user_id)
+      return await redis.get(`avatar:${user_id}`);
   }
-  return 'default.png'
-}
+  return 'default.png';
+};
 
 router.get('/:key', async (req, res) => {
-  'use strict'
-  const key = req.params.key
-  const file = await avatar(key)
+  'use strict';
+  const key = req.params.key;
+  const file = await avatar(key);
   if (fs.existsSync(`${AVATAR_PATH}/${file}`)) {
-    res.sendFile(`${AVATAR_PATH}/${file}`)
+    res.sendFile(`${AVATAR_PATH}/${file}`);
   } else {
-    res.sendFile(`${AVATAR_PATH}/default.png`)
+    res.sendFile(`${AVATAR_PATH}/default.png`);
   }
-})
+});
 
-module.exports = router
+module.exports = router;

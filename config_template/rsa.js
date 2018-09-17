@@ -1,4 +1,7 @@
 // Template File
+
+// http://travistidwell.com/jsencrypt/demo/
+
 module.exports = {
   key_public:
   `-----BEGIN PUBLIC KEY-----

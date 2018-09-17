@@ -21,6 +21,20 @@ index.query = (text, params) => {
   });
 };
 
+index.only = (text, params) => {
+  return index.query(text, params).then(({rows}) => {
+    if(rows.length !== 1) return {};
+    return rows[0];
+  })
+};
+
+index.find = (text, params) => {
+  return index.query(text, params).then(({rows}) => {
+    if(rows.length !== 1) return false;
+    return rows[0];
+  })
+};
+
 index.splitEmail = email => {
   'use strict';
   const arr = email.toLowerCase().split('@');

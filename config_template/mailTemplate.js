@@ -1,3 +1,4 @@
+// Template File
 module.exports = function mailTemplete(code, link, BASE_URL, hash, to) {
   return `
 <!DOCTYPE html>

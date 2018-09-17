@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const db = require('../../database/db')
+const db = require('../../database/index')
 const {PROBLEM_PATH} = require('../../config/basic')
 const fs = require('fs')
 const path = require('path')

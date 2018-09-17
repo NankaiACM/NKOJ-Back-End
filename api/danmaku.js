@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const db = require('../database/db')
+const db = require('../database/index')
 
 router.get('/', async (req, res) => {
   'use strict'

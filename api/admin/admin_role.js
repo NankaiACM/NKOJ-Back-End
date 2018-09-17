@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const path = require('path')
-const db = require('../../database/db')
+const db = require('../../database/index')
 
 router.get('/', async (req, res) => {
   const ret = await db.query('SELECT * FROM user_role')

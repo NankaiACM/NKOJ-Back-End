@@ -39,6 +39,7 @@
     "$api": "api",
     "$interface": "interface",
     "$lib": "lib",
-    "$db": "db"
+    "$db": "database",
+    "$config": "config"
   }
 }

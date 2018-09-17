@@ -3,7 +3,7 @@ const multer = require('multer')
 const path = require('path')
 const {CONTEST_PATH, TEMP_PATH} = require('../../config/basic')
 const fc = require('../../lib/form-check')
-const db = require('../../database/db')
+const db = require('../../database/index')
 const fs = require('fs')
 
 // 添加一个新的竞赛

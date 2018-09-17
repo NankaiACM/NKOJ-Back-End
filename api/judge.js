@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const fs = require('fs')
-const db = require('../database/db')
+const db = require('../database/index')
 const ws = require('ws')
 const {DATA_BASE} = require('../config/basic')
 const {require_perm, check_perm, REJUDGE_ALL, SUPER_ADMIN} = require('../lib/permission')

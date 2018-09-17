@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const alias = require('module-alias/register');
+
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -56,9 +58,9 @@ new Promise(async (resolve, reject) => {
     });
   }
 
-  const client = require('../lib/redis')('init');
-  client.on('ready', () => resolve());
-  client.on('error', () => reject({reason: REASON_REDIS_ERROR}));
+  const redis = require('../lib/redis')('init');
+  redis.on('ready', () => resolve());
+  redis.on('error', () => reject({reason: REASON_REDIS_ERROR}));
 }).then(() => {
   require('../lib/chat')(httpServer);
   app = require('../app');

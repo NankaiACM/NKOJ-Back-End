@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const {require_perm, MANAGE_ROLE, SUPER_ADMIN} = require('../../lib/permission')
-const db = require('../../database/db')
+const db = require('../../database/index')
 const fc = require('../../lib/form-check')
 const session = require('../../lib/session')
 

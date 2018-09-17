@@ -1,4 +1,24 @@
-const insert = () => {
+const query = (obj) => {
+
+};
+
+const login = (req, user) => {
+
+};
+
+const info = () => {
+
+};
+
+const logout = () => {
+
+};
+
+const logoutAll = () => {
+
+};
+
+const insert = (info) => {
 
 };
 

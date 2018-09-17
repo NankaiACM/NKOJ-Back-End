@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const fc = require('../lib/form-check')
 const fs = require('fs')
-const db = require('../database/db')
+const db = require('../database/index')
 const {getSolutionStructure} = require('../lib/judge')
 
 router.get('/:pid', fc.all(['pid']), async (req, res, next) => {

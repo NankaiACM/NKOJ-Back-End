@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const fc = require('../lib/form-check')
-const db = require('../database/db')
+const db = require('../database/index')
 const {limit} = require('../lib/rate-limit')
 
 router.get('/', async (req, res) => {

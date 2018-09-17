@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const db = require('../database/db')
+const db = require('../database/index')
 const fs = require('fs')
 const fc = require('../lib/form-check')
 const {CONTEST_PATH} = require('../config/basic')

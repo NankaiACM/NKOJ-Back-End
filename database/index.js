@@ -1,10 +1,10 @@
 const pool = require('./init');
 const session = require('../lib/session');
-const db = {};
+const index = {};
 
-db.pool = () => pool;
+index.pool = () => pool;
 
-db.query = (text, params) => {
+index.query = (text, params) => {
   const start = Date.now();
   return new Promise((resolve, reject) => {
     pool.query(text, params, (err, res) => {
@@ -21,7 +21,7 @@ db.query = (text, params) => {
   });
 };
 
-db.splitEmail = email => {
+index.splitEmail = email => {
   'use strict';
   const arr = email.toLowerCase().split('@');
   const a = arr.pop();
@@ -29,7 +29,7 @@ db.splitEmail = email => {
   return [b, a];
 };
 
-db.postLogin = (info, req, res) => {
+index.postLogin = (info, req, res) => {
   'use strict';
   req.session.user = info.user_id;
   req.session.permission = info.perm;
@@ -40,12 +40,12 @@ db.postLogin = (info, req, res) => {
   res.ok(info);
 };
 
-db.checkName = async (name) => {
-  let result = await db.query(
+index.checkName = async (name) => {
+  let result = await index.query(
       'SELECT nick_id FROM user_nick WHERE lower(nickname) = lower($1) LIMIT 1',
       [name]);
   if (result.rows.length > 0) {
-    result = await db.query(
+    result = await index.query(
         'SELECT user_id FROM user_info WHERE nick_id = $1 LIMIT 1',
         [result.rows[0].nick_id]);
     if (result.rows.length > 0) return [
@@ -58,8 +58,8 @@ db.checkName = async (name) => {
   return false;
 };
 
-db.checkEmail = async (email) => {
-  const result = await db.query(
+index.checkEmail = async (email) => {
+  const result = await index.query(
       'SELECT nickname FROM users WHERE email = lower($1) LIMIT 1', [email]);
   if (result.rows.length > 0) {
     const nickname = result.rows[0].nickname;
@@ -68,7 +68,7 @@ db.checkEmail = async (email) => {
   return false;
 };
 
-db.joinQueryArr = (key) => {
+index.joinQueryArr = (key) => {
   'use strict';
   const arr = [];
   arr.push(key.join(', '));
@@ -76,4 +76,4 @@ db.joinQueryArr = (key) => {
   return arr;
 };
 
-module.exports = db;
+module.exports = index;

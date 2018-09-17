@@ -1,6 +1,6 @@
 const {generateFileString} = require('../../lib/problem')
 const router = require('express').Router()
-const db = require('../../database/db')
+const db = require('../../database/index')
 const fc = require('../../lib/form-check')
 const {PROBLEM_PATH} = require('../../config/basic')
 const fs = require('fs')

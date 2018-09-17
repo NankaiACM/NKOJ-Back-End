@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const crypto = require('crypto')
-const db = require('../../database/db')
+const db = require('../../database/index')
 const fc = require('../../lib/form-check')
 
 router.get('/', async (req, res) => {

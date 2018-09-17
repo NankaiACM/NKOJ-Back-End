@@ -7,7 +7,7 @@ const update = require('./user_update');
 const api_key = require('./user_api');
 const problems = require('./user_problems');
 const contest = require('./user_contest');
-const db = require('../../database/db');
+const db = require('../../database/index');
 const fc = require('../../lib/form-check');
 const {require_perm} = require('../../lib/permission');
 

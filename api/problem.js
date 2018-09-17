@@ -2,7 +2,7 @@ const router = require('express').Router()
 const {PROBLEM_PATH} = require('../config/basic')
 const path = require('path')
 const fs = require('fs')
-const db = require('../database/db')
+const db = require('../database/index')
 const {splitFileString} = require('../lib/problem')
 const {require_perm} = require('../lib/permission')
 

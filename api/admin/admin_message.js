@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const {sendMessage} = require('../../lib/message')
-const db = require('../../database/db')
+const db = require('../../database/index')
 const fc = require('../../lib/form-check')
 // 广播私信
 

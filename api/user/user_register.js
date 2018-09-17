@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const fc = require('../../lib/form-check');
-const db = require('../../database/db');
+const db = require('../../database/index');
 
 const md5 = require('../../lib/md5');
 const captcha = require('../../lib/captcha');

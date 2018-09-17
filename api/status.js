@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const db = require('../database/db')
+const db = require('../database/index')
 const fs = require('fs')
 const {check_perm, GET_CODE_SELF, GET_CODE_ALL, VIEW_OUTPUT_SELF, VIEW_OUTPUT_ALL} = require('../lib/permission')
 const {getSolutionStructure, getProblemStructure} = require('../lib/judge')

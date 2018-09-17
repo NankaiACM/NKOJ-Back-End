@@ -1,6 +1,6 @@
 const router = require('express').Router()
 
-const db = require('../../database/db')
+const db = require('../../database/index')
 const validator = require('validator')
 
 router.get('/check/:type/:what', async (req, res, next) => {

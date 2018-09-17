@@ -28,7 +28,7 @@ app.use(bodyParser.json({limit: '233kb'}));
 // This defaults to 100kb
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.use(require('./lib/apikey'));
+app.use(require('./lib/session-middleware'));
 
 // Dispatch to router
 app.use('/api', require('./api/index'));

@@ -1,4 +1,4 @@
-const db = require('../../database/db')
+const db = require('../../database/index')
 const router = require('express').Router()
 const fc = require('../../lib/form-check')
 const {sendMessage} = require('../../lib/message')

@@ -1,5 +1,6 @@
 const db = require('$db');
 const crypto = require('crypto');
+const session = require('$lib/session');
 
 const query = async function(options) {
   const {user, nickname, email, password} = options;
@@ -47,12 +48,17 @@ ARRAY((select distinct problem_id from t)) as all`, [uid]);
   return {...ret, ...ac.rows[0]};
 };
 
-const logout = () => {
-
+const logout = (req) => {
+  const user = req.session.user;
+  const id = req.session.id;
+  session.logout(user, id);
+  delete req.session;
 };
 
-const logoutAll = () => {
-
+const logoutAll = (req) => {
+  const user = req.session.user;
+  session.logoutAll(user);
+  delete req.session;
 };
 
 const insert = (info) => {
@@ -150,6 +156,9 @@ const operateApi = (op) => async (user, key, name) => {
 module.exports = {
   info,
   query,
+  login,
+  logout,
+  logoutAll,
   api: {
     list: listApi,
     generate: generateApi,

@@ -1,25 +1,20 @@
 const router = require('express').Router();
-const db = require('$db');
-const user = require('$interface/user');
+const {check} = require('$lib/form-check');
+const validator = require('validator');
+const {info, query} = require('$interface/user');
 
-router.get('/:nickname', fc.all(['nickname']), async (req, res) => {
-  const nickname = req.fcResult.nickname;\
+router.get('/:user', async (req, res, next) => {
   try {
-    const {user_id} = await db.only(
-        'SELECT user_id from user_nick where lower(nickname) = lower($1)',
-        [nickname]);
-    const ret = await user.query(user_id);
-    return res.ok(ret);
-  } catch (e) {
-    return res.fail(404);
-  }
-});
-
-router.get('/:uid(\\d+)?', async (req, res) => {
-  const uid = Number(req.params.uid) || req.session.user;
-  try {
-    const ret = await user.query(uid);
-    return res.ok(ret);
+    let user_id;
+    if(!validator.isInt(req.params.user)) {
+      // TODO: test
+      check(req, {user: 'nickname'});
+      const nickname = req.fcResult.user;
+      user_id = query(nickname);
+    }
+    else
+      user_id = req.params.user;
+    return res.ok(await info(user_id));
   } catch (e) {
     return res.fail(404);
   }

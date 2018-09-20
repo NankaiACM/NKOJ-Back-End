@@ -1,29 +1,28 @@
 const router = require('express').Router();
 
-const user = require('$interface/user');
-const db = require('$db');
-const fc = require('$lib/form-check');
+const {query} = require('$interface/user');
 const validator = require('validator');
+const {check} = require('$lib/form-check');
 
-router.get('/check/:type/:what', async (req, res) => {
+router.get('/:type/:what', async (req, res) => {
   const type = req.params.type;
   const value = req.params.what;
   if (type === 'email') {
     if (validator.isEmail(value)) {
-      const result = await db.checkEmail(value);
-      if (result) return res.fail(422, result);
+      const result = await query({email: value});
+      if (result) return res.gen422('email', 'is not available');
       return res.ok();
     }
   } else if (type === 'nickname') {
-    // TODO: move to interface
-    if (value.length >= 3 && value.length <= 20 &&
-        !validator.isNumeric(value) && !validator.isEmail(value)) {
-      const result = await db.checkName(value);
-      if (result) return res.fail(422, result);
+    // TODO: test
+    const ret = check(req, {value: type});
+    if (!ret) {
+      const result = await query({nickname: value});
+      if (result) return res.gen422('nickname', 'is not available');
       return res.ok();
     }
   }
-  return res.fail(422);
+  return res.fail(400);
 });
 
 module.exports = router;

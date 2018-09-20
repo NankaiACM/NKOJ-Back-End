@@ -1,87 +1,52 @@
 const router = require('express').Router();
-const db = require('$db');
-const crypto = require('crypto');
+const {api} = require('$interface/user');
 
 router.get('/', async (req, res) => {
-  const {rows} = await db.query('SELECT api_name, api_key, enabled, since FROM user_api WHERE user_id = $1', [req.session.user]);
-  res.ok(rows);
+  const user = req.session.user;
+  const apis = await api.list(user);
+  res.ok(apis);
 });
 
 router.get('/apply/:api_name?', fc.all(['api_name/optional']), async (req, res) => {
-  let key, secret;
   let name = req.fcResult.api_name || null;
-
-  const hash = crypto.createHash('sha256');
-
-  const {rows} = await db.query('SELECT * FROM user_api WHERE user_id = $1', [req.session.user]);
-  if (rows.length >= 3)
-    // TODO: extract strings
-    return res.fail(1, 'You have had too many api keys...');
-
-  new Promise(function (resolve, reject) {
-    crypto.randomBytes(16, function (err, buffer) {
-      if (err) return reject(err);
-      key = buffer.toString('hex');
-      resolve(key);
-    })
-  }).then(function (key) {
-    return new Promise(function (resolve, reject) {
-      crypto.randomBytes(24, function (err, buffer) {
-        if (err) reject(err);
-        secret = buffer.toString('hex');
-        resolve(secret);
-      })
-    })
-  }).catch(function (err) {
-    res.fail(500, err.stack || err);
-    throw 'magic'
-  }).then(function (secret) {
-    hash.update(`${key}${secret}`);
-    const hashed_key = hash.digest('hex');
-    return db.query('insert into user_api(user_id, api_key, api_hashed, api_name) values ($1, $2, $3, $4)', [req.session.user, key, hashed_key, name])
-  }).then(function () {
-    res.ok({key, secret})
-  }).catch(function (err) {
-    // TODO: solve magic conflict -> retry promise
-    if (typeof err === 'string') return;
-    return res.fail(500, err.stack || err)
-  })
+  let ret = await api.generate(user, name);
+  if(ret.retry)
+    ret = await api.generate(user, name);
+  if(ret.success) res.ok({key: ret.key, secret: ret.secret});
+  throw ret;
 });
 
 router.get('/:operate/:key', async (req, res, next) => {
   const op = req.params.operate;
   const key = req.params.key;
-  if (key.length !== 32)
-    return res.fail(422);
 
   let ret;
-  const params = [key, req.session.user];
+  const params = [req.session.user, key];
   switch (op) {
     case 'enable':
+      ret = await api.enable(...params);
+      break;
     case 'disable':
-      ret = await db.query(
-          `UPDATE user_api SET enabled = ${op === 'enable' ? 'TRUE' : 'FALSE'} WHERE api_key = $1 AND user_id = $2 RETURNING enabled`
-          , [key, req.session.user]);
+      ret = await api.disable(...params);
       break;
     case 'delete':
     case 'remove':
-      ret = await db.query('DELETE FROM user_api WHERE api_key = $1 AND user_id = $2 RETURNING *', params);
+      ret = await api.remove(...params);
       break;
     default:
       return next()
   }
-  if (!ret.rows.length) return res.fail(404);
-  return res.ok(ret.rows[0]);
+  if (!ret) return res.fail(404);
+  return res.ok(ret);
 });
 
 router.get('/rename/:key/:api_name', fc.all(['api_name']), async (req, res) => {
   const key = req.params.key;
-  if (key.length !== 32) return res.fail(422);
-
   const name = req.fcResult.api_name;
-  const row = await db.find('UPDATE user_api SET api_name = $1 WHERE api_key = $2 AND user_id = $3 returning api_name, api_key, enabled, since', [name, key, req.session.user]);
-  if (!row) return res.fail(404);
-  return res.ok(row);
+
+  const ret = api.rename(user, key, name);
+  if (!ret) return res.fail(404);
+  return res.ok(ret);
 });
 
 module.exports = router;

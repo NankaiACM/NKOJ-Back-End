@@ -1,6 +1,9 @@
 const db = require('$db');
 const crypto = require('crypto');
 const session = require('$lib/session');
+const redis = require('$ib/redis')('user');
+const fs = require('fs');
+const {AVATAR_PATH} = require('$config');
 
 const query = async function(options) {
   const {user, nickname, email, password} = options;
@@ -30,8 +33,10 @@ const query = async function(options) {
   }
 };
 
-const login = (req, user) => {
-
+const login = (req, row) => {
+  req.session.nickname = row.nickname;
+  req.session.user = row.user_id;
+  req.session.save();
 };
 
 const info = async function(uid) {
@@ -61,12 +66,48 @@ const logoutAll = (req) => {
   delete req.session;
 };
 
-const insert = (info) => {
+const add = async (req, info) => {
+  const {nickname, password, email, school, gender} = info;
+  const ip = req.ip;
 
+  if (await query({nickname}))
+    return {success: false, error: [{nickname: 'has been taken'}]};
+
+  if (await query({email}))
+    return {success: false, error: [{email: 'has been taken'}]};
+
+  const row = await db.find('INSERT INTO users (nickname, password, email, gender, school, ipaddr) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [
+    nickname,
+    password,
+    email,
+    gender || 0,
+    school,
+    ip]);
+
+  return {success: row === false, row}
 };
 
-const update = () => {
+const update = async (req, info) => {
+  const {nickname, email, gender, qq, phone, real_name, school, password, words} = info;
+  // TODO: email logic;
+  return await db.find(
+      `UPDATE users SET nickname = $1, email = $2, gender = $3, qq = $4, phone = $5, real_name = $6, school = $7, password = $8, words = $9 WHERE user_id = ${req.session.user} 
+    RETURNING nickname, email, gender, qq, phone, real_name, school, password, words`
+      ,
+      [nickname, email, gender, qq, phone, real_name, school, password, words]);
+};
 
+const avatar = async (req, info) => {
+  let {nickname, uid, filename} = info;
+  if(filename)
+    return await redis.set(`avatar:${req.session.user}`, filename);
+  if(nickname) uid = await query({nickname});
+  const avatarFile = await redis.get(`avatar:${uid}`);
+  if (avatarFile && fs.existsSync(`${AVATAR_PATH}/${file}`)) {
+    return `${AVATAR_PATH}/${file}`;
+  } else {
+    return `${AVATAR_PATH}/default.png`;
+  }
 };
 
 const remove = () => {
@@ -159,6 +200,9 @@ module.exports = {
   login,
   logout,
   logoutAll,
+  add,
+  update,
+  avatar,
   api: {
     list: listApi,
     generate: generateApi,

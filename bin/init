@@ -36,7 +36,7 @@ new Promise(async (resolve, reject) => {
   if (!fs.existsSync(path.resolve(__dirname, '../config/path.js')))
     return reject({reason: REASON_PATH_CONFIG});
   try {
-    const basic = require('../config/basic');
+    const basic = require('../config');
     Object.keys(basic).forEach((k) => {
       if (!basic.hasOwnProperty(k)) return;
       if (!fs.existsSync(basic[k]))

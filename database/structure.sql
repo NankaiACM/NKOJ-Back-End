@@ -1,7 +1,5 @@
 BEGIN;
 
-CREATE SCHEMA IF NOT EXISTS public;
-
 CREATE TABLE email_suffix (
   suffix_id    serial PRIMARY KEY,
   email_suffix varchar(255) UNIQUE NOT NULL -- store lower string only
@@ -69,9 +67,10 @@ CREATE TABLE user_info (
   gender          smallint            NOT NULL DEFAULT 0 CHECK (gender < 4), -- iso standard
   email           varchar(64)         NOT NULL, -- lower case only
   email_suffix_id integer             NOT NULL REFERENCES email_suffix (suffix_id),
-  email_verify    text                DEFAULT NULL,
+  email_old       varchar(255)        DEFAULT NULL,
   qq              varchar(15),
   phone           varchar(15),
+  real_name       text,
   verified_as     jsonb               DEFAULT NULL,
   school          varchar(80),
   words           varchar(100),
@@ -98,13 +97,11 @@ CREATE TABLE user_api (
   enabled    boolean     NOT NULL DEFAULT 't' :: boolean,
   api_name   varchar(36),
   api_key    varchar(32) NOT NULL CHECK (length(api_key) = 32),
-  -- TODO: find a better way or logic
   api_hashed varchar(64) NOT NULL CHECK (length(api_hashed) = 64),
   since      timestamp            DEFAULT current_timestamp
 );
 
 CREATE UNIQUE INDEX ON user_api (api_key);
-
 
 CREATE TABLE problem_tags (
   tag_id   serial PRIMARY KEY,

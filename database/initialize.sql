@@ -2,9 +2,9 @@ BEGIN;
 
 ALTER SEQUENCE user_role_role_id_seq RESTART WITH 10;
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (1, 'default', 'default user group.', ('1','0','0','1','1','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (1, 'default', 'default user group.', ('1','1','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
 
-INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (2, 'emailVerified', 'email verified users', ('1','0','0','1','1','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
+INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (2, 'emailVerified', 'email verified users', ('0','1','1','1','1','0','1','1','1','0','0','0','0','0','0','0','0','0','0','0','0','0'), 'f');
 
 INSERT INTO user_role (role_id, title, description, perm, negative) VALUES (3, 'muted', 'Muted from society', ('0','1','1','0','0','0','1','1','1','1','1','0','1','0','0','0','0','0','0','0','0','0'), 't');
 

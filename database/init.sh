@@ -28,7 +28,7 @@ sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$password'"
 echo "${reset}"
 
 read -n1 -r -p "${yellow}If the commands above produce no error, press any key to continue.${grey}" key
-cat functions.sql structure.sql views.sql triggers.sql initialize.sql | sudo -u postgres psql -d $database -f -
+cat cleanup.sql functions.sql structure.sql views.sql triggers.sql initialize.sql | sudo -u postgres psql -d $database -f -
 
 read -n1 -r -p "${yellow}If the commands above produce no error, press any key to continue.${reset}" key
 content="module.exports = {  user: '$username',  host: 'localhost',  database: '$database'"

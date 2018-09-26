@@ -22,6 +22,8 @@ router.post('/',
       'words/optional']),
     async (req, res) => {
 
+      // TODO: test avatar
+
       const form = req.fcResult;
       const ret = {};
       if(req.file){
@@ -29,7 +31,8 @@ router.post('/',
         ret.avatar = 'changed';
       }
       try {
-        const row = update(req, form);
+        const {success, error, row} = await update(req, form);
+        if(!success) return res.gen422(error, 'not available');
         if(row) {
           Object.keys(row).forEach((k) => {
             if (row[k]) ret[k] = 'changed';

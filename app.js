@@ -1,4 +1,4 @@
-const {PUBLIC_PATH, DIST_PATH} = require('$config/basic');
+const {PUBLIC_PATH, DIST_PATH} = require('$config');
 const express = require('express');
 const app = express();
 
@@ -50,8 +50,10 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   // DEV: remove
-  if (!res.headersSent)
+  if (!res.headersSent) {
     res.fatal(err.status || 500, err.stack || err);
+    console.error(err);
+  }
 });
 
 module.exports = app;

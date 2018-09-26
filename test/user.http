@@ -1,0 +1,165 @@
+# check email is available
+
+GET http://localhost/api/u/check/email/basic@examples.com?dev=true
+
+###
+
+# check nickname is available
+
+
+GET http://localhost/api/u/check/nickname/BasicAPIBot?dev=true
+
+###
+
+# get captcha for a request
+
+GET  http://localhost/api/captcha?dev=true
+
+###
+
+# register. use the cookie and captcha got from above.
+
+POST http://localhost/api/u/register?dev=true
+Content-Type: application/json
+Cookie: oj.sid=s%3AMB7EMK04xTSNvgphDU4KS_bCaGugM-mD.F3Qd9TRAVsXzWgnwLIRRaA%2BXKKBsM8wERigXBmqk0Pw;
+
+{
+  "nickname": "BasicAPIBot",
+  "password": "plainOrEncrypted",
+  "email": "basic@examples.com",
+  "school": "南开大学",
+  "gender": 1,
+  "captcha": "46iCHE"
+}
+
+###
+
+# get an api key and name it 'API Test', must use cookie above
+
+GET http://localhost/api/u/api/apply/API%20Test
+Cookie: oj.sid=s%3AMB7EMK04xTSNvgphDU4KS_bCaGugM-mD.F3Qd9TRAVsXzWgnwLIRRaA%2BXKKBsM8wERigXBmqk0Pw;
+
+###
+
+# get info of self
+
+GET http://localhost/api/u/info?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# get info of some another
+
+GET http://localhost/api/u/info/sunrisefox?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# get all sessions
+
+GET http://localhost/api/u/session?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# !!! logout (not work for api)
+
+GET http://localhost/api/u/logout?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# logout all login of current user (!!! invalidate all cookies of the user)
+
+GET http://localhost/api/u/logout/force?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# !!! login (not work for api)
+
+POST http://localhost/api/u/login?dev=true
+Content-Type: application/json
+
+{
+  "user":"BasicAPIBot",
+  "password": "plainOrEncrypted",
+  "captcha": "Something..."
+}
+
+###
+
+# update info
+# avatar is not tested..
+
+POST http://localhost/api/u/update?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3&dev=true
+Content-Type: application/json
+
+{
+  "nickname": "basic",
+  "email": "445400747@qq.com",
+  "gender": 2,
+  "qq": "10000",
+  "phone": "18888888888",
+  "real_name": "jhsSDF",
+  "school": "jhsSDF",
+  "password": "plainOrEncrypted",
+  "words": "jhsSDF"
+}
+
+###
+
+# send verification email
+
+GET http://localhost/api/u/verify/send?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# verify email
+
+GET http://localhost/api/u/verify/email?hash=3n8ub6%2BTvo%2BR29iZ%2B2VxUA%3D%3D&code=264987
+
+####
+
+# list user apis
+
+GET http://localhost/api/u/api?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# add an api key and name it 'Office PC'
+
+GET http://localhost/api/u/api/apply/Office%20PC?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# add an api key and name it 'Office PC Very Very Long Name'
+
+GET http://localhost/api/u/api/apply/Office%20PC%20Very%20Very%20Long%20Name?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# disable an api key 77e78c3d370a5354c84a88ba6ed8502d
+
+GET http://localhost/api/u/api/disable/77e78c3d370a5354c84a88ba6ed8502d?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# enable an api key 77e78c3d370a5354c84a88ba6ed8502d
+
+GET http://localhost/api/u/api/enable/77e78c3d370a5354c84a88ba6ed8502d?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# enable an api key 77e78c3d370a5354c84a88ba6ed8502d
+
+GET http://localhost/api/u/api/enable/77e78c3d370a5354c84a88ba6ed8502d?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# delete an api key 77e78c3d370a5354c84a88ba6ed8502d
+
+GET http://localhost/api/u/api/delete/77e78c3d370a5354c84a88ba6ed8502d?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###
+
+# rename an api key a4d8072738ffc899099402939847ade5 to PC Office
+
+GET http://localhost/api/u/api/rename/a4d8072738ffc899099402939847ade5/PC%20Office?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+
+###

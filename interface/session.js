@@ -14,6 +14,9 @@ const truncate = () => {
   })
 };
 
+const list = (uid) =>
+  client.hgetall(`session:${uid}`);
+
 const logoutAll = (uid) => {
   client.hgetall(`session:${uid}`, function (err, ret) {
     if (!ret) return;
@@ -34,7 +37,7 @@ const logout = (uid, sid) => {
     })
   })
 };
-const login = (info, req) => {
+const login = (req, info) => {
   req.session.user = info.user_id;
   req.session.permission = info.perm;
   req.session.nickname = info.nickname;
@@ -45,6 +48,7 @@ const login = (info, req) => {
 module.exports = {
   truncate,
   logoutAll,
+  list,
   logout,
   login
 };

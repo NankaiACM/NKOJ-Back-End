@@ -33,11 +33,9 @@ const handler = {
 };
 
 module.exports = (type, field) => async (req, res, next) => {
-  if (typeof handler[type] !== 'object') {
-    const error = new Error('wrong server argument');
-    res.fatal(500, error.stack);
-    return {success: false, error};
-  }
+  if (typeof handler[type] !== 'object')
+    return next(new Error('wrong server argument'));
+
   const upload = multer(handler[type].multer).single(field || type);
   const {optional, ignoreError, resize} = handler[type];
   let rejected = false;
@@ -70,7 +68,7 @@ module.exports = (type, field) => async (req, res, next) => {
         filename = req.file.filename;
       }
     } else {
-      rejected = optional;
+      rejected = !optional;
     }
   }).catch(err => {
     try {
@@ -82,9 +80,10 @@ module.exports = (type, field) => async (req, res, next) => {
   if (rejected)
     return typeof rejected === 'string'
         ? res.gen422(field || type, rejected)
-        : res.fail(rejected);
+        : res.fail(1, 'file not found');
+  if(!req.file) return next();
   if(filename === undefined)
-    return res.fatal(500, new Error('filename is undefined'));
+    return next(new Error('filename is undefined'));
   req.file.filename = filename;
   // TODO: test
   req.file.path = req.file.destination + '/' + filename;

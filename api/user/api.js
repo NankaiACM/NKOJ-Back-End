@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
   res.ok(apis);
 });
 
-router.get('/apply/:api_name?', fc.all(['api_name/optional']), async (req, res, next) => {
+router.put('/apply/:api_name?', fc.all(['api_name/optional']), async (req, res, next) => {
   let name = req.fcResult.api_name || null;
   const user = req.session.user;
   let ret = await api.generate(user, name);
@@ -19,7 +19,14 @@ router.get('/apply/:api_name?', fc.all(['api_name/optional']), async (req, res, 
   else res.fail(422, ret.error);
 });
 
-router.get('/:operate/:key', async (req, res, next) => {
+router.delete('/:key', async (req, res) => {
+  const key = req.params.key;
+  const ret = await api.remove(req.session.user, key);
+  if (!ret) return res.fail(404);
+  return res.ok(ret);
+});
+
+router.put('/:operate/:key', async (req, res, next) => {
   const op = req.params.operate;
   const key = req.params.key;
 
@@ -43,7 +50,7 @@ router.get('/:operate/:key', async (req, res, next) => {
   return res.ok(ret);
 });
 
-router.get('/rename/:key/:api_name', fc.all(['api_name']), async (req, res) => {
+router.put('/rename/:key/:api_name', fc.all(['api_name']), async (req, res) => {
   const key = req.params.key;
   const name = req.fcResult.api_name;
   const user = req.session.user;

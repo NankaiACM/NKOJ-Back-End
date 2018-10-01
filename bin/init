@@ -76,6 +76,7 @@ new Promise(async (resolve, reject) => {
   httpServer.on('request', app);
   httpServer.listen(port);
   httpServer.on('listening', () => console.log('Listening on ' + port));
+  require('../worker/imap');
 }).catch((err) => {
   console.error('An error occurred when starting the server...');
   console.error(err);

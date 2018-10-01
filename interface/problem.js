@@ -1,3 +1,7 @@
+function code(pid) {
+
+}
+
 const list = () => {
 
 };
@@ -19,5 +23,9 @@ const voteTag = () => {
 };
 
 const addToContest = () => {
+
+};
+
+module.exports = {
 
 };

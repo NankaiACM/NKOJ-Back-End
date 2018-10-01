@@ -96,8 +96,8 @@ CREATE TABLE user_api (
   user_id    integer     NOT NULL REFERENCES user_info (user_id),
   enabled    boolean     NOT NULL DEFAULT 't' :: boolean,
   api_name   varchar(36),
-  api_key    varchar(32) NOT NULL CHECK (length(api_key) = 32),
-  api_hashed varchar(64) NOT NULL CHECK (length(api_hashed) = 64),
+  api_key    varchar(12) NOT NULL CHECK (length(api_key) = 12),
+  api_hashed varchar(64) UNIQUE NOT NULL CHECK (length(api_hashed) = 64),
   since      timestamp            DEFAULT current_timestamp
 );
 

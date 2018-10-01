@@ -46,14 +46,23 @@ const login = async (req, row) => {
   sessionInterface.login(req, {user_id, nickname})
 };
 
-const info = async function(uid) {
-  const result =
-      await db.find('SELECT * FROM users WHERE user_id = $1', [uid]);
-  const ac = await db.find(
-      `with t as (
+const info = async function(uid, fields) {
+
+  let ac;
+  if(!fields) {
+    ac = await db.find(
+        `with t as (
   select distinct problem_id, status_id from solutions where user_id = $1
 ) select ARRAY((select distinct problem_id from t where status_id = 107)) as ac,
 ARRAY((select distinct problem_id from t)) as all`, [uid]);
+  }
+
+  fields = fields || '*';
+  fields = Array.isArray(fields) ? fields : [fields];
+  fields = fields.join(', ');
+
+  const result =
+      await db.find(`SELECT ${fields} FROM users WHERE user_id = $1`, [uid]);
 
   if(!result) return {error: 'not found'};
   let {password, old_password, ...ret} = result;
@@ -115,6 +124,7 @@ const checkGroup = (role, what) => {
 };
 
 const operateGroup = async (type, uid, group) => {
+  await sessionInterface.invalidatePermission(uid);
   if(type === 'add' || type === 'remove') {
     if(!group in groups) return false;
     const role_id = groups[group];
@@ -202,9 +212,8 @@ const updateEmail = async (req, email) => {
     await db.only('UPDATE user_info SET email_old = $1 WHERE user_id = $2',
         [oldEmail, uid]);
   }
-  return await db.find('UPDATE users SET email = $1 WHERE user_id = $2 RETURNING *', [email, uid]);
-  // TODO: cannot send reemail as req.url won't work as expected...
-  // return sendVerificationEmail(req);
+  await db.find('UPDATE users SET email = $1 WHERE user_id = $2 RETURNING *', [email, uid]);
+  return sendVerificationEmail(req);
 };
 
 const update = async (req, info) => {
@@ -257,8 +266,8 @@ const generateApi = async (user, name) => {
 
   let key , secret;
 
-  key = crypto.randomBytes(16).toString('hex');
-  secret = crypto.randomBytes(24).toString('hex');
+  key = crypto.randomBytes(6).toString('hex');
+  secret = crypto.randomBytes(12).toString('hex');
 
   const hash = crypto.createHash('sha256').update(`${key}${secret}`);
   const hashed = hash.digest('hex');

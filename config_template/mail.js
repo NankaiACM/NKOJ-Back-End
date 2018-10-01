@@ -13,5 +13,10 @@ module.exports = {
   regMailOptions: {
     from: '"Display Name" <who@yourhost.com>',
     subject: 'Your Subject'
-  }
+  },
+  auth: {
+    user: 'some user',
+    pass: 'some pass'
+  },
+  requireTLS: true
 };

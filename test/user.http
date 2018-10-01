@@ -1,13 +1,13 @@
 # check email is available
 
-GET http://localhost/api/u/check/email/basic@examples.com?dev=true
+GET http://localhost/api/u/check/email/basic@examples.com
 
 ###
 
 # check nickname is available
 
 
-GET http://localhost/api/u/check/nickname/BasicAPIBot?dev=true
+GET http://localhost/api/u/check/nickname/BasicAPIBot
 
 ###
 
@@ -21,7 +21,7 @@ GET  http://localhost/api/captcha?dev=true
 
 POST http://localhost/api/u/register?dev=true
 Content-Type: application/json
-Cookie: oj.sid=s%3AMB7EMK04xTSNvgphDU4KS_bCaGugM-mD.F3Qd9TRAVsXzWgnwLIRRaA%2BXKKBsM8wERigXBmqk0Pw;
+Cookie: oj.sid=s%3AcuqUZvaSwYCAx4SacLfg8NMPdD-72j1Y.vRGd5euPAbG6emn5UW2TWt2tEfyUPTt4kuRmgdJe8jc;
 
 {
   "nickname": "BasicAPIBot",
@@ -29,45 +29,50 @@ Cookie: oj.sid=s%3AMB7EMK04xTSNvgphDU4KS_bCaGugM-mD.F3Qd9TRAVsXzWgnwLIRRaA%2BXKK
   "email": "basic@examples.com",
   "school": "南开大学",
   "gender": 1,
-  "captcha": "46iCHE"
+  "captcha": "77Z8h8"
 }
 
 ###
 
 # get an api key and name it 'API Test', must use cookie above
 
-GET http://localhost/api/u/api/apply/API%20Test
-Cookie: oj.sid=s%3AMB7EMK04xTSNvgphDU4KS_bCaGugM-mD.F3Qd9TRAVsXzWgnwLIRRaA%2BXKKBsM8wERigXBmqk0Pw;
+PUT http://localhost/api/u/api/apply/API%20Test
+Cookie: oj.sid=s%3AkkyQjR5JJDJUpxmEpfRSUZReKiq9S-ul.tV4Ki7yFfcaVvYj7ER0RJMLfkYjnabvnrkAPRXbWT80;
 
 ###
 
 # get info of self
 
-GET http://localhost/api/u/info?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+GET http://localhost/api/u/info
+Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
 
 ###
 
 # get info of some another
 
-GET http://localhost/api/u/info/sunrisefox?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+GET http://localhost/api/u/info/sunrisefox
+Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
 
 ###
 
 # get all sessions
 
-GET http://localhost/api/u/session?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+GET http://localhost/api/u/session
+Authorization: Negotiate 60342b2358c2 48aeb548443d42f441b266b9
 
 ###
 
 # !!! logout (not work for api)
 
-GET http://localhost/api/u/logout?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+DELETE http://localhost/api/u/logout
+Authorization: Negotiate 60342b2358c2 48aeb548443d42f441b266b9
 
 ###
 
 # logout all login of current user (!!! invalidate all cookies of the user)
 
-GET http://localhost/api/u/logout/force?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+DELETE http://localhost/api/u/logout/force
+Authorization: Negotiate 60342b2358c2 48aeb548443d42f441b266b9
 
 ###
 
@@ -75,11 +80,12 @@ GET http://localhost/api/u/logout/force?apikey=9574f67e333ea5920162bee89eb4e7db&
 
 POST http://localhost/api/u/login?dev=true
 Content-Type: application/json
+Cookie: oj.sid=s%3AkkyQjR5JJDJUpxmEpfRSUZReKiq9S-ul.tV4Ki7yFfcaVvYj7ER0RJMLfkYjnabvnrkAPRXbWT80;
 
 {
-  "user":"BasicAPIBot",
+  "user":"basic",
   "password": "plainOrEncrypted",
-  "captcha": "Something..."
+  "captcha": "nyeV7q"
 }
 
 ###
@@ -87,8 +93,9 @@ Content-Type: application/json
 # update info
 # avatar is not tested..
 
-POST http://localhost/api/u/update?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3&dev=true
+POST http://localhost/api/u/update?dev=true
 Content-Type: application/json
+Authorization: Negotiate 60342b2358c2 48aeb548443d42f441b266b9
 
 {
   "nickname": "basic",
@@ -106,60 +113,75 @@ Content-Type: application/json
 
 # send verification email
 
-GET http://localhost/api/u/verify/send?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+GET http://localhost/api/u/verify/send
+Authorization: Negotiate 60342b2358c2 48aeb548443d42f441b266b9
+
+###
+
+# check if user send register email
+
+GET http://localhost/api/u/verify/fetch?subject=Verified
+Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
 
 ###
 
 # verify email
 
-GET http://localhost/api/u/verify/email?hash=3n8ub6%2BTvo%2BR29iZ%2B2VxUA%3D%3D&code=264987
+GET http://localhost/api/u/verify/email?hash=<hash>&code=<code>
 
 ####
 
 # list user apis
 
-GET http://localhost/api/u/api?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+GET http://localhost/api/u/api
+Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
 
 ###
 
 # add an api key and name it 'Office PC'
 
-GET http://localhost/api/u/api/apply/Office%20PC?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+PUT http://localhost/api/u/api/apply/Office%20PC
+Authorization: Negotiate 60342b2358c2 48aeb548443d42f441b266b9
 
 ###
 
 # add an api key and name it 'Office PC Very Very Long Name'
 
-GET http://localhost/api/u/api/apply/Office%20PC%20Very%20Very%20Long%20Name?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+PUT http://localhost/api/u/api/apply/Office%20PC%20Very%20Very%20Long%20Name
+Authorization: Negotiate 60342b2358c2 48aeb548443d42f441b266b9
 
 ###
 
-# disable an api key 77e78c3d370a5354c84a88ba6ed8502d
+# disable an api key 60342b2358c2
 
-GET http://localhost/api/u/api/disable/77e78c3d370a5354c84a88ba6ed8502d?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
-
-###
-
-# enable an api key 77e78c3d370a5354c84a88ba6ed8502d
-
-GET http://localhost/api/u/api/enable/77e78c3d370a5354c84a88ba6ed8502d?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+PUT http://localhost/api/u/api/disable/60342b2358c2
+Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
 
 ###
 
-# enable an api key 77e78c3d370a5354c84a88ba6ed8502d
+# enable an api key 60342b2358c2
 
-GET http://localhost/api/u/api/enable/77e78c3d370a5354c84a88ba6ed8502d?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
-
-###
-
-# delete an api key 77e78c3d370a5354c84a88ba6ed8502d
-
-GET http://localhost/api/u/api/delete/77e78c3d370a5354c84a88ba6ed8502d?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+PUT http://localhost/api/u/api/enable/60342b2358c2
+Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
 
 ###
 
-# rename an api key a4d8072738ffc899099402939847ade5 to PC Office
+# delete an api key 60342b2358c2
 
-GET http://localhost/api/u/api/rename/a4d8072738ffc899099402939847ade5/PC%20Office?apikey=9574f67e333ea5920162bee89eb4e7db&apisign=21801f6f7cb4bd48faef604589e694390061ee853f5fafa3
+DELETE http://localhost/api/u/api/60342b2358c2
+Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
+
+###
+
+# delete an api key 6d6653c07775 / PUT method
+
+PUT http://localhost/api/u/api/delete/6d6653c07775
+Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
+
+###
+# rename an api key 0a6660c8c8d1 to PC Office
+
+PUT http://localhost/api/u/api/rename/0a6660c8c8d1/PC%20Office
+Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
 
 ###

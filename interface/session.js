@@ -1,42 +1,52 @@
 const {client, store} = require('$lib/session');
+
 const truncate = () => {
+  // TODO: test
   store.ids((err, ids) => {
     ids.forEach(t => {
-      store.destroy(t)
-    })
+      store.destroy(t);
+    });
   });
 
-  client.keys('session:*', function (err, ret) {
+  client.keys('session:*', function(err, ret) {
     if (!ret) return;
     ret.forEach((k) => {
-      session_client.del(k)
-    })
-  })
+      session_client.del(k);
+    });
+  });
 };
 
-const list = (uid) =>
-  client.hgetall(`session:${uid}`);
+const list = uid =>
+    client.hgetall(`session:${uid}`);
 
-const logoutAll = (uid) => {
-  client.hgetall(`session:${uid}`, function (err, ret) {
-    if (!ret) return;
-    Object.keys(ret).forEach((k) => {
-      store.destroy(ret[k]);
-      client.hdel(`session:${uid}`, k);
-    })
-  })
+const invalidatePermission = async uid => {
+  const sessions = await list(uid);
+  if (!sessions) return;
+  Object.keys(sessions).forEach(k => {
+    store.get(sessions[k], (_, session) => delete session.perm )
+  });
 };
-const logout = (uid, sid) => {
+
+const logoutAll = async uid => {
+  const sessions = await list(uid);
+  if (!sessions) return;
+  Object.keys(sessions).forEach(k => {
+    store.destroy(sessions[k]);
+    client.hdel(`session:${uid}`, k);
+  });
+};
+
+const logout = async (uid, sid) => {
   // TODO: test
-  client.hgetall(`session:${uid}`, function (err, ret) {
-    if (!ret) return;
-    Object.keys(ret).forEach((k) => {
-      if(ret[k] !== sid) return;
-      store.destroy(ret[k]);
-      client.hdel(`session:${uid}`, k);
-    })
-  })
+  const sessions = await list(uid);
+  if (!sessions) return;
+  Object.keys(sessions).forEach(k => {
+    if (sessions[k] !== sid) return;
+    store.destroy(sessions[k]);
+    client.hdel(`session:${uid}`, k);
+  });
 };
+
 const login = (req, info) => {
   req.session.user = info.user_id;
   req.session.permission = info.perm;
@@ -50,5 +60,6 @@ module.exports = {
   logoutAll,
   list,
   logout,
-  login
+  login,
+  invalidatePermission,
 };

@@ -58,14 +58,14 @@ Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
 # get all sessions
 
 GET http://localhost/api/u/session
-Authorization: Negotiate 60342b2358c2 48aeb548443d42f441b266b9
+Authorization: Negotiate 0a6660c8c8d1 e54282404214a0818f602d63
 
 ###
 
 # !!! logout (not work for api)
 
 DELETE http://localhost/api/u/logout
-Authorization: Negotiate 60342b2358c2 48aeb548443d42f441b266b9
+Cookie: oj.sid=s%3ARbW-oZVY-QmmSG9FaXSZj82uzaxu1hf7.D36Nm9E4%2Fs0MifSG32whApsTet0GrfroMIjQSSIFZ78; Path=/; Expires=Mon, 01 Oct 2018 23:35:38 GMT; HttpOnly
 
 ###
 
@@ -80,12 +80,12 @@ Authorization: Negotiate 60342b2358c2 48aeb548443d42f441b266b9
 
 POST http://localhost/api/u/login?dev=true
 Content-Type: application/json
-Cookie: oj.sid=s%3AkkyQjR5JJDJUpxmEpfRSUZReKiq9S-ul.tV4Ki7yFfcaVvYj7ER0RJMLfkYjnabvnrkAPRXbWT80;
+Cookie: oj.sid=s%3ARbW-oZVY-QmmSG9FaXSZj82uzaxu1hf7.D36Nm9E4%2Fs0MifSG32whApsTet0GrfroMIjQSSIFZ78; Path=/; Expires=Mon, 01 Oct 2018 23:35:38 GMT; HttpOnly
 
 {
   "user":"basic",
   "password": "plainOrEncrypted",
-  "captcha": "nyeV7q"
+  "captcha": "rihaLZ"
 }
 
 ###

@@ -1,8 +1,8 @@
 const {client, store} = require('$lib/session');
 
 const truncate = () => {
-  // TODO: test
   store.ids((err, ids) => {
+    console.log(ids);
     ids.forEach(t => {
       store.destroy(t);
     });
@@ -11,7 +11,7 @@ const truncate = () => {
   client.keys('session:*', function(err, ret) {
     if (!ret) return;
     ret.forEach((k) => {
-      session_client.del(k);
+      client.del(k);
     });
   });
 };
@@ -37,7 +37,6 @@ const logoutAll = async uid => {
 };
 
 const logout = async (uid, sid) => {
-  // TODO: test
   const sessions = await list(uid);
   if (!sessions) return;
   Object.keys(sessions).forEach(k => {

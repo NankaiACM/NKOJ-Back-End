@@ -49,6 +49,21 @@ router.get('/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
   return res.sendStatus(204)
 })
 
+router.get('/contest/:sid(\\d+)/:from(\\d+)?', async (req, res) => {
+  'use strict'
+  // Warning: for tmp limit 10086
+  let sid = Number(req.params.sid)
+  let from = Number(req.params.from || 0)
+   console.log(sid, from)
+   const queryString = 'SELECT * FROM user_solutions WHERE contest_id = $1  AND solution_id > $2 ORDER BY solution_id DESC LIMIT 10086'
+  const result = await db.query(queryString, [sid, from])
+   console.dir(result);
+  
+  if (result.rows.length > 0)
+    return res.ok(result.rows)
+  return res.sendStatus(204)
+})
+
 router.get('/detail/:sid(\\d+)', async (req, res) => {
   'use strict'
 

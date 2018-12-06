@@ -38,7 +38,7 @@ router.use('/u', user)
 router.use('/user', user)
 router.use('/status', status)
 router.use('/version', version)
-router.user('/simple_picture',simple_picture)
+router.use('/simple_picture',simple_picture)
 
 // DEV: test
 router.use('/test', test)

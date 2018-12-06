@@ -56,8 +56,8 @@ router.post('/:pid',
     description: form.description,
     input: form.input,
     output: form.output,
-    sample_input: `<pre>${form.sample_input}</pre>`,
-    sample_output: `<pre>${form.sample_output}</pre>`,
+    sample_input: `${form.sample_input}`,
+    sample_output: `${form.sample_output}`,
     hint: form.hint
   })
   fs.writeFileSync(path.resolve(PROBLEM_PATH, filename), content)

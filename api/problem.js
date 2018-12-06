@@ -4,13 +4,18 @@ const path = require('path')
 const fs = require('fs')
 const db = require('../database/db')
 const {splitFileString} = require('../lib/problem')
-const {require_perm} = require('../lib/permission')
+const {require_perm, check_perm, SUPER_ADMIN} = require('../lib/permission')
 
 router.get('/:pid', async (req, res) => {
   'use strict'
   const pid = req.params.pid
   const ret = await db.query('SELECT * FROM problems WHERE problem_id = $1', [pid])
   if (ret.rows.length === 0) return res.fatal(404)
+  let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE problem_id = $1
+	  AND CURRENT_TIMESTAMP < lower(contests.during)', [pid])
+  if(c_ret.rows.length !== 0){
+    if(!check_perm(req, SUPER_ADMIN)) return res.fatal(404)
+  }
   const tags = await db.query('SELECT problem_tag_assoc.tag_id as id, official, positive as p, negative as n, tag_name as name FROM problem_tag_assoc INNER JOIN problem_tags ON problem_tags.tag_id = problem_tag_assoc.tag_id WHERE problem_id = $1', [pid])
   ret.rows[0].tags = tags.rows
   const readPath = path.resolve(PROBLEM_PATH, `${pid}.md`)
@@ -18,7 +23,7 @@ router.get('/:pid', async (req, res) => {
     const content = splitFileString(fs.readFileSync(readPath).toString())
     res.ok(Object.assign(ret.rows[0], {keys: Object.keys(content), content: content}))
   } else {
-    res.fatal(500, 'data not found')
+    res.ok( 'data not found')
   }
 })
 

@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const db = require('../database/db')
 const fs = require('fs')
+const fc = require('../lib/form-check')
 const {check_perm, GET_CODE_SELF, GET_CODE_ALL, VIEW_OUTPUT_SELF, VIEW_OUTPUT_ALL} = require('../lib/permission')
 const {getSolutionStructure, getProblemStructure} = require('../lib/judge')
 
@@ -23,27 +24,44 @@ function loadPartialData (path) {
   })
 }
 
+const fcMiddleware = fc.all(['pid/optional', 'uid/optional', 'nickname/optional', 'sid/integer/optional'])
 
-router.get('/', async (req, res) => {
+const getSQLClause = (offset, fields) => {
+  let i = offset;
+  let str = ['1=$' + ++i]
+  let arr = [1];
+  let { pid, uid, nickname, sid } = fields;
+  pid = Number(pid);
+  uid = Number(uid);
+  sid = Number(sid);
+  if (pid) { str.push('problem_id=$' + ++i); arr.push(pid) }
+  if (uid) { str.push('user_id=$' + ++i); arr.push(uid) }
+  if (nickname) { str.push('nickname=$' + ++i); arr.push(nickname) }
+  if (sid) { str.push('status_id=$' + ++i); arr.push(sid) }
+  return [`WHERE ${str.join(' AND ')}`, arr];
+}
+
+router.get('/', fcMiddleware, async (req, res) => {
   'use strict'
   let limit = 20
-  const queryString = 'SELECT * FROM user_solutions ORDER BY solution_id DESC LIMIT $1'
-  const result = await db.query(queryString, [limit])
+  let [wClause, sParam] = getSQLClause(1, req.fcResult)
+  const queryString = `SELECT * FROM user_solutions ${wClause} ORDER BY solution_id DESC LIMIT $1`
+  const result = await db.query(queryString, [limit, ...sParam])
   if (result.rows.length > 0)
     return res.ok(result.rows)
   return res.sendStatus(204)
 })
 
-router.get('/:from(\\d+)/:limit(\\d+)?', async (req, res) => {
+router.get('/:from(\\d+)/:limit(\\d+)?', fcMiddleware, async (req, res) => {
   'use strict'
   let from = Number(req.params.from)
   let limit = Number(req.params.limit || 0)
   if (limit > 50) limit = 50
-
   if (from < 0 || limit < 0) return next()
 
-  const queryString = `SELECT * FROM user_solutions ORDER BY solution_id DESC LIMIT ${limit ? '$1 OFFSET $2' : 'cal_solution_limit($1)'}`
-  const result = await db.query(queryString, limit ? [limit, from] : [from])
+  let [wClause, sParam] = getSQLClause(limit ? 2 : 1, req.fcResult)
+  const queryString = `SELECT * FROM user_solutions ${wClause} ORDER BY solution_id DESC LIMIT ${limit ? '$1 OFFSET $2' : 'cal_solution_limit($1)'}`
+  const result = await db.query(queryString, [...(limit ? [limit, from] : [from]), ...sParam])
   if (result.rows.length > 0)
     return res.ok(result.rows)
   return res.sendStatus(204)
@@ -57,7 +75,7 @@ router.get('/contest/:sid(\\d+)/:from(\\d+)?', async (req, res) => {
    //console.log(sid, from)
    const queryString = 'SELECT * FROM user_solutions WHERE contest_id = $1  AND solution_id > $2 ORDER BY solution_id DESC LIMIT 10086'
   const result = await db.query(queryString, [sid, from])
-   console.dir(result);
+  // console.dir(result);
 
   if (result.rows.length > 0)
     return res.ok(result.rows)

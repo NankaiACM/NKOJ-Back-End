@@ -36,4 +36,11 @@ router.get('/:cid/user', fc.all(['cid']), async (req, res) => {
   res.ok(result.rows)
 })
 
+router.get('/:cid/first_ac_all',fc.all(['cid']),async (req,res)=>{
+    'use strict'
+    const cid = req.fcResult.cid
+    const result = await db.query('SELECT * FROM user_solutions WHERE solution_id IN (SELECT min(solution_id) FROM solutions WHERE contest_id = $1 AND status_id = 107 GROUP BY problem_id ORDER BY min(solution_id))', [cid])
+    res.ok(result.rows)
+})
+
 module.exports = router

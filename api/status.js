@@ -123,7 +123,7 @@ router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
   if (!Number.isInteger(sid) || !Number.isInteger(i))
     res.fail(422)
 
-  const result = await db.query('SELECT user_id, problem_id FROM user_solutions WHERE solution_id = $1 LIMIT 1', [sid])
+  const result = await db.query('SELECT user_id, problem_id,status_id FROM user_solutions WHERE solution_id = $1 LIMIT 1', [sid])
   if (result.rows.length > 0) {
     const uid = result.rows[0].user_id
     if (!(req.session.user === uid && await check_perm(req, VIEW_OUTPUT_SELF)) && !await check_perm(req, VIEW_OUTPUT_ALL))
@@ -135,7 +135,7 @@ router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
 
     const solution = getSolutionStructure(sid)
     const problem = getProblemStructure(pid)
-
+    ret.status_id=result.rows[0].status_id
     try {
       ret.stdin = await (isFullData ? fs.readFileSync(`${problem.path.data}/${i}.in`, 'utf8') : loadPartialData(`${problem.path.data}/${i}.in`))
       ret.stdout = await (isFullData ? fs.readFileSync(`${problem.path.data}/${i}.out`, 'utf8') : loadPartialData(`${problem.path.data}/${i}.out`))

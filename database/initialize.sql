@@ -48,6 +48,7 @@ INSERT INTO solution_status (status_id, msg_short, msg_cn, msg_en) VALUES
 ('107', 'AC', '答案正确', 'Accepted'),
 ('108', 'PE', '格式错误', 'Presentation Error'),
 ('109', 'FL', '函数调用不合法', 'Function Limit Exceed'),
+('110', 'DM', '多组数据', 'Detail Mode'),
 ('118', 'SE', '未知错误', 'System Error');
 
 COMMIT;

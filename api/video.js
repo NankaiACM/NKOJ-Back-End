@@ -21,10 +21,11 @@ function findSync(startPath) {
 router.get('/list',async (req,res)=>{
     'use strict'
     let files=findSync(VIDEO_PATH)
-    //console.log(files)
-    for( i in files){
+
+    for(let i in files){
         files[i]=files[i].replace(VIDEO_PATH,"")
     }
+    console.log(files)
     res.ok(files)
 })
 

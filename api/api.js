@@ -18,6 +18,7 @@ const user = require('./user/user')
 const status = require('./status')
 const version = require('./version')
 const simple_picture=require('./simple_picture')
+const video=require('./video')
 
 router.use('/admin', admin)
 router.use('/avatar', avatar)
@@ -39,7 +40,7 @@ router.use('/user', user)
 router.use('/status', status)
 router.use('/version', version)
 router.use('/simple_picture',simple_picture)
-
+router.use('/video',video)
 // DEV: test
 router.use('/test', test)
 

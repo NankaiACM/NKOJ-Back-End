@@ -16,31 +16,6 @@ router.get('/:cid', fc.all(['cid']), async (req, res) => {
   const basic = result.rows[0]
 
   const problems = await db.query(
-    'SELECT problem_id, submit_ac as ac, submit_all as all, title, special_judge, detail_judge, level' +
-    ' FROM contest_problems NATURAL JOIN problems WHERE contest_id = $1', [cid]
-  )
-
-  let file
-  try {
-    file = fs.readFileSync(`${CONTEST_PATH}/${cid}.md`, 'utf8')
-  } catch (e) {
-
-  }
-  res.ok({...basic, problems: problems.rows, file})
-})
-
-router.get('/:cid/finished', fc.all(['cid']), async (req, res) => {
-  'use strict'
-  const cid = req.fcResult.cid
-
-  const result = await db.query(
-    'SELECT *, lower(during) AS start, upper(during) AS end FROM contests WHERE contest_id = $1', [cid]
-  )
-  if (result.rows.length === 0) return res.fail(404)
-
-  const basic = result.rows[0]
-
-  const problems = await db.query(
     'SELECT contest_problems.problem_id, submit_ac as ac, submit_all as all, title, special_judge, detail_judge, level' +
     ' FROM contest_problems LEFT JOIN problems ON contest_problems.problem_id = problems.problem_id WHERE contest_problems.contest_id = $1', [cid]
   )

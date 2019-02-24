@@ -7,6 +7,8 @@ const prototype = require('./lib/prototype')
 const bodyParser = require('body-parser')
 const logger = require('morgan')
 
+const path = require('path')
+
 // DEV: remove
 const proxy = require('http-proxy-middleware')
 app.use('/old', proxy({target: 'http://220.113.20.2/', changeOrigin: false}))
@@ -22,6 +24,26 @@ app.use(logger('dev'))
 app.set('json spaces', 4)
 
 app.use(prototype.setResponsePrototype)
+
+const exts = {
+  '.html': 'ok',
+  '.css': 'ok',
+  '.js': 'ok',
+  '.png': 'ok',
+  '.jpg': 'ok',
+  '.ttf': 'ok',
+  '.woff2': 'ok',
+  '.mp4': 'ok'
+}
+app.all('*', function (req, res, next) {
+  const ext = path.extname(req.path)
+  if (ext !== '') {
+    if (!exts[etx]) {
+      res.sendStatus(404)
+    }
+  }
+  next()
+})
 
 app.use('/public', express.static(PUBLIC_PATH, {fallthrough: false}))
 

@@ -35,10 +35,10 @@ const exts = {
   '.woff2': 'ok',
   '.mp4': 'ok'
 }
-app.all('*', function (req, res, next) {
-  const ext = path.extname(req.path)
-  if (ext !== '') {
-    if (!exts[etx]) {
+app.use('*', function (req, res, next) {
+  const ext = path.extname(req.originalUrl)
+  if (ext != '') {
+    if (!exts[ext]) {
       res.sendStatus(404)
     }
   }

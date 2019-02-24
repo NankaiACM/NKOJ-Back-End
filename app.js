@@ -35,13 +35,16 @@ app.use(require('./lib/apikey'))
 // Dispatch to router
 app.use('/api', api)
 
-app.use('/', express.static(DIST_PATH, {fallthrough: true}))
+app.use('/', express.static(DIST_PATH, {fallthrough: true, setHeaders: function (res, path, stat) {
+  res.set('X-Frame-Options', 'DENY')
+}}))
 
 app.get(/^.+$/, (req, res) => {
   res.set({
     'Content-Security-Policy': "default-src 'self' ; script-src 'self' 'unsafe-inline' 'unsafe-eval' ; style-src 'self' 'unsafe-inline' ; font-src 'self' data: ; img-src 'self' data: ; connect-src 'self' ws://acm.nankai.edu.cn; report-uri https://sunrisefox.report-uri.com/r/d/csp/enforce",
     'Referrer-Policy': 'same-origin',
-    'X-XSS-Protection': '1; report=https://sunrisefox.report-uri.com/r/d/csp/enforce'
+    'X-XSS-Protection': '1; report=https://sunrisefox.report-uri.com/r/d/csp/enforce',
+    'X-Frame-Options': 'DENY'
   })
   res.sendFile(`${DIST_PATH}/index.html`, {acceptRanges: false})
 })

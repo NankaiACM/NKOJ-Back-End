@@ -124,7 +124,8 @@ CREATE TABLE contests (
     enabled         boolean         NOT NULL DEFAULT 't'::boolean,
     during          tsrange         NOT NULL,
     perm            type_problem_restriction NOT NULL DEFAULT ('1', '0', '0', '0', '0'),
-    private         boolean         NOT NULL DEFAULT 'f'::boolean
+    private         boolean         NOT NULL DEFAULT 'f'::boolean,
+    rule            text            DEFAULT "acm"
 );
 
 CREATE TABLE problems (
@@ -210,7 +211,8 @@ CREATE TABLE solutions (
     "time"          integer,
     "memory"        integer,
     "when"          timestamp       DEFAULT current_timestamp,
-    ipaddr_id       integer         REFERENCES ipaddr(ipaddr_id)
+    ipaddr_id       integer         REFERENCES ipaddr(ipaddr_id),
+    score           integer         DEFAULT 0
 );
 
 CREATE TABLE post (

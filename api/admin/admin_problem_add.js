@@ -58,8 +58,18 @@ router.post('/',
       sample_output: `${form.sample_output}`,
       hint: form.hint
     })
-
     fs.writeFileSync(path.resolve(PROBLEM_PATH, filename), content)
+
+    const json_content = {
+      problem_id: pid,
+      time_limit: form.time_limit,
+      memory_limit: form.memory_limit,
+      special_judge: form.special_judge,
+      detail_judge: form.detail_judge
+    }
+    fs.writeFileSync(path.resolve(PROBLEM_PATH, `${pid}.json`), json_content)
+    
+
 
     res.ok({problem_id: pid, filename: filename, content: content})
   })

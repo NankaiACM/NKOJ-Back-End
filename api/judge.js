@@ -106,7 +106,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
       })
       const score = parseInt(ac_count*100.0/cases)
 
-      const ret = await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4, score = $5 WHERE solution_id = $6 RETURNING "when"', [result, time, memory, code_length, solution_id, score])
+      const ret = await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4, score = $5 WHERE solution_id = $6 RETURNING "when"', [result, time, memory, code_length, score, solution_id])
 
       if (cid) {
         // TODO: call util function to recount data to contest_users

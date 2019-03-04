@@ -70,6 +70,11 @@ router.post('/update',
         Object.keys(result.rows[0]).forEach((k) => {
           if (result.rows[0][k]) ret[k] = 'changed'
         })
+
+      if (ret['nickname'].equals('changed')){
+        const nick_result = await db.query(`UPDATE post SET nickname = ${form.nickname} WHERE user_id = ${req.session.user}`)
+        const nick_result_reply = await db.query(`UPDATE post_reply SET nickname = ${form.nickname} WHERE user_id = ${req.session.user}`)
+      }
         return res.ok(ret)
       }
       else return res.fail(500, 'user id not found or no values could be changed')

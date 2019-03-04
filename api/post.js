@@ -34,14 +34,19 @@ router.post('/:pid'
     const title = req.fcResult.title
 
     const content = striptags(req.fcResult.content, ['span', 'strong', 'color', 'img', 'b', 'a'])
-
+    const nick_result = db.query(`SELECT nickname FROM users WHERE user_id = {uid}`)
+    if ( !nick_result.rows.length) {
+        res.fail(500, 'user id not found')
+    }
+    const nickname = nick_result.rows[0].nickname
     const ret = await db.query(
-      'INSERT INTO post (user_id, title, content, problem_id, ipaddr_id)' +
-      ' VALUES ($1, $2, $3, $4, get_ipaddr_id($5)) RETURNING *', [uid, title, content, pid || undefined, req.ip]
+      'INSERT INTO post (user_id, nickname, title, content, problem_id, ipaddr_id)' +
+      ' VALUES ($1, $2, $3, $4, $5, get_ipaddr_id($6)) RETURNING *', [uid, nickname, title, content, pid || undefined, req.ip]
     )
 
     res.ok(ret.rows[0])
   })
+
 
 // 回复帖子
 
@@ -67,9 +72,15 @@ router.post('/reply/:parent'
 
     const pid = row.problem_id
 
+    const nick_result = db.query(`SELECT nickname FROM users WHERE user_id = {uid}`)
+    if ( !nick_result.rows.length) {
+        res.fail(500, 'user id not found')
+    }
+    const nickname = nick_result.rows[0].nickname
+
     const ret = await db.query(
-      'INSERT INTO post (user_id, content, parent_id, problem_id, ipaddr_id)' +
-      ' VALUES ($1, $2, $3, $4, get_ipaddr_id($5)) RETURNING *', [uid, content, parent, pid, req.ip]
+      'INSERT INTO post (user_id, nickname,content, parent_id, problem_id, ipaddr_id)' +
+      ' VALUES ($1, $2, $3, $4, $5, get_ipaddr_id($6)) RETURNING *', [uid, nickname, content, parent, pid, req.ip]
     )
 
     res.ok(ret.rows[0])
@@ -126,10 +137,14 @@ router.post('/comment/:post', require_perm(REPLY_POST), limit('post')
       return res.fail(422, 'origin post not support comment')
 
     const content = striptags(req.fcResult.content, ['span', 'strong', 'color', 'img', 'b', 'a'])
-
+        const nick_result = db.query(`SELECT nickname FROM users WHERE user_id = {uid}`)
+        if ( !nick_result.rows.length) {
+            res.fail(500, 'user id not found')
+        }
+        const nickname = nick_result.rows[0].nickname
     const ret = await db.query(
-      'INSERT INTO post_reply (reply_to, user_id, content, ipaddr_id)' +
-      ' VALUES ($1, $2, $3, get_ipaddr_id($4)) RETURNING *', [post, uid, content, req.ip]
+      'INSERT INTO post_reply (reply_to, user_id, nickname, content, ipaddr_id)' +
+      ' VALUES ($1, $2, $3, $4, get_ipaddr_id($5)) RETURNING *', [post, uid, nickname, content, req.ip]
     )
 
     res.ok(ret.rows[0])

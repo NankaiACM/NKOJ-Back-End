@@ -71,9 +71,15 @@ router.post('/update',
           if (result.rows[0][k]) ret[k] = 'changed'
         })
 
-      if (ret['nickname'].equals('changed')){
-        const nick_result = await db.query(`UPDATE post SET nickname = ${form.nickname} WHERE user_id = ${req.session.user}`)
-        const nick_result_reply = await db.query(`UPDATE post_reply SET nickname = ${form.nickname} WHERE user_id = ${req.session.user}`)
+      if (ret['nickname'] == 'changed'){
+        const nick_exist = await db.query(`SELECT * FROM post WHERE user_id = ${req.session.user}`)
+          if(nick_exist.rows.length){
+              const nick_result = await db.query(`UPDATE post SET nickname = '${form.nickname}' WHERE user_id = ${req.session.user}`)
+          }
+          const nick_reply_exist = await db.query(`SELECT * FROM post_reply WHERE user_id = ${req.session.user}`)
+          if(nick_exist.rows.length){
+              const nick_result = await db.query(`UPDATE post SET nickname = '${form.nickname}' WHERE user_id = ${req.session.user}`)
+          }
       }
         return res.ok(ret)
       }

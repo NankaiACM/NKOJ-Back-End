@@ -14,7 +14,7 @@ const listDiscuss = async (req, res) => {
   // TODO: 帖子列表
 
   const result = await db.query(
-    'SELECT post_id, user_id, title, since, last_active_date, last_active_user, positive, negative' +
+    'SELECT post_id, user_id, nickname, title, since, last_active_date, last_active_user, positive, negative' +
     ' FROM post WHERE removed_date IS NULL AND parent_id IS NULL AND (CASE $1::int WHEN 0 THEN (problem_id IS NULL) ELSE (problem_id = $1) END)' +
     ' ORDER BY last_active_date DESC LIMIT $2 OFFSET $3'
     , [pid, limit, offset]

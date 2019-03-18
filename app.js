@@ -38,7 +38,7 @@ const exts = {
 app.use('*', function (req, res, next) {
   const ext = path.extname(req.originalUrl)
   if (ext != '') {
-    if (!exts[ext]) {
+    if (!exts[ext] && req.originalUrl.split('.')[0] != '/api/captcha/login?_t=0') {
       res.sendStatus(404)
     }
   }

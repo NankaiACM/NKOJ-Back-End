@@ -1,6 +1,6 @@
 BEGIN;
 
-CREATE SCHEMA IF NOT EXISTS public; 
+CREATE SCHEMA IF NOT EXISTS public;
 
 CREATE TABLE email_suffix (
     suffix_id       serial          PRIMARY KEY,
@@ -219,6 +219,7 @@ CREATE TABLE post (
     post_id         serial          PRIMARY KEY,
     parent_id       integer         DEFAULT NULL REFERENCES post(post_id),
     user_id         integer         NOT NULL REFERENCES user_info(user_id),
+    nickname        varchar(20),
     title           text,
     content         text,
     problem_id      integer         REFERENCES problems(problem_id),
@@ -238,6 +239,7 @@ CREATE TABLE post_reply (
     reply_id        serial          PRIMARY KEY,
     reply_to        integer         NOT NULL REFERENCES post(post_id),
     user_id         integer         NOT NULL REFERENCES user_info(user_id),
+    nickname        varchar(20),
     score           integer         NOT NULL DEFAULT 0,
     removed_date    timestamp,
     since           timestamp       DEFAULT current_timestamp,

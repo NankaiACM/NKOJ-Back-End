@@ -125,7 +125,7 @@ CREATE TABLE contests (
     during          tsrange         NOT NULL,
     perm            type_problem_restriction NOT NULL DEFAULT ('1', '0', '0', '0', '0'),
     private         boolean         NOT NULL DEFAULT 'f'::boolean,
-    rule            text            DEFAULT "acm"
+    rule            text            DEFAULT 'acm'
 );
 
 CREATE TABLE problems (
@@ -163,7 +163,7 @@ CREATE TABLE problem_tag_votes (
     primary key (user_id, tag_id, problem_id)
 );
 
-CREATE TABLE contest_problems (
+CREATE TABLE contest_problems
     contest_id      integer         NOT NULL REFERENCES contests(contest_id),
     problem_id      integer         NOT NULL REFERENCES problems(problem_id),
     submit_ac       integer         NOT NULL DEFAULT 0,
@@ -293,6 +293,16 @@ CREATE UNLOGGED TABLE _danmaku (
     ipaddr_id integer,
     message text,
     "when" timestamp default current_timestamp
+);
+
+CREATE TABLE users_nkpc (
+    user_id integer NOT NULL REFERENCES user_info(user_id),
+    real_name   text,
+    student_number  text,
+    gender          text,
+    institute       text,
+    qq              text,
+    phone           text
 );
 
 COMMIT;

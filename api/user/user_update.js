@@ -79,4 +79,24 @@ router.post('/update',
     }
   })
 
+  
+router.post('/nkpc', require_perm(), fc.all(['real_name', 'student_number', 'gender', 'institute', 'qq', 'phone']), async(req, res) => {
+    console.log(req.session.user)
+    const form = req.fcResult
+    let ret = {}
+    await db.query(`INSERT INTO users_nkpc(user_id) VALUES(${req.session.user})`)
+    try{
+      const result = await db.query(`UPDATE users_nkpc SET real_name = $1, student_number = $2, gender = $3, institute = $4, qq = $5, phone = $6 WHERE user_id = ${req.session.user}
+        RETURNING real_name, student_number, gender, institute, qq, phone`, [form.real_name, form.student_number, form.gender, form.institute, form.qq, form.phone])
+      if(result.rows.length){
+        Object.keys(result.rows[0]).forEach((k) => {
+          if (result.rows[0][k]) ret[k] = result.rows[0][k]
+        })
+        return res.ok(ret)
+      } else return res.fail(500, 'database error')
+    } catch(err){
+      res.fatal(520, err)
+      throw err
+    }
+})
 module.exports = router

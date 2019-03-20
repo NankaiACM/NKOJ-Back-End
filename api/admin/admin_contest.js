@@ -174,4 +174,21 @@ router.post('/:cid'
     return res.fail(422)
   })
 
+//查看NKPC报名情况
+router.get('/nkpc/members', async (req, res) => {
+    const result = await db.query('SELECT * FROM users_nkpc')
+    res.ok(result.rows)
+})
+
+//去重
+router.get('/nkpc/distinct', async(req, res) => {
+    const result = await db.query('SELECT DISTINCT * FROM users_nkpc')
+    await db.query('DELETE FROM users_nkpc where user_id != 0')
+    console.log(result.rows.length)
+    result.rows.forEach( (key) => {
+      db.query('INSERT INTO users_nkpc (user_id, real_name, student_number, gender, institute, qq, phone) VALUES($1, $2, $3, $4, $5, $6, $7)',
+      [key.user_id, key.real_name, key.student_number, key.gender, key.institute, key.qq, key.phone])
+    })
+})
+
 module.exports = router

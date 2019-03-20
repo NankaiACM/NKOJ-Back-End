@@ -95,7 +95,7 @@ router.post('/nkpc', require_perm(), fc.all(['real_name', 'student_number', 'gen
     console.log(req.session.user)
     const form = req.fcResult
     let ret = {}
-    await db.query(`INSERT INTO users_nkpc(user_id) VALUES(${req.session.user})`)
+    await db.query(`INSERT INTO users_nkpc(user_id) VALUES(${req.session.user}) ON CONFLICT DO NOTHING`)
     try{
       const result = await db.query(`UPDATE users_nkpc SET real_name = $1, student_number = $2, gender = $3, institute = $4, qq = $5, phone = $6 WHERE user_id = ${req.session.user}
         RETURNING real_name, student_number, gender, institute, qq, phone`, [form.real_name, form.student_number, form.gender, form.institute, form.qq, form.phone])

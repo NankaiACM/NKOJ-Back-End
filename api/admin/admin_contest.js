@@ -8,6 +8,7 @@ const fs = require('fs')
 
 // 添加一个新的竞赛
 
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -68,6 +69,25 @@ router.get('/:cid', fc.all(['cid']), async (req, res) => {
   }
   res.ok({...basic.rows[0], participants: participants.rows, file})
 })
+
+router.get('/remove/:cid', fc.all(['cid']), async (req, res) => {
+    const cid = req.fcResult.cid
+    // 查看基本信息
+    const basic = await db.query('SELECT * FROM user_contests WHERE contest_id = $1', [cid])
+    if (basic.rows.length === 0) return res.fail(404)
+    // 删除数据库
+    const participants = await db.query('DELETE FROM contests WHERE contest_id = $1', [cid])
+
+    // 删除描述文件
+    let file
+    try {
+        file = fs.unlinkSync(`${CONTEST_PATH}/${cid}.md`, 'utf8')
+    } catch (e) {
+
+    }
+    res.ok('remove successfully')
+})
+
 
 // 添加 / 删除竞赛用户
 

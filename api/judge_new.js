@@ -1,0 +1,151 @@
+const router = require('express').Router()
+const fs = require('fs')
+const db = require('../database/db')
+const ws = require('ws')
+const {DATA_BASE} = require('../config/basic')
+const {require_perm, check_perm, REJUDGE_ALL, SUPER_ADMIN} = require('../lib/permission')
+const fc = require('../lib/form-check')
+const {getSolutionStructure, unlinkTempFolder} = require('../lib/judge')
+const { spawn } = require('../lib/spawn')
+
+router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, res, next) => {
+  'use strict'
+  const form = req.fcResult
+  const pid = form.pid
+  const lang = form.lang
+  const code = form.code
+  const uid = req.session.user
+  const ip = req.ip
+
+  const ret = await db.query(
+    'SELECT time_limit, memory_limit, cases, special_judge::integer, detail_judge::integer, contest_id FROM problems WHERE problem_id = $1', [pid])
+  if (ret.rows.length === 0) return res.fail(404, 'problem not found')
+
+  const row = ret.rows[0]
+  const time_limit = row.time_limit
+  const memory_limit = row.memory_limit
+  const cases = row.cases
+  const special_judge = row.special_judge
+  const detail_judge = row.detail_judge
+  let cid = row.contest_id
+
+  let contest_status = undefined
+
+  if (cid) {
+    const ret = await db.query(
+      'SELECT current_timestamp > LOWER(during) AS is_started, current_timestamp > UPPER(during) AS is_ended, private, row_to_json(perm) FROM contests WHERE contest_id = $1', [cid]
+    )
+    const contest = ret.rows[0]
+
+    if (contest.is_ended) {
+      cid = undefined
+      db.query('UPDATE problems SET contest_id = NULL WHERE problem_id = $1', [pid]).then(() => {})
+    } else if (await check_perm(req, SUPER_ADMIN)) {
+      cid = undefined
+    } else if (contest.is_started) {
+      if (contest.private) {
+        contest_status = await db.query('SELECT * FROM contest_users WHERE contest_id = $1 AND user_id = $2', [cid, uid])
+        if (!contest_status.rows.length)
+          return res.fail(403)
+        else contest_status = contest_status.rows[0].status
+        console.log('contest_status', contest_status)
+      }
+      else {
+        await db.query('INSERT INTO contest_users(contest_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [cid, uid])
+      }
+    }
+  }
+
+  // TODO: always cpp...
+  let langName = 'unknown'
+  let langExt = 'code'
+  switch (lang) {
+    case 0: langName = langExt = 'c'; break;
+    case 1: langName = 'c++'; langExt = 'cpp'; break;
+    case 2: langName = 'javascript'; langExt = 'js'; break;
+    case 3: langName = 'python'; langExt = 'py'; break;
+    case 4: langName = langExt = 'go'; break;
+    case 5: langName = 'text'; langExt = 'txt'; break;
+  }
+
+  const result = await db.query(
+    'INSERT INTO solutions (user_id, problem_id, language, ipaddr_id, status_id, contest_id) VALUES ($1, $2, $3, get_ipaddr_id($4), 100, $5) RETURNING solution_id'
+    , [uid, pid, lang, ip, cid]
+  )
+
+  const solution_id = result.rows[0].solution_id
+
+  res.ok({solution_id})
+
+  const struct = getSolutionStructure(solution_id)
+  
+  const filename = `main.${langExt}`;
+
+  fs.writeFileSync(`${struct.path.solution}/main.${langExt}`, code)
+  const code_length = Buffer.byteLength(code, 'utf8')
+
+  const config = {
+    "debug": true, // [false]
+    "sid": solution_id, // [undefined]
+    "filename": filename, // <必填>
+    "lang": langName, // <必填>，可以是 c, c++, javascript, python, go
+    "pid": pid, // [undefined]
+    "max_time": time_limit, // [1000]
+    "max_time_total": time_limit, // [30000]
+    "max_memory": memory_limit, // [65530]
+    "max_output": 10000000,  // [10000000]
+    "max_core": 4, // [4] 注意: 多核心 go 默认使用 4 核心
+    "on_error_continue": detail_judge ? true : ["accepted", "presentation error"], // [["accepted", "presentation error"]]，也可以是 true 或 false
+    "test_case_count": cases, // <必填>
+    "spj_mode": special_judge ? "compare" : null, // [no]，可以是 no, compare 或 interactive
+    "path": {
+      "base": DATA_BASE, // [/mnt/data]
+      "code": struct.path.solution, // [<base>/code/<pid>/<sid>/]，如无 pid 和 sid 则必填
+      "log": null, // [<temp>]
+      "output": struct.path.exec_out, // [<base>/result/<pid>/<sid>/]，如无 pid 和 sid 则必填
+      "stdin": struct.path.data, // [<base>/case/<pid>/]，如无 pid 则必填，应包含 1.in - <test_case_count>.in
+      "stdout": null, // [<stdin>]，应包含 1.out - <test_case_count>.out
+      "temp": null, // [/tmp/]
+      "spj": struct.path.spj, // 如果 spj_mode 不是 no，[<base>/judge/<pid>]
+    }
+  }
+
+  fs.writeFileSync(`${struct.path.solution}/exec.config`, JSON.stringify(config))
+
+  await spawn('docker', ['exec', '-i', 'judgecore', './judgecore', `${struct.path.solution}/exec.config`]);
+
+  const json = JSON.parse(fs.readFileSync(`${struct.path.exec_out}/result.json`, {encoding: 'utf8'}))
+
+  try {
+    const old_new_statsu_map = [107, 108, 102, 101, 103, 104, 105, 106, 119, 118];
+    const result = old_new_statsu_map[json.status];
+
+    const time = json.time;
+    const memory = json.memory;
+    // const compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
+    const detail = result.result + (result.extra || '');
+
+    let ac_count = 0
+    console.log("datail:" + detail)
+    json.detail.forEach(function(i){
+      if (i.status === 0 || i.status === 1)
+        ac_count += 1
+    })
+    const score = parseInt(ac_count*100.0/cases)
+
+    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4, score = $5, detail = $6, compile_info = $7 WHERE solution_id = $8 RETURNING "when"', [result, time, memory, code_length, score, json.detail, json.compiler, solution_id])
+
+    if (cid) {
+      // TODO: call util function to recount data to contest_users
+    }
+
+  } catch (e) {
+    console.error(e);
+    db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4 WHERE solution_id = $5 RETURNING "when"', [101, 0, 0, code_length, solution_id]).then(()=>{}).catch((e)=>{console.error(e)})
+    next(e)
+  }
+
+  unlinkTempFolder(solution_id)
+})
+
+module.exports = router

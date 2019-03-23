@@ -56,8 +56,8 @@ new Promise(async (resolve, reject) => {
   app = require('../app')
 }).catch((err) => {
   err.reason = err.reason || err
-  err.details = err.details || err.stack || err
-  console.error(`failed to start normal server, reason: ${err.reason},\n details: ${err.details}`)
+  err.details = err.details || err.stack || err.reason
+  console.error(`failed to start normal server, reason: ${err.reason},\n details: `, err.details)
   app = require('../init/init')
   app.locals.err = err
 }).then(() => {

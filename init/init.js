@@ -3,7 +3,6 @@ const app = express()
 const path = require('path')
 const fs = require('fs')
 const bodyParser = require('body-parser')
-const test = require('../test/fc')
 
 app.set('view engine', 'ejs')
 app.use(express.static(path.resolve(__dirname, 'public')))
@@ -67,8 +66,6 @@ app.get('/restart', (req, res) => {
   res.json({code: 0})
   process.exit(-1)
 })
-
-app.use('/test', test)
 
 app.use((req, res) => {
   res.redirect(`/init`)

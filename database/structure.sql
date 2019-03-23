@@ -163,7 +163,7 @@ CREATE TABLE problem_tag_votes (
     primary key (user_id, tag_id, problem_id)
 );
 
-CREATE TABLE contest_problems
+CREATE TABLE contest_problems (
     contest_id      integer         NOT NULL REFERENCES contests(contest_id),
     problem_id      integer         NOT NULL REFERENCES problems(problem_id),
     submit_ac       integer         NOT NULL DEFAULT 0,

@@ -1,3 +1,10 @@
+
+SET custom_settings.hash_prefix = 'not production';
+
+ALTER SYSTEM SET custom_settings.hash_prefix = 'not production';
+
+SELECT pg_reload_conf();
+
 BEGIN;
 
 ALTER SEQUENCE user_role_role_id_seq RESTART WITH 10;
@@ -52,9 +59,3 @@ INSERT INTO solution_status (status_id, msg_short, msg_cn, msg_en) VALUES
 ('118', 'SE', '未知错误', 'System Error');
 
 COMMIT;
-
-SET custom_settings.hash_prefix = 'not production';
-
-ALTER SYSTEM SET custom_settings.hash_prefix = 'not production';
-
-SELECT pg_reload_conf();

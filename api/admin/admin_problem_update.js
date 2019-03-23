@@ -32,7 +32,7 @@ router.post('/:pid',
     }
 
     const r = await db.query('update problems set title = COALESCE($1, title), cases = COALESCE($2, cases),' +
-      ' special_judge = COALESCE($3::boolean, special_judge), detail_judge = COALESCE($4::boolean, detail_judge),' +
+      ' special_judge = COALESCE($3::integer, special_judge), detail_judge = COALESCE($4::boolean, detail_judge),' +
       ' level = COALESCE($5::integer, level), time_limit = COALESCE($6::integer, time_limit), memory_limit = COALESCE($7::integer, memory_limit)' +
       ' where problem_id = $8 returning problem_id'
       , [form.title, form.cases, form.special_judge, form.detail_judge, form.level, form.time_limit, form.memory_limit, pid])

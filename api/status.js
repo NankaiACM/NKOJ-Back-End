@@ -2,8 +2,29 @@ const router = require('express').Router()
 const db = require('../database/db')
 const fs = require('fs')
 const fc = require('../lib/form-check')
-const {check_perm, GET_CODE_SELF, GET_CODE_ALL, VIEW_OUTPUT_SELF, VIEW_OUTPUT_ALL} = require('../lib/permission')
+const {check_perm, SUPER_ADMIN, GET_CODE_SELF, GET_CODE_ALL, VIEW_OUTPUT_SELF, VIEW_OUTPUT_ALL} = require('../lib/permission')
 const {getSolutionStructure, getProblemStructure} = require('../lib/judge')
+
+async function check_oi_solution(req, ret){
+  let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < lower(contests.during) and contests.rule = \'oi\'')
+  if(await check_perm(req, SUPER_ADMIN)){
+    return
+  } else {
+    c_dic = {}
+    c_ret.rows.forEach(function(c_p, index){
+      c_dic[c_p["problem_id"]] = "OI"
+    })
+    ret.rows.forEach(function(solution, index){
+      if(typeof(c_dic[solution.problem_id]) != "undefined"){
+        solution.score = 100
+        solution.status_id = 233
+        solution.msg_en = "Secret"
+        solution.msg_short = "ST"
+        solution.msg_cn = "量子纠缠"
+      }
+    })
+  }
+}
 
 function loadPartialData (path) {
   return new Promise((resolve, reject) => {
@@ -46,7 +67,8 @@ router.get('/', fcMiddleware, async (req, res) => {
   let limit = 20
   let [wClause, sParam] = getSQLClause(1, req.fcResult)
   const queryString = `SELECT * FROM user_solutions ${wClause} ORDER BY solution_id DESC LIMIT $1`
-  const result = await db.query(queryString, [limit, ...sParam])
+  let result = await db.query(queryString, [limit, ...sParam])
+  await check_oi_solution(req, result)
   if (result.rows.length > 0)
     return res.ok(result.rows)
   return res.sendStatus(204)
@@ -61,7 +83,8 @@ router.get('/:from(\\d+)/:limit(\\d+)?', fcMiddleware, async (req, res) => {
 
   let [wClause, sParam] = getSQLClause(limit ? 2 : 1, req.fcResult)
   const queryString = `SELECT * FROM user_solutions ${wClause} ORDER BY solution_id DESC LIMIT ${limit ? '$1 OFFSET $2' : 'cal_solution_limit($1)'}`
-  const result = await db.query(queryString, [...(limit ? [limit, from] : [from]), ...sParam])
+  let result = await db.query(queryString, [...(limit ? [limit, from] : [from]), ...sParam])
+  await check_oi_solution(req, result)
   if (result.rows.length > 0)
     return res.ok(result.rows)
   return res.sendStatus(204)
@@ -91,6 +114,7 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
     res.fail(422)
 
   const result = await db.query('SELECT * FROM user_solutions WHERE solution_id = $1 LIMIT 1', [sid])
+  await check_oi_solution(req, result)
   if (result.rows.length > 0) {
     const row = result.rows[0]
     const {ipaddr_id, ...ret} = {...row}
@@ -124,6 +148,7 @@ router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
     res.fail(422)
 
   const result = await db.query('SELECT user_id, problem_id,status_id FROM user_solutions WHERE solution_id = $1 LIMIT 1', [sid])
+  await check_oi_solution(req, result)
   if (result.rows.length > 0) {
     const uid = result.rows[0].user_id
     if (!(req.session.user === uid && await check_perm(req, VIEW_OUTPUT_SELF)) && !await check_perm(req, VIEW_OUTPUT_ALL))

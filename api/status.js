@@ -124,8 +124,8 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
       || await check_perm(req, GET_CODE_ALL)
       || ret.shared) {
       const struct = getSolutionStructure(sid)
-      ret.compile_info = result.compile_info.replace(/\/var\/www\/data\//g, `f:\\${sid}\\`)
-      let langExt = language_ext[result.language]
+      ret.compile_info = (row.compile_info || '').replace(/\/var\/www\/data\//g, `f:\\${sid}\\`)
+      let langExt = language_ext[row.language]
       ret.code = fs.readFileSync(struct.file.code_base + langExt, 'utf8')
     }
     return res.ok(ret)

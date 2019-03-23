@@ -115,11 +115,11 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
 
     const time = json.time;
     const memory = json.memory;
-    // const compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
 
     let ac_count = 0
     if (json.detail) {
       json.detail.forEach(function (i) {
+        i.extra = i.extra || json.extra;
         if (i.status === 0 || i.status === 1)
           ac_count += 1
       })

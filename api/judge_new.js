@@ -5,8 +5,10 @@ const ws = require('ws')
 const {DATA_BASE} = require('../config/basic')
 const {require_perm, check_perm, REJUDGE_ALL, SUPER_ADMIN} = require('../lib/permission')
 const fc = require('../lib/form-check')
-const {getSolutionStructure, unlinkTempFolder} = require('../lib/judge')
+const {getProblemStructure, getSolutionStructure, unlinkTempFolder} = require('../lib/judge')
 const { spawn } = require('../lib/spawn')
+const path = require('path')
+const language_ext = require('../lib/extension')
 
 router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, res, next) => {
   'use strict'
@@ -48,7 +50,6 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
         if (!contest_status.rows.length)
           return res.fail(403)
         else contest_status = contest_status.rows[0].status
-        console.log('contest_status', contest_status)
       }
       else {
         await db.query('INSERT INTO contest_users(contest_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [cid, uid])
@@ -56,17 +57,8 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
     }
   }
 
-  // TODO: always cpp...
-  let langName = 'unknown'
-  let langExt = 'code'
-  switch (lang) {
-    case 0: langName = langExt = 'c'; break;
-    case 1: langName = 'c++'; langExt = 'cpp'; break;
-    case 2: langName = 'javascript'; langExt = 'js'; break;
-    case 3: langName = 'python'; langExt = 'py'; break;
-    case 4: langName = langExt = 'go'; break;
-    case 5: langName = 'text'; langExt = 'txt'; break;
-  }
+  let langExt = language_ext[lang]
+  let langName = language_ext[langExt]
 
   const result = await db.query(
     'INSERT INTO solutions (user_id, problem_id, language, ipaddr_id, status_id, contest_id) VALUES ($1, $2, $3, get_ipaddr_id($4), 100, $5) RETURNING solution_id'
@@ -78,6 +70,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   res.ok({solution_id})
 
   const struct = getSolutionStructure(solution_id)
+  const pstruct = getProblemStructure(pid)
   
   const filename = `main.${langExt}`;
 
@@ -85,7 +78,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   const code_length = Buffer.byteLength(code, 'utf8')
 
   const config = {
-    "debug": true, // [false]
+    "debug": false, // [false]
     "sid": solution_id, // [undefined]
     "filename": filename, // <必填>
     "lang": langName, // <必填>，可以是 c, c++, javascript, python, go
@@ -97,16 +90,16 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
     "max_core": 4, // [4] 注意: 多核心 go 默认使用 4 核心
     "on_error_continue": detail_judge ? true : ["accepted", "presentation error"], // [["accepted", "presentation error"]]，也可以是 true 或 false
     "test_case_count": cases, // <必填>
-    "spj_mode": special_judge ? "compare" : null, // [no]，可以是 no, compare 或 interactive
+    "spj_mode": special_judge, // [no]，可以是 no, compare 或 interactive
     "path": {
       "base": DATA_BASE, // [/mnt/data]
-      "code": struct.path.solution, // [<base>/code/<pid>/<sid>/]，如无 pid 和 sid 则必填
+      "code": path.join(struct.path.solution, filename), // [<base>/code/<pid>/<sid>/]，如无 pid 和 sid 则必填
       "log": null, // [<temp>]
       "output": struct.path.exec_out, // [<base>/result/<pid>/<sid>/]，如无 pid 和 sid 则必填
-      "stdin": struct.path.data, // [<base>/case/<pid>/]，如无 pid 则必填，应包含 1.in - <test_case_count>.in
+      "stdin": pstruct.path.data, // [<base>/case/<pid>/]，如无 pid 则必填，应包含 1.in - <test_case_count>.in
       "stdout": null, // [<stdin>]，应包含 1.out - <test_case_count>.out
       "temp": null, // [/tmp/]
-      "spj": struct.path.spj, // 如果 spj_mode 不是 no，[<base>/judge/<pid>]
+      "spj": pstruct.path.spj, // 如果 spj_mode 不是 no，[<base>/judge/<pid>]
     }
   }
 
@@ -123,17 +116,17 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
     const time = json.time;
     const memory = json.memory;
     // const compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
-    const detail = result.result + (result.extra || '');
 
     let ac_count = 0
-    console.log("datail:" + detail)
-    json.detail.forEach(function(i){
-      if (i.status === 0 || i.status === 1)
-        ac_count += 1
-    })
+    if (json.detail) {
+      json.detail.forEach(function (i) {
+        if (i.status === 0 || i.status === 1)
+          ac_count += 1
+      })
+    }
     const score = parseInt(ac_count*100.0/cases)
 
-    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4, score = $5, detail = $6, compile_info = $7 WHERE solution_id = $8 RETURNING "when"', [result, time, memory, code_length, score, json.detail, json.compiler, solution_id])
+    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4, score = $5, detail = $6::json, compile_info = $7 WHERE solution_id = $8 RETURNING "when"', [result, time, memory, code_length, score, JSON.stringify(json.detail), json.compiler, solution_id])
 
     if (cid) {
       // TODO: call util function to recount data to contest_users
@@ -145,7 +138,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
     next(e)
   }
 
-  unlinkTempFolder(solution_id)
+  unlinkTempFolder(solution_id).catch(() => {})
 })
 
 module.exports = router

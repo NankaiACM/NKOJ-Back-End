@@ -4,6 +4,7 @@ const fs = require('fs')
 const fc = require('../lib/form-check')
 const {check_perm, SUPER_ADMIN, GET_CODE_SELF, GET_CODE_ALL, VIEW_OUTPUT_SELF, VIEW_OUTPUT_ALL} = require('../lib/permission')
 const {getSolutionStructure, getProblemStructure} = require('../lib/judge')
+const language_ext = require('../lib/extension')
 
 async function check_oi_solution(req, ret){
   let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < lower(contests.during) and contests.rule = \'oi\'')
@@ -123,14 +124,9 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
       || await check_perm(req, GET_CODE_ALL)
       || ret.shared) {
       const struct = getSolutionStructure(sid)
-      try {
-        ret.compile_info = fs.readFileSync(struct.file.compile_info, 'utf8')
-      } catch (e) {
-        ret.compile_info = '评测机内核没有正常运行... 请通知馆里猿0v0'
-      }
-      ret.compile_info = ret.compile_info.replace(/\/var\/www\/data\//g, `f:\\${sid}\\`)
-      // TODO: always cpp...
-      ret.code = fs.readFileSync(struct.file.code_base + 'cpp', 'utf8')
+      ret.compile_info = result.compile_info.replace(/\/var\/www\/data\//g, `f:\\${sid}\\`)
+      let langExt = language_ext[result.language]
+      ret.code = fs.readFileSync(struct.file.code_base + langExt, 'utf8')
     }
     return res.ok(ret)
   }
@@ -168,7 +164,7 @@ router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
       return res.fail(404)
     }
     try {
-      ret.execout = await (isFullData ? fs.readFileSync(`${solution.path.exec_out}/${i}.out`, 'utf8') : loadPartialData(`${solution.path.exec_out}/${i}.out`))
+      ret.execout = await (isFullData ? fs.readFileSync(`${solution.path.exec_out}/${i}.execout`, 'utf8') : loadPartialData(`${solution.path.exec_out}/${i}.execout`))
     } catch (e) {
       ret.execout = null
     }

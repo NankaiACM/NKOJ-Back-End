@@ -21,7 +21,7 @@ const upload = multer({
 })
 
 router.post('/', upload.single('file')
-  , fc.all(['title', 'description', 'start', 'end', 'perm', 'private'])
+  , fc.all(['title', 'description', 'start', 'end', 'perm', 'private', 'rule'])
   , async (req, res) => {
 
     const form = req.fcResult
@@ -29,8 +29,8 @@ router.post('/', upload.single('file')
 
     try {
       const ret = await db.query(
-        'INSERT INTO contests (title, during, description, perm, private) VALUES ($1, $2, $3, $4, $5) RETURNING *'
-        , [form.title, during, form.description, form.perm, form.private]
+        'INSERT INTO contests (title, during, description, perm, private, rule) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *'
+        , [form.title, during, form.description, form.perm, form.private, form.rule]
       )
       const cid = ret.rows[0].contest_id
       let desc
@@ -151,7 +151,7 @@ router.get('/:cid/problem/:type(add|remove)/:pid', fc.all(['cid', 'pid']), async
 // 修改竞赛
 router.post('/:cid'
   , upload.single('file')
-  , fc.all(['title/optional', 'description/optional', 'start/optional', 'end/optional', 'perm/optional', 'private'])
+  , fc.all(['title/optional', 'description/optional', 'start/optional', 'end/optional', 'perm/optional', 'private', 'rule'])
   , async (req, res) => {
 
     const cid = Number(req.params.cid)

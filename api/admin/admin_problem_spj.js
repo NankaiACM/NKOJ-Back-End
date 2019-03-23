@@ -1,5 +1,6 @@
 const router = require('express').Router()
 
+const {getProblemStructure, getSolutionStructure, unlinkTempFolder} = require('../../lib/judge')
 const {PROBLEM_SPJ_PATH, TEMP_PATH} = require('../../config/basic')
 const multer = require('multer')
 const path = require('path')
@@ -21,11 +22,12 @@ const upload = multer({
 })
 
 router.post('/:pid', upload.single('file'), (req, res, next) => {
-  // TODO:
   const pid = req.params.pid
-  const language = req.body.lang || 'cpp'
+  const language = req.body.lang || 1
   const ext = ext[language]
-  const filename = `${PROBLEM_SPJ_PATH}/${pid}.${ext}`
+  const spj = getProblemStructure(pid).path.spj
+  const filename = `${spj}.${ext}`
+  console.log(filename);
   if (req.file) fs.rename(req.file.path, filename)
   else {
     if (!req.body.data) res.fail(400, 'neither file nor data was supplied')

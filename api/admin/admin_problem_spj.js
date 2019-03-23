@@ -29,14 +29,14 @@ router.post('/:pid', upload.single('file'), async (req, res, next) => {
   const spj = getProblemStructure(pid).path.spj
   const filename = `${spj}.${ext}`
   console.log(filename);
-  if (req.file) fs.rename(req.file.path, filename)
+  if (req.file) fs.renameSync(req.file.path, filename)
   else {
     if (!req.body.data) res.fail(400, 'neither file nor data was supplied')
     fs.writeFileSync(filename, req.body.data)
   }
 
   const config = {
-    "debug": true, // [false]
+    "debug": false, // [false]
     "base_path": DATA_BASE, // [/mnt/data]
     "lang": language_ext[ext], // <必填>，可以是 c, c++, javascript, python, go
     "code": filename, // [<base_path>/judge/<pid>.<ext>]
@@ -44,9 +44,11 @@ router.post('/:pid', upload.single('file'), async (req, res, next) => {
   }
 
   fs.writeFileSync(`${spj}.config`, JSON.stringify(config))
-  await spawn('docker', ['exec', '-i', 'judgecore', './compiler', `${spj}.config`]);
-
-  res.ok()
+  const { code, stdout, stderr } = await spawn('docker', ['exec', '-i', 'judgecore', './compiler', `${spj}.config`]).catch(e => e);
+  if (code === 0) {
+    return res.ok()
+  }
+  return res.fail(500, JSON.parse(stdout), 'compile error');
 })
 
 module.exports = router

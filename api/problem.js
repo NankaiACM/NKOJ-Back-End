@@ -12,10 +12,14 @@ router.get('/:pid', async (req, res) => {
   const ret = await db.query('SELECT * FROM problems WHERE problem_id = $1', [pid])
   if (ret.rows.length === 0) return res.fatal(404)
   let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE problem_id = $1 AND CURRENT_TIMESTAMP < lower(contests.during)', [pid])
-  console.log(c_ret.rows)
   if(c_ret.rows.length !== 0){
     if(! (await check_perm(req, SUPER_ADMIN))) return res.fatal(404)
   }
+  c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) and contests.rule = \'oi\'')
+  c_ret.rows.forEach(function(c_p, index){
+    if(pid == c_p["problem_id"]) ret.rows[0]["ac"] = 1551
+  })
+
   const tags = await db.query('SELECT problem_tag_assoc.tag_id as id, official, positive as p, negative as n, tag_name as name FROM problem_tag_assoc INNER JOIN problem_tags ON problem_tags.tag_id = problem_tag_assoc.tag_id WHERE problem_id = $1', [pid])
   ret.rows[0].tags = tags.rows
   const readPath = path.resolve(PROBLEM_PATH, `${pid}.md`)

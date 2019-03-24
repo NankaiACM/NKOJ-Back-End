@@ -26,19 +26,18 @@ app.set('json spaces', 4)
 app.use(prototype.setResponsePrototype)
 
 const exts = {
-  '.html': 'ok',
-  '.css': 'ok',
-  '.js': 'ok',
-  '.png': 'ok',
-  '.jpg': 'ok',
-  '.ttf': 'ok',
-  '.woff2': 'ok',
-  '.mp4': 'ok'
+  'rar': 'no',
+  'zip': 'no',
+  '7z': 'no',
+  'tar': 'no',
+  'bz': 'no',
+  'gz': 'no'
 }
+
 app.use('*', function (req, res, next) {
   const ext = path.extname(req.originalUrl)
   if (ext != '') {
-    if (!exts[ext] && req.originalUrl.split('.')[0] != '/api/captcha/login?_t=0') {
+    if (exts[ext]) {
       res.sendStatus(404)
     }
   }

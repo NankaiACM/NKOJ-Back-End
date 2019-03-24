@@ -14,11 +14,13 @@ const proxy = require('http-proxy-middleware')
 app.use('/old', proxy({target: 'http://220.113.20.2/', changeOrigin: false}))
 app.use('/nkcoj', proxy({target: 'http://220.113.20.2/', changeOrigin: false}))
 
+app.set('trust proxy', '222.30.45.0/24, 127.0.0.1');
+
 // Disable Header 'X-Powered-By' added by express.
 app.disable('x-powered-by')
 
 // DEV: request logger
-app.use(logger('dev'))
+app.use(logger(':date[iso] :remote-addr :method :url :status'))
 
 // DEV: PPT JSON
 app.set('json spaces', 4)

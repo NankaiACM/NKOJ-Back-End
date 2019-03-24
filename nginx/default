@@ -1,0 +1,35 @@
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+
+        server_name _;
+
+        location /old {
+                charset gb2312;
+                proxy_set_header Host $host;
+                proxy_pass http://220.113.20.2/old;
+                proxy_http_version 1.1;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_cache_bypass $http_upgrade;
+        }
+
+        location /nkcoj {
+                proxy_set_header Host $host;
+                proxy_pass http://220.113.20.2/nkcoj;
+                proxy_http_version 1.1;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_cache_bypass $http_upgrade;
+        }
+
+        location / {
+                proxy_set_header    Upgrade $http_upgrade;
+                proxy_set_header    Connection $http_connection;
+                proxy_pass http://localhost:3000;
+                proxy_http_version 1.1;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_cache_bypass $http_upgrade;
+        }
+}

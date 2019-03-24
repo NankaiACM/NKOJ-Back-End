@@ -7,7 +7,7 @@ const {getSolutionStructure, getProblemStructure} = require('../lib/judge')
 const language_ext = require('../lib/extension')
 
 async function check_oi_solution(req, ret){
-  let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < lower(contests.during) and contests.rule = \'oi\'')
+  let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) and contests.rule = \'oi\'')
   if(await check_perm(req, SUPER_ADMIN)){
     return
   } else {
@@ -17,11 +17,14 @@ async function check_oi_solution(req, ret){
     })
     ret.rows.forEach(function(solution, index){
       if(typeof(c_dic[solution.problem_id]) != "undefined"){
+        solution.detail = {}
         solution.score = 100
         solution.status_id = 233
         solution.msg_en = "Secret"
         solution.msg_short = "ST"
         solution.msg_cn = "量子纠缠"
+        solution.time = "810159641"
+        solution.memory = "3141592653589"
       }
     })
   }
@@ -99,6 +102,7 @@ router.get('/contest/:sid(\\d+)/:from(\\d+)?', async (req, res) => {
    //console.log(sid, from)
    const queryString = 'SELECT * FROM user_solutions WHERE contest_id = $1  AND solution_id > $2 ORDER BY solution_id DESC LIMIT 10086'
   const result = await db.query(queryString, [sid, from])
+  await check_oi_solution(req, result)
   // console.dir(result);
 
   if (result.rows.length > 0)

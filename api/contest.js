@@ -50,7 +50,7 @@ router.get('/:cid(\\d+)/oirank', fc.all(['cid']), async (req, res) => {
     result.rows.forEach((r) => {
       if(typeof(dic[r["user_id"]]) == "undefined"){
         dic[r["user_id"]] = tot++
-        ret.append({"user_id": r["user_id"], "nickname": r["nickname"], "score" : 0, "info" : {}})
+        ret.push({"user_id": r["user_id"], "nickname": r["nickname"], "score" : 0, "info" : {}})
       }
       let id = dic[r["user_id"]]
       if(typeof(ret[id][r["problem_id"]]) != "undefined"){

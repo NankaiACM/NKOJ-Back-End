@@ -74,7 +74,11 @@ router.get('/:cid(\\d+)/oirank', fc.all(['cid']), async (req, res) => {
       })
     }
     ret.sort( (x, y) => {
-      return x["score"] < y["score"]
+      if(x["score"] < y["score"]){
+        return 1;
+      } else if(x["score"] > y["score"]){
+        return -1;
+      } else return 0;
     })
     return res.ok(ret)
 })

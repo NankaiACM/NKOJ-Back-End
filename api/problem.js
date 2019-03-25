@@ -17,7 +17,10 @@ router.get('/:pid', async (req, res) => {
   }
   c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) and contests.rule = \'oi\'')
   c_ret.rows.forEach(function(c_p, index){
-    if(pid == c_p["problem_id"]) ret.rows[0]["ac"] = 1551
+    if(pid == c_p["problem_id"]) {
+      ret.rows[0]["ac"] = 1551
+      ret.rows[0]["all"] = 1551
+    }
   })
 
   const tags = await db.query('SELECT problem_tag_assoc.tag_id as id, official, positive as p, negative as n, tag_name as name FROM problem_tag_assoc INNER JOIN problem_tags ON problem_tags.tag_id = problem_tag_assoc.tag_id WHERE problem_id = $1', [pid])

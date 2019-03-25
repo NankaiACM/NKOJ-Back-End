@@ -15,8 +15,11 @@ const listProblem = async (req, res) => {
   c_ret.rows.forEach(function(c_p, index){
     c_dic[c_p["problem_id"]] = "OI"
   })
-  result.rows.forEach(function(solution, index){
-    if(typeof(c_dic[solution.problem_id]) != "undefined") solution.ac = 1551
+  result.rows.forEach(function(p, index){
+    if(typeof(c_dic[p.problem_id]) != "undefined"){
+      p.ac = 1551
+      p.all = 1551
+    } 
   })
 
   return res.ok({

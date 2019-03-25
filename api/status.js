@@ -100,7 +100,7 @@ router.get('/contest/:sid(\\d+)/:from(\\d+)?', async (req, res) => {
   let sid = Number(req.params.sid)
   let from = Number(req.params.from || 0)
    //console.log(sid, from)
-   const queryString = 'SELECT * FROM user_solutions WHERE contest_id = $1  AND solution_id > $2 ORDER BY solution_id DESC LIMIT 10086'
+  const queryString = 'SELECT * FROM user_solutions WHERE contest_id = $1  AND solution_id > $2 ORDER BY solution_id DESC LIMIT 10086'
   const result = await db.query(queryString, [sid, from])
   await check_oi_solution(req, result)
   // console.dir(result);

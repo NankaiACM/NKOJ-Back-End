@@ -2,6 +2,7 @@ const router = require('express').Router()
 const db = require('../database/db')
 const fs = require('fs')
 const fc = require('../lib/form-check')
+const {check_perm, SUPER_ADMIN} = require('../lib/permission')
 const {CONTEST_PATH} = require('../config/basic')
 
 router.get('/:cid', fc.all(['cid']), async (req, res) => {
@@ -33,6 +34,49 @@ router.get('/:cid', fc.all(['cid']), async (req, res) => {
 
   }
   res.ok({...basic, problems: problems.rows, file})
+})
+
+router.get('/:cid(\\d+)/oirank', fc.all(['cid']), async (req, res) => {
+    'use strict'
+    const cid = req.fcResult.cid
+    let result = await db.query(`SELECT * FROM contests WHERE contest_id = ${cid} AND CURRENT_TIMESTAMP < upper(contests.during)`)
+    if(result.rows.length > 0){
+      if (await check_perm(req, SUPER_ADMIN)) {} else return res.fail(404)
+    } 
+    result = await db.query(`SELECT * FROM user_solutions LEFT JOIN user_info ON user_info.user_id = user_solutions.user_id WHERE contest_id = ${cid}  ORDER BY solution_id DESC LIMIT 10086`)
+    let dic = {}
+    let tot = 0
+    let ret = []
+    result.rows.forEach((r) => {
+      if(typeof(dic[r["user_id"]]) == "undefined"){
+        dic[r["user_id"]] = tot++
+        ret.append({"user_id": r["user_id"], "nickname": r["nickname"], "score" : 0, "info" : {}})
+      }
+      let id = dic[r["user_id"]]
+      if(typeof(ret[id][r["problem_id"]]) != "undefined"){
+        ret[id]["score"] -= ret[id][r["problem_id"]]
+      }
+      ret[id][r["problem_id"]] = r["score"]
+      ret[id]["score"] += r["score"]
+    })
+    if(await check_perm(req, SUPER_ADMIN)){
+      result = await db.query(`SELECT * FROM users_nkpc`)
+      result.rows.forEach((r) => {
+        if(typeof(dic[r["user_id"]]) != "undefined"){
+          let id = dic[r["user_id"]]
+          ret[id]["real_name"] = r["real_name"]
+          ret[id]["student_number"] = r["student_number"]
+          ret[id]["gender"] = r["gender"]
+          ret[id]["institute"] = r["institute"]
+          ret[id]["qq"] = r["qq"]
+          ret[id]["phone"] = r["phone"]
+        }
+      })
+    }
+    ret.sort( (x, y) => {
+      return x["score"] < y["score"]
+    })
+    return res.ok(ret)
 })
 
 router.get('/:cid/user', fc.all(['cid']), async (req, res) => {

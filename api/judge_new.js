@@ -71,7 +71,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
 
   const struct = getSolutionStructure(solution_id)
   const pstruct = getProblemStructure(pid)
-  
+
   const filename = `main.${langExt}`;
 
   fs.writeFileSync(`${struct.path.solution}/main.${langExt}`, code)
@@ -110,7 +110,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   const json = JSON.parse(fs.readFileSync(`${struct.path.exec_out}/result.json`, {encoding: 'utf8'}))
 
   try {
-    const old_new_statsu_map = [107, 108, 102, 101, 103, 104, 105, 106, 119, 118];
+    const old_new_statsu_map = [107, 108, 102, 101, 103, 104, 105, 106, 109, 118];
     const result = old_new_statsu_map[json.status];
 
     const time = json.time;

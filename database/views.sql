@@ -36,7 +36,7 @@ CREATE OR REPLACE VIEW posts AS
     SELECT post.*, row_number() OVER () as n, comments FROM post LEFT OUTER JOIN (
 
         WITH t AS (
-            SELECT row_number() OVER (PARTITION BY reply_to) as n, reply_id, reply_to, user_id, score, since, content
+            SELECT row_number() OVER (PARTITION BY reply_to) as n, reply_id, reply_to, user_id, score, since,nickname, content
                 FROM post_reply WHERE removed_date IS NULL
         ) SELECT t.reply_to as post_id, json_agg(t) as comments FROM t GROUP BY reply_to
 

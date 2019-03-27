@@ -17,14 +17,16 @@ async function check_oi_solution(req, ret){
     })
     ret.rows.forEach(function(solution, index){
       if(typeof(c_dic[solution.problem_id]) != "undefined"){
-        solution.detail = {}
-        solution.score = 100
-        solution.status_id = 233
-        solution.msg_en = "Secret"
-        solution.msg_short = "ST"
-        solution.msg_cn = "量子纠缠"
-        solution.time = "810159641"
-        solution.memory = "3141592653589"
+        if(solution.status_id != 101){
+          solution.detail = {}
+          solution.score = 100
+          solution.status_id = 233
+          solution.msg_en = "Secret"
+          solution.msg_short = "ST"
+          solution.msg_cn = "量子纠缠"
+          solution.time = "810159641"
+          solution.memory = "3141592653589"
+        }
       }
     })
   }

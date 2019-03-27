@@ -6,7 +6,7 @@ const {check_perm, SUPER_ADMIN, GET_CODE_SELF, GET_CODE_ALL, VIEW_OUTPUT_SELF, V
 const {getSolutionStructure, getProblemStructure} = require('../lib/judge')
 const language_ext = require('../lib/extension')
 
-async function check_oi_solution(req, ret){
+async function check_oi_solution(req, ret, ban_status = 0){
   let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) and contests.rule = \'oi\'')
   if(await check_perm(req, SUPER_ADMIN)){
     return
@@ -15,6 +15,7 @@ async function check_oi_solution(req, ret){
     c_ret.rows.forEach(function(c_p, index){
       c_dic[c_p["problem_id"]] = "OI"
     })
+    let re_l = []
     ret.rows.forEach(function(solution, index){
       if(typeof(c_dic[solution.problem_id]) != "undefined"){
         if(solution.status_id != 101){
@@ -27,8 +28,13 @@ async function check_oi_solution(req, ret){
           solution.time = "810159641"
           solution.memory = "3141592653589"
         }
+        if(ban_status){
+          solution.delete = true
+        }
       }
+      if(ban_status && typeof(solution.delete) == "undefined") re_l.push(solution)
     })
+    if(ban_status) ret.rows = re_l
   }
 }
 
@@ -58,23 +64,24 @@ const getSQLClause = (offset, fields) => {
   let str = ['1=$' + ++i]
   let arr = [1];
   let { pid, uid, nickname, sid } = fields;
+  let ban_status = 0
   pid = Number(pid);
   uid = Number(uid);
   sid = Number(sid);
   if (pid) { str.push('problem_id=$' + ++i); arr.push(pid) }
   if (uid) { str.push('user_id=$' + ++i); arr.push(uid) }
   if (nickname) { str.push('nickname=$' + ++i); arr.push(nickname) }
-  if (sid) { str.push('status_id=$' + ++i); arr.push(sid) }
-  return [`WHERE ${str.join(' AND ')}`, arr];
+  if (sid) { str.push('status_id=$' + ++i); arr.push(sid); ban_status = 1 }
+  return [`WHERE ${str.join(' AND ')}`, arr, ban_status];
 }
 
 router.get('/', fcMiddleware, async (req, res) => {
   'use strict'
   let limit = 20
-  let [wClause, sParam] = getSQLClause(1, req.fcResult)
+  let [wClause, sParam, ban_status] = getSQLClause(1, req.fcResult)
   const queryString = `SELECT * FROM user_solutions ${wClause} ORDER BY solution_id DESC LIMIT $1`
   let result = await db.query(queryString, [limit, ...sParam])
-  await check_oi_solution(req, result)
+  await check_oi_solution(req, result, ban_status)
   if (result.rows.length > 0)
     return res.ok(result.rows)
   return res.sendStatus(204)

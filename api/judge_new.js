@@ -84,10 +84,10 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
     "lang": langName, // <必填>，可以是 c, c++, javascript, python, go
     "pid": pid, // [undefined]
     "max_time": time_limit, // [1000]
-    "max_time_total": time_limit, // [30000]
+    "max_time_total": 30000, // [30000]
     "max_memory": memory_limit, // [65530]
     "max_output": 10000000,  // [10000000]
-    "max_core": 4, // [4] 注意: 多核心 go 默认使用 4 核心
+    "max_core": 10, // [4] 注意: 多核心 go 默认使用 4 核心
     "on_error_continue": detail_judge ? true : ["accepted", "presentation error"], // [["accepted", "presentation error"]]，也可以是 true 或 false
     "test_case_count": cases, // <必填>
     "spj_mode": special_judge, // [no]，可以是 no, compare 或 interactive

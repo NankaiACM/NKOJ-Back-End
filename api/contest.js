@@ -18,7 +18,7 @@ router.get('/:cid', fc.all(['cid']), async (req, res) => {
 
   const problems = await db.query(
     'SELECT contest_problems.problem_id, submit_ac as ac, submit_all as all, title, special_judge, detail_judge, level' +
-    ' FROM contest_problems LEFT JOIN problems ON contest_problems.problem_id = problems.problem_id WHERE contest_problems.contest_id = $1', [cid]
+    ' FROM contest_problems LEFT JOIN problems ON contest_problems.problem_id = problems.problem_id WHERE contest_problems.contest_id = $1 ORDER BY contest_problems.problem_id', [cid]
   )
   if(basic.rule == "oi"){
     problems.rows.forEach(p => {

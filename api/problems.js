@@ -10,7 +10,7 @@ const listProblem = async (req, res) => {
   let limit = requested > 50 ? 50 : requested
   let result = await db.query('SELECT * FROM problems order by problem_id limit $1 offset $2', [limit, offset])
 
-  let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) and contests.rule = \'oi\'')
+  let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during)')
   let c_dic = {}
   c_ret.rows.forEach(function(c_p, index){
     c_dic[c_p["problem_id"]] = "OI"

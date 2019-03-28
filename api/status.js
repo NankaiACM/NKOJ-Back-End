@@ -7,7 +7,7 @@ const {getSolutionStructure, getProblemStructure} = require('../lib/judge')
 const language_ext = require('../lib/extension')
 
 async function check_oi_solution(req, ret, ban_status = 0){
-  let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) and contests.rule = \'oi\'')
+  let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during)')
   if(await check_perm(req, SUPER_ADMIN)){
     return
   } else {

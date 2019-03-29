@@ -18,8 +18,7 @@ router.get('/:pid', async (req, res) => {
   c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during)')
   c_ret.rows.forEach(function(c_p, index){
     if(pid == c_p["problem_id"]) {
-      ret.rows[0]["ac"] = 1551
-      ret.rows[0]["all"] = 1551
+      ret.rows[0]["ac"] = 0
     }
   })
 

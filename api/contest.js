@@ -22,8 +22,7 @@ router.get('/:cid', fc.all(['cid']), async (req, res) => {
   )
   //if(basic.rule == "oi"){
     problems.rows.forEach(p => {
-      p.ac = 1551
-      p.all = 1551
+      p.ac = 0
     });
   //}
 

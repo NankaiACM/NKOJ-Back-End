@@ -18,6 +18,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   const code = form.code
   const uid = req.session.user
   const ip = req.ip
+  const sid = form.sid
 
   const ret = await db.query(
     'SELECT time_limit, memory_limit, cases, special_judge::integer, detail_judge::integer, contest_id FROM problems WHERE problem_id = $1', [pid])
@@ -60,10 +61,14 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   let langExt = language_ext[lang]
   let langName = language_ext[langExt]
 
-  const result = await db.query(
+  let result
+  if(typeof(sid) != "undefined") {
+    result = await db.query(`SELECT solution_id from solutions WHERE solution_id = ${sid}`)
+  } else {
+    result = await db.query(
     'INSERT INTO solutions (user_id, problem_id, language, ipaddr_id, status_id, contest_id) VALUES ($1, $2, $3, get_ipaddr_id($4), 100, $5) RETURNING solution_id'
-    , [uid, pid, lang, ip, cid]
-  )
+    , [uid, pid, lang, ip, cid])
+  }
 
   const solution_id = result.rows[0].solution_id
 

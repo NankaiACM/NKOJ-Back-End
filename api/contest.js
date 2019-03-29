@@ -25,7 +25,7 @@ router.get('/:cid', fc.all(['cid']), async (req, res) => {
       p.ac = 1551
       p.all = 1551
     });
-  //} 
+  //}
 
   let file
   try {
@@ -42,7 +42,7 @@ router.get('/:cid(\\d+)/oirank', fc.all(['cid']), async (req, res) => {
     let result = await db.query(`SELECT * FROM contests WHERE contest_id = ${cid} AND CURRENT_TIMESTAMP < upper(contests.during)`)
     if(result.rows.length > 0){
       if (await check_perm(req, SUPER_ADMIN)) {} else return res.fail(404)
-    } 
+    }
     result = await db.query(`SELECT * FROM user_solutions LEFT JOIN user_info ON user_info.user_id = user_solutions.user_id WHERE contest_id = ${cid}  ORDER BY solution_id DESC LIMIT 10086`)
     let dic = {}
     let tot = 0
@@ -99,6 +99,17 @@ router.get('/:cid/first_ac_all',fc.all(['cid']),async (req,res)=>{
     //}
     const result = await db.query('SELECT * FROM user_solutions WHERE solution_id IN (SELECT min(solution_id) FROM solutions WHERE contest_id = $1 AND status_id = 107 GROUP BY problem_id ORDER BY min(solution_id))', [cid])
     res.ok(result.rows)
+})
+
+router.get('/:cid/own_submitted', fc.all(['cid']),async (req, res)=>{
+  'use strict'
+  const cid = req.fcResult.cid
+  const c_ret = await db.query(`SELECT ARRAY(SELECT problem_id FROM user_solutions WHERE contest_id = $1 AND user_id = $2 AND status_id <> 101 GROUP BY problem_id ORDER BY problem_id) AS array`, [cid, req.session.user])
+  if (c_ret.rows.length) {
+    res.ok(c_ret.rows[0].array)
+  } else {
+    return res.fail(404)
+  }
 })
 
 module.exports = router

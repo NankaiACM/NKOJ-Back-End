@@ -43,7 +43,7 @@ router.get('/:cid(\\d+)/oirank', fc.all(['cid']), async (req, res) => {
     if(result.rows.length > 0){
       if (await check_perm(req, SUPER_ADMIN)) {} else return res.fail(404)
     }
-    result = await db.query(`SELECT * FROM user_solutions LEFT JOIN user_info ON user_info.user_id = user_solutions.user_id WHERE contest_id = ${cid}  ORDER BY solution_id DESC LIMIT 10086`)
+    result = await db.query(`SELECT * FROM user_solutions LEFT JOIN user_info ON user_info.user_id = user_solutions.user_id WHERE contest_id = ${cid}  ORDER BY solution_id LIMIT 10086`)
     let dic = {}
     let tot = 0
     let ret = []

@@ -146,7 +146,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
 
 router.get('/rejudge/:sid', require_perm(REJUDGE_ALL), async (req, res, next) => {
   'use strict'
-  const sid = req.params.sid
+  const sid = parseInt(req.params.sid)
   const p_ret = await db.query(`SELECT problem_id, language FROM solutions WHERE solution_id = ${sid}`)
   if(p_ret.rows.length <= 0)
     return res.fail(404)

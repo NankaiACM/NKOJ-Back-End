@@ -24,7 +24,7 @@ router.post('/login', captcha.check('login'), fc.all(['user', 'password']), asyn
     message: 'might be wrong'
   }], 'login failed']
 
-  const query = 'SELECT * FROM users WHERE (lower(nickname) = $1 OR email = $1) AND password = hash_password($2) LIMIT 1'
+  const query = 'SELECT * FROM users WHERE (lower(nickname) = lower($1) OR email = $1) AND password = hash_password($2) LIMIT 1'
 
   let result = await db.query(query, [req.fcResult.user, req.fcResult.password])
   if (result.rows.length > 0)

@@ -22,7 +22,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   const ret = await db.query(
     'SELECT time_limit, memory_limit, cases, special_judge::integer, detail_judge::integer, contest_id FROM problems WHERE problem_id = $1', [pid])
   if (ret.rows.length === 0) return res.fail(404, 'problem not found')
-  if (language_ext[lang] === undefined) return res.fail(404, 'language not supported')
+  if (language_ext[lang] === null) return res.fail(404, 'language not supported')
 
   const row = ret.rows[0]
   const time_limit = row.time_limit

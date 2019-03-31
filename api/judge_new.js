@@ -22,6 +22,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
   const ret = await db.query(
     'SELECT time_limit, memory_limit, cases, special_judge::integer, detail_judge::integer, contest_id FROM problems WHERE problem_id = $1', [pid])
   if (ret.rows.length === 0) return res.fail(404, 'problem not found')
+  if (language_ext[lang] === undefined) return res.fail(404, 'language not supported')
 
   const row = ret.rows[0]
   const time_limit = row.time_limit
@@ -150,7 +151,7 @@ router.get('/rejudge/:sid', require_perm(REJUDGE_ALL), async (req, res, next) =>
   const p_ret = await db.query(`SELECT problem_id, language FROM solutions WHERE solution_id = ${sid}`)
   if(p_ret.rows.length <= 0)
     return res.fail(404)
-  
+
   const pid = p_ret.rows[0].problem_id
   const lang = p_ret.rows[0].language
   const ret = await db.query(
@@ -187,7 +188,7 @@ router.get('/rejudge/:sid', require_perm(REJUDGE_ALL), async (req, res, next) =>
     "max_time_total": 30000, // [30000]
     "max_memory": memory_limit, // [65530]
     "max_output": 10000000,  // [10000000]
-    "max_core": 10, // [4] 注意: 多核心 go 默认使用 4 核心
+    "max_core": 4, // [4] 注意: 多核心 go 默认使用 4 核心
     "on_error_continue": detail_judge ? true : ["accepted", "presentation error"], // [["accepted", "presentation error"]]，也可以是 true 或 false
     "test_case_count": cases, // <必填>
     "spj_mode": special_judge, // [no]，可以是 no, compare 或 interactive

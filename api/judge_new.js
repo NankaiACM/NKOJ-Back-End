@@ -127,7 +127,7 @@ router.post('/', require_perm(), fc.all(['pid', 'lang', 'code']), async (req, re
     }
     const score = parseInt(ac_count*100.0/cases)
 
-    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4, score = $5, detail = $6::json, compile_info = $7 WHERE solution_id = $8 RETURNING "when"', [result, time, memory, code_length, score, JSON.stringify(json.detail), json.compiler, solution_id])
+    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, code_size = $4, score = $5, detail = $6::json, compile_info = $7 WHERE solution_id = $8 RETURNING "when"', [result, time, memory, code_length, score, JSON.stringify(json.detail).replace(/\u\d\d\d\d/gms, match => '\\'+match), json.compiler, solution_id])
 
     if (cid) {
       // TODO: call util function to recount data to contest_users
@@ -227,7 +227,7 @@ router.get('/rejudge/:sid', require_perm(REJUDGE_ALL), async (req, res, next) =>
     }
     const score = parseInt(ac_count*100.0/cases)
 
-    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, score = $4, detail = $5::json, compile_info = $6 WHERE solution_id = $7 RETURNING "when"', [result, time, memory, score, JSON.stringify(json.detail), json.compiler, solution_id])
+    await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, score = $4, detail = $5::json, compile_info = $6 WHERE solution_id = $7 RETURNING "when"', [result, time, memory, score, JSON.stringify(json.detail).replace(/\u\d\d\d\d/gms, match => '\\'+match), json.compiler, solution_id])
 
     if (cid) {
       // TODO: call util function to recount data to contest_users

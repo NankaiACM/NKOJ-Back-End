@@ -82,7 +82,7 @@ router.get('/:cid(\\d+)/oirank', fc.all(['cid']), async (req, res) => {
     return res.ok(ret)
 })
 
-router.get('/:cid(\\d+)/oirank', fc.all(['cid']), async (req, res) => {
+router.get('/:cid(\\d+)/oiresult', fc.all(['cid']), async (req, res) => {
   'use strict'
   const cid = req.fcResult.cid
   const isAdmin = await check_perm(req, SUPER_ADMIN);

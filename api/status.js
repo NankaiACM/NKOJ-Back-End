@@ -137,7 +137,7 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
       || await check_perm(req, GET_CODE_ALL)
       || ret.shared) {
       const struct = getSolutionStructure(sid)
-      ret.compile_info = (row.compile_info || '').replace(/\/var\/www\/data\//g, `f:\\${sid}\\`)
+      ret.compile_info = (row.compile_info || '').replace(/\/var\/www\/data\/.+?main.\w+:? ?/g, `main:`)
       let langExt = language_ext[row.language]
       ret.code = fs.readFileSync(struct.file.code_base + langExt, 'utf8')
     }

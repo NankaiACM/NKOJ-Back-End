@@ -38,11 +38,11 @@ router.get('/:cid', fc.all(['cid']), async (req, res) => {
 router.get('/:cid(\\d+)/oirank', fc.all(['cid']), async (req, res) => {
     'use strict'
     const cid = req.fcResult.cid
-    let result = await db.query(`SELECT * FROM contests WHERE contest_id = ${cid} AND CURRENT_TIMESTAMP < upper(contests.during)`)
+    let result = await db.query('SELECT * FROM contests WHERE contest_id = $1 AND CURRENT_TIMESTAMP < upper(contests.during)', [cid])
     if(result.rows.length > 0){
       if (await check_perm(req, SUPER_ADMIN)) {} else return res.fail(404)
     }
-    result = await db.query(`SELECT * FROM user_solutions LEFT JOIN user_info ON user_info.user_id = user_solutions.user_id WHERE contest_id = ${cid}  ORDER BY solution_id LIMIT 10086`)
+    result = await db.query(`SELECT * FROM user_solutions LEFT JOIN user_info ON user_info.user_id = user_solutions.user_id WHERE contest_id = $1  ORDER BY solution_id LIMIT 10086`,[cid])
     let dic = {}
     let tot = 0
     let ret = []
@@ -80,6 +80,19 @@ router.get('/:cid(\\d+)/oirank', fc.all(['cid']), async (req, res) => {
       } else return 0;
     })
     return res.ok(ret)
+})
+
+router.get('/:cid(\\d+)/oirank', fc.all(['cid']), async (req, res) => {
+  'use strict'
+  const cid = req.fcResult.cid
+  const isAdmin = await check_perm(req, SUPER_ADMIN);
+  let result = await db.query('SELECT * FROM contests WHERE contest_id = $1 AND CURRENT_TIMESTAMP < upper(contests.during)', [cid])
+  if(result.rows.length > 0){
+    if (!isAdmin) return res.fail(404)
+  }
+  // 好长啊 QwQ
+  result = await db.query(`select row_number() over (order by score desc) as rank, j.* ${isAdmin ? `, to_json(c) as info`: ''}, nickname from (select user_id, sum(score) as score, json_object_agg(problem_id, json_build_object('selected', selected, 'tried', tried, 'score', score)) as details from (select t.*, solutions.score from (SELECT user_id, problem_id, max(solution_id) as selected, array_agg(solution_id) as tried FROM solutions WHERE contest_id = $1 and status_id != 101 group by user_id, problem_id order by user_id, problem_id) as t inner join solutions on t.selected = solutions.solution_id) as q group by q.user_id) as j inner join users on users.user_id = j.user_id inner join users_nkpc as c on c.user_id = j.user_id order by score desc`, [cid])
+  return res.ok(result.rows)
 })
 
 router.get('/:cid/user', fc.all(['cid']), async (req, res) => {

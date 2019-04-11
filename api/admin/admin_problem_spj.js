@@ -1,9 +1,8 @@
 const router = require('express').Router()
 
-const {getProblemStructure, getSolutionStructure, unlinkTempFolder} = require('../../lib/judge')
-const {PROBLEM_SPJ_PATH, TEMP_PATH, DATA_BASE} = require('../../config/basic')
+const {getProblemStructure} = require('../../lib/judge')
+const {TEMP_PATH} = require('../../config/basic')
 const multer = require('multer')
-const path = require('path')
 const fs = require('fs')
 const language_ext = require('../../lib/extension')
 const {spawn} = require('../../lib/spawn')
@@ -28,7 +27,6 @@ router.post('/:pid', upload.single('file'), async (req, res, next) => {
   const ext = language_ext[language]
   const spj = getProblemStructure(pid).path.spj
   const filename = `${spj}.${ext}`
-  console.log(filename);
   if (req.file) fs.renameSync(req.file.path, filename)
   else {
     if (!req.body.data) res.fail(400, 'neither file nor data was supplied')
@@ -36,11 +34,8 @@ router.post('/:pid', upload.single('file'), async (req, res, next) => {
   }
 
   const config = {
-    "debug": false, // [false]
-    "base_path": DATA_BASE, // [/mnt/data]
-    "lang": language_ext[ext], // <必填>，可以是 c, c++, javascript, python, go
-    "code": filename, // [<base_path>/judge/<pid>.<ext>]
-    "target": spj  // [<base_path>/judge/<pid>]
+    "lang": language_ext[ext],
+    "pid": ''+pid,
   }
 
   fs.writeFileSync(`${spj}.config`, JSON.stringify(config))

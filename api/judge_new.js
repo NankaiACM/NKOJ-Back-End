@@ -185,10 +185,152 @@ router.get('/rejudge/:sid', require_perm(REJUDGE_ALL), async (req, res, next) =>
     res.ok({json})
   } catch (e) {
     console.error(e);
-    res.fatal(500, e)
     db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3 WHERE solution_id = $4 RETURNING "when"', [101, 0, 0, solution_id]).then(()=>{}).catch((e)=>{console.error(e)})
-    next(e)
+    next(e);
   }
+})
+
+const custom_lang = [
+  {
+    "id": 2,
+    "name": "javascript",
+    "ext": "js",
+    "compiler": false,
+    "cargs": null,
+    "cscript": null,
+    "executable": "/usr/bin/v8/d8",
+    "eargs": "$code"
+  }, {
+    "id": 3,
+    "name": "python",
+    "ext": "py",
+    "compiler": "python",
+    "cargs": ["-OO", "$script"],
+    "cscript": ["from modulefinder import ModuleFinder\nfinder = ModuleFinder()\nfinder.run_script('", "$code", "')\nbadmodules = []\nif len(finder.badmodules) is 0:\n  pass\nelse:\n  for package in finder.badmodules:\n    if '__main__' in finder.badmodules[package]:\n      badmodules.append(package)\nif len(badmodules) is not 0:\n  raise ModuleNotFoundError(' '.join(badmodules))\nimport py_compile\npy_compile.compile('", "$code", "', cfile='", "$exec", ".pyc', doraise=True)\n"],
+    "executable": "python",
+    "eargs": [["$exec", ".pyc"]]
+  }, {
+    "id": 4,
+    "name": "go",
+    "ext": "go",
+    "compiler": "go",
+    "cargs": ["build", "-o", "$exec", "$code"],
+    "cscript": null,
+    "executable": "$exec",
+    "eargs": null
+  }, {
+    "id": 6,
+    "name": "pypy3",
+    "ext": "py",
+    "compiler": "/usr/bin/pypy/bin/pypy3",
+    "cargs": ["-OO", "$script"],
+    "cscript": ["from modulefinder import ModuleFinder\nfinder = ModuleFinder()\nfinder.run_script('", "$code", "')\nbadmodules = []\nif len(finder.badmodules) is 0:\n  pass\nelse:\n  for package in finder.badmodules:\n    if '__main__' in finder.badmodules[package]:\n      badmodules.append(package)\nif len(badmodules) is not 0:\n  raise ModuleNotFoundError(' '.join(badmodules))\nimport py_compile\npy_compile.compile('", "$code", "', cfile='", "$exec", ".pyc', doraise=True)\n"],
+    "executable": "/usr/bin/pypy/bin/pypy3",
+    "eargs": [["$exec", ".pyc"]]
+  }, {
+    "id": 91,
+    "name": "custom_c",
+    "ext": "c",
+    "compiler": "gcc",
+    "cargs": ["$customArgs", "-Wall", "-Wextra", "-o", "$exec", "$code"],
+    "cscript": [],
+    "executable": "$exec",
+    "eargs": ["$customArgs"]
+  }, {
+    "id": 92,
+    "name": "custom_c++",
+    "ext": "cpp",
+    "compiler": "g++",
+    "cargs": ["$customArgs", "-Wall", "-Wextra", "-o", "$exec", "$code"],
+    "cscript": [],
+    "executable": "$exec",
+    "eargs": ["$customArgs"]
+  }
+]
+
+router.get('/custom', require_perm(), async (req, res, next) => {
+  res.ok(custom_lang);
+})
+
+const bodyParser = require('body-parser')
+const {DB_RATE_LIMIT} = require('../config/redis')
+const client = require('../lib/redis')(DB_RATE_LIMIT)
+const {DATA_BASE} = require('../config/basic')
+
+router.post('/custom', require_perm(),
+  bodyParser.json({limit: '10mb', type: 'application/x-large-json'}),
+  async (req, res, next) => {
+    const id = await client.incrAsync("custom:id");
+    const {code, lang, cargs, eargs} = req.body;
+    let {inline} = req.body
+
+    let lang_spec = undefined;
+    for (let i of custom_lang) {
+      if (i.id === Number(lang) || i.name === lang) {
+        lang_spec = i;
+        break;
+      }
+    }
+
+    if (Array.isArray(inline)) {
+      inline.map(o => {
+        if (typeof o.fs === 'object' && (!o.stdin || typeof o.stdin === 'string'))
+          return { fs: o.fs, stdin:o.stdin }
+        else return {fs: {}, stdin: ''}
+      })
+    } else if (inline instanceof Object) {
+      if (typeof inline.fs === 'object' && (!inline.stdin || typeof inline.stdin === 'string'))
+        inline = [{ fs: inline.fs, stdin:inline.stdin }]
+      else inline = null
+    }
+
+    if (lang_spec === undefined)
+      return res.fail(400, "unknown language")
+    if (!Array.isArray(cargs))
+      return res.fail(400, "cargs is not an array")
+    if (!Array.isArray(eargs))
+      return res.fail(400, "eargs is not an array")
+
+    let langExt = lang_spec.ext
+
+    const codeFile = `${DATA_BASE}/custom/${id}.${langExt}`
+    fs.writeFileSync(codeFile, code);
+
+    const config = {
+      "sid": "temp",
+      "pid": "custom",
+      "lang": lang_spec.name,
+      "variant": {
+        cargs,
+        eargs,
+      },
+      "max_time": 10000,
+      "max_memory": 524288,
+      "max_output": 10485760,
+      "max_thread": 4,
+      "continue_on": false,
+      "test_case_count": inline.length,
+      "spj_mode": "inline",
+      "path": {
+        "code": codeFile,
+        "temp": "/tmp/custom-"+id
+      },
+      inline
+    }
+    const configFile = `${DATA_BASE}/custom/${id}.config`;
+    fs.writeFileSync(configFile, JSON.stringify(config))
+
+    try {
+      const { stdout } = await spawn('docker', ['exec', '-i', 'judgecore', './judgecore', configFile]);
+      try {
+        res.ok(JSON.parse(stdout))
+      } catch (e) {
+        res.fail(1, e, stdout)
+      }
+    } catch (e) {
+      console.error(e);
+      res.fatal(500, e);
+    }
 })
 
 module.exports = router

@@ -15,7 +15,7 @@ router.get('/:pid', async (req, res) => {
   if(c_ret.rows.length !== 0){
     if(! (await check_perm(req, SUPER_ADMIN))) return res.fatal(404)
   }
-  c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during)')
+  c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) AND contests.rule=\'oi\'')
   c_ret.rows.forEach(function(c_p, index){
     if(pid == c_p["problem_id"]) {
       ret.rows[0]["ac"] = 0

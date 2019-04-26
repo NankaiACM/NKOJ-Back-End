@@ -17,6 +17,7 @@ const queryUserInfo = async function (uid) {
     '  select distinct problem_id, status_id from solutions where user_id = $1' +
     ') select ARRAY((select distinct problem_id from t where status_id = 107)) as ac, ARRAY((select distinct problem_id from t)) as all', [uid])
     
+  //oi check
   let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) AND contests.rule=\'oi\'')
   let c_dic = {}
   c_ret.rows.forEach(function(c_p, index){
@@ -27,6 +28,12 @@ const queryUserInfo = async function (uid) {
     if(typeof(c_dic[solution]) == "undefined") ac_list.push(solution)
   })
   ac.rows[0]["ac"] = ac_list
+
+  //acm check
+  c_ret = await db.query('SELECT * FROM secret_time WHERE CURRENT_TIME < UPPER(during)')
+  if(c_ret.rows.length > 0){
+    ac.rows[0]["ac"] = []
+  }
 
   let row = result.rows[0]
   let {password, old_password, ...ret} = row

@@ -15,13 +15,18 @@ router.get('/:pid', async (req, res) => {
   if(c_ret.rows.length !== 0){
     if(! (await check_perm(req, SUPER_ADMIN))) return res.fatal(404)
   }
+  //oi check
   c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) AND contests.rule=\'oi\'')
   c_ret.rows.forEach(function(c_p, index){
     if(pid == c_p["problem_id"]) {
       ret.rows[0]["ac"] = 0
     }
   })
-
+  //acm check
+  c_ret = await db.query('SELECT * FROM secret_time WHERE CURRENT_TIME < UPPER(during)')
+  if(c_ret.rows.length > 0){
+    ret.rows[0]["ac"] = 0
+  }
   const tags = await db.query('SELECT problem_tag_assoc.tag_id as id, official, positive as p, negative as n, tag_name as name FROM problem_tag_assoc INNER JOIN problem_tags ON problem_tags.tag_id = problem_tag_assoc.tag_id WHERE problem_id = $1', [pid])
   ret.rows[0].tags = tags.rows
   const readPath = path.resolve(PROBLEM_PATH, `${pid}.md`)

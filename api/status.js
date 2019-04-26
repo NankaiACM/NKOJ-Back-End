@@ -10,6 +10,7 @@ async function check_acm_solution(req, ret, ban_status = 0){
   if(await check_perm(req, SUPER_ADMIN)){
     return
   } else if(c_ret.rows.length > 0){
+    let re_l = []
     ret.rows.forEach((solution, index) => {
       solution.score = 666
       // temp disable

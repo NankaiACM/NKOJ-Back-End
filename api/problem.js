@@ -23,7 +23,7 @@ router.get('/:pid', async (req, res) => {
     }
   })
   //acm check
-  c_ret = await db.query('SELECT * FROM secret_time WHERE CURRENT_TIMESTAMP < UPPER(during)')
+  c_ret = await db.query('SELECT * FROM secret_time WHERE CURRENT_TIMESTAMP < UPPER(during) AND CURRENT_TIMESTAMP > lower(during)')
   if(c_ret.rows.length > 0){
     ret.rows[0]["ac"] = 0
   }

@@ -11,9 +11,9 @@ async function check_acm_solution(req, ret, ban_status = 0){
     return
   } else if(c_ret.rows.length > 0){
     ret.rows.forEach((solution, index) => {
+      solution.score = 100
       if(solution.user_id != req.session.user && solution.when < c_ret.rows[0].end_time && solution.when > c_ret.rows[0].start_time){
         solution.detail = {}
-        solution.score = 100
         solution.status_id = 233
         solution.msg_en = "Secret"
         solution.msg_short = "ST"

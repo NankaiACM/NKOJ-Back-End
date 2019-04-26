@@ -30,7 +30,7 @@ const queryUserInfo = async function (uid) {
   ac.rows[0]["ac"] = ac_list
 
   //acm check
-  c_ret = await db.query('SELECT * FROM secret_time WHERE CURRENT_TIME < UPPER(during)')
+  c_ret = await db.query('SELECT * FROM secret_time WHERE CURRENT_TIMESTAMP < UPPER(during)')
   if(c_ret.rows.length > 0){
     ac.rows[0]["ac"] = []
   }

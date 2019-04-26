@@ -23,13 +23,13 @@ const listProblem = async (req, res) => {
   })
 
   //acm check
-  c_ret = await db.query('SELECT * FROM secret_time WHERE CURRENT_TIME < UPPER(during)')
+  c_ret = await db.query('SELECT * FROM secret_time WHERE CURRENT_TIMESTAMP < UPPER(during)')
   if(c_ret.rows.length > 0){
     result.rows.forEach(function(p, index){
       p.ac = 0
     })
   }
-  
+
   return res.ok({
     requested: requested,
     served: result.rows.length,

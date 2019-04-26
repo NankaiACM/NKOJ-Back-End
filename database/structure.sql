@@ -307,4 +307,7 @@ CREATE TABLE users_nkpc (
     phone           text
 );
 
+CREATE TABLE secret_time(
+    during          tsrange         NOT NULL
+);
 COMMIT;

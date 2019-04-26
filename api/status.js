@@ -5,9 +5,32 @@ const fc = require('../lib/form-check')
 const {check_perm, SUPER_ADMIN, GET_CODE_SELF, GET_CODE_ALL, VIEW_OUTPUT_SELF, VIEW_OUTPUT_ALL} = require('../lib/permission')
 const {getSolutionStructure, getProblemStructure} = require('../lib/judge')
 const language_ext = require('../lib/extension')
-
+async function check_acm_solution(req, ret, ban_status = 0){
+  let c_ret = await db.query("SELECT lower(secret_time.during) as start_time, upper(secret_time.during) as end_time FROM secret_time WHERE CURRENT_TIMESTAMP < upper(secret_time.during) ORDER BY lower(secret_time.during) LIMIT 1")
+  if(await check_perm(req, SUPER_ADMIN)){
+    return
+  } else if(c_ret.rows.length > 0){
+    ret.rows.forEach((solution, index) => {
+      if(solution.user_id != req.session.user && solution.when < c_ret.rows[0].end_time && solution.when > c_ret.rows[0].start_time){
+        solution.detail = {}
+        solution.score = 100
+        solution.status_id = 233
+        solution.msg_en = "Secret"
+        solution.msg_short = "ST"
+        solution.msg_cn = "量子纠缠"
+        solution.time = "810159641"
+        solution.memory = "3141592653589"
+        if(ban_status){
+          solution.delete = true
+        }
+      }
+      if(ban_status && typeof(solution.delete) == "undefined") re_l.push(solution)
+    })
+    if(ban_status) ret.rows = re_l
+  }
+}
 async function check_oi_solution(req, ret, ban_status = 0){
-  let c_ret = await db.query('SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) AND contests.rule=\'oi\'')
+  let c_ret = await db.query("SELECT * FROM contest_problems LEFT JOIN contests ON contest_problems.contest_id = contests.contest_id WHERE CURRENT_TIMESTAMP < upper(contests.during) AND contests.rule=\'oi\'")
   if(await check_perm(req, SUPER_ADMIN)){
     return
   } else {
@@ -82,6 +105,7 @@ router.get('/', fcMiddleware, async (req, res) => {
   const queryString = `SELECT * FROM user_solutions ${wClause} ORDER BY solution_id DESC LIMIT $1`
   let result = await db.query(queryString, [limit, ...sParam])
   await check_oi_solution(req, result, ban_status)
+  await check_acm_solution(req, result, ban_status)
   if (result.rows.length > 0)
     return res.ok(result.rows)
   return res.sendStatus(204)
@@ -98,6 +122,7 @@ router.get('/:from(\\d+)/:limit(\\d+)?', fcMiddleware, async (req, res) => {
   const queryString = `SELECT * FROM user_solutions ${wClause} ORDER BY solution_id DESC LIMIT ${limit ? '$1 OFFSET $2' : 'cal_solution_limit($1)'}`
   let result = await db.query(queryString, [...(limit ? [limit, from] : [from]), ...sParam])
   await check_oi_solution(req, result)
+  await check_acm_solution(req, result)
   if (result.rows.length > 0)
     return res.ok(result.rows)
   return res.sendStatus(204)
@@ -112,6 +137,7 @@ router.get('/contest/:sid(\\d+)/:from(\\d+)?', async (req, res) => {
   const queryString = 'SELECT * FROM user_solutions WHERE contest_id = $1  AND solution_id > $2 ORDER BY solution_id DESC LIMIT 10086'
   const result = await db.query(queryString, [sid, from])
   await check_oi_solution(req, result)
+  await check_acm_solution(req, result)
   // console.dir(result);
 
   if (result.rows.length > 0)
@@ -129,6 +155,7 @@ router.get('/detail/:sid(\\d+)', async (req, res) => {
 
   const result = await db.query('SELECT * FROM user_solutions WHERE solution_id = $1 LIMIT 1', [sid])
   await check_oi_solution(req, result)
+  await check_acm_solution(req, result)
   if (result.rows.length > 0) {
     const row = result.rows[0]
     const {ipaddr_id, ...ret} = {...row}
@@ -158,6 +185,7 @@ router.get('/detail/:sid(\\d+)/case/:i(\\d+)', async (req, res) => {
 
   const result = await db.query('SELECT user_id, problem_id,status_id FROM user_solutions WHERE solution_id = $1 LIMIT 1', [sid])
   await check_oi_solution(req, result)
+  await check_acm_solution(req, result)
   if (result.rows.length > 0) {
     const uid = result.rows[0].user_id
     if (!(req.session.user === uid && await check_perm(req, VIEW_OUTPUT_SELF)) && !await check_perm(req, VIEW_OUTPUT_ALL))

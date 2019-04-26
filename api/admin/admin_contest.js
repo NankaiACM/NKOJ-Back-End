@@ -200,6 +200,13 @@ router.get('/nkpc/members', async (req, res) => {
     res.ok(result.rows)
 })
 
+router.post('/nkpc/secret_time', async(req, res) => {
+    console.log(req.data)
+    const during = '[' + req.data.start_time + ',' + req.data.end_time + ']'
+    const result = await db.query(`INSERT INTO (secret_time) during VALUES(${during})`)
+    res.ok(result)
+})
+
 //去重
 router.get('/nkpc/distinct', async(req, res) => {
     const result = await db.query('SELECT DISTINCT * FROM users_nkpc')

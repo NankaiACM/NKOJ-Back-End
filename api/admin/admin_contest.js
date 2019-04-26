@@ -201,9 +201,8 @@ router.get('/nkpc/members', async (req, res) => {
 })
 
 router.post('/nkpc/secret_time', async(req, res) => {
-    console.log(req.data)
-    const during = '[' + req.data.start_time + ',' + req.data.end_time + ']'
-    const result = await db.query(`INSERT INTO (secret_time) during VALUES(${during})`)
+    const during = '[' + req.body.start_time + ',' + req.body.end_time + ']'
+    const result = await db.query(`INSERT INTO secret_time (during) VALUES($1)`, [during])
     res.ok(result)
 })
 

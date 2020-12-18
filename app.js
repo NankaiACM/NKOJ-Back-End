@@ -60,7 +60,7 @@ app.use('/', express.static(DIST_PATH, {fallthrough: true, setHeaders: function 
 app.get(/^.+$/, (req, res) => {
   res.set({
     // 'Content-Security-Policy': "default-src 'self' ; script-src 'self' 'unsafe-inline' 'unsafe-eval' ; style-src 'self' 'unsafe-inline' ; font-src 'self' data: ; img-src 'self' data: ; connect-src 'self' ws://222.30.51.68;",
-    'Content-Security-Policy': "default-src 'self' ; script-src 'self' 'unsafe-inline' 'unsafe-eval' ; style-src 'self' 'unsafe-inline' ; font-src 'self' data: https: ; img-src 'self' data: ; connect-src 'self' wss://acm.nankai.edu.cn/ ws://acm.nankai.edu.cn/;",
+    'Content-Security-Policy': "default-src 'self' ; script-src 'self' 'unsafe-inline' 'unsafe-eval' ; style-src 'self' 'unsafe-inline' ; font-src 'self' data: https: ; img-src 'self' data: ; connect-src 'self' wss://acm.nankai.edu.cn/ https://www.tuling123.com/openapi/api ws://acm.nankai.edu.cn/;",
     'Referrer-Policy': 'same-origin',
     'X-Frame-Options': 'DENY'
   })

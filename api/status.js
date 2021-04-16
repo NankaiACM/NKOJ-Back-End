@@ -227,8 +227,23 @@ router.get('/share/:type(add|remove)/:sid(\\d+)', async (req, res) => {
   const sid = Number(req.params.sid)
 
   if (!Number.isInteger(sid))
-    res.fail(422)
-
+    return res.fail(422)
+  /**
+   * have to check by multiple query to avoid
+   * sb that share a solution submit outside contest page
+   * to the problem in a running contest.
+  */
+  const pid = await db.query('select problem_id from solutions where solution_id = $1 LIMIT 1', [sid])
+  if (pid.rows.length === 0) return res.fail(404)
+  const endtime = await db.query('select upper(during) as end from contests where contest_id in\
+   (select contest_id from contest_problems where problem_id = $1)\
+   order by upper(during) desc limit 1;', [pid.rows[0].problem_id])
+  if (endtime.rows.length !== 0) {
+    const now = new Date()
+    const endTime = new Date(endtime.rows[0].end)
+    if (now < endTime) { return res.fail(405) }
+  }
+  
   if (await check_perm(req, GET_CODE_SELF)) {
     const result = await db.query('UPDATE solutions SET shared = $1 WHERE solution_id = $2 AND user_id = $3 AND shared <> $1 RETURNING solution_id, shared'
       , [req.params.type === 'add', sid, req.session.user])

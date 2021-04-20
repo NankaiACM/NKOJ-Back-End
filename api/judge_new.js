@@ -190,6 +190,74 @@ router.get('/rejudge/:sid', require_perm(REJUDGE_ALL), async (req, res, next) =>
   }
 })
 
+router.get("/rejudge/:pid", require_perm(REJUDGE_ALL), async (req, res, next) => {
+  'use strict'
+  const pid = parseInt(req.params.pid);
+  const ret = await db.query('SELECT time_limit, memory_limit, cases, special_judge::integer, detail_judge::integer, contest_id FROM problems WHERE problem_id = $1', [pid]);
+  const sids = await db.query("SELECT solution_id FROM solutions WHERE problem_id = $1", [pid]);
+  var i, totSol, sid, row, p_ret, lang, time_limit, memory_limit, cases, special_judge, detail_judge, langExt, langName, struct, filename;
+
+  if (ret.rows.length === 0) return res.fail(404, 'problem not found')
+  if (language_ext[lang] === null) return res.fail(404, 'language not supported')
+
+  for (i = 1, totSol = sids.rows.length; i <= totSol; ++i) {
+    sid = sids.rows[i].solution_id;
+    p_ret = await db.query(`SELECT language FROM solutions WHERE solution_id = ${sid}`);
+    lang = p_ret.rows[0].language;
+    row = ret.rows[0];
+    ({time_limit, memory_limit, cases, special_judge, detail_judge} = row);
+    langExt = language_ext[lang];
+    langName = language_ext[langExt];
+
+    const solution_id = sid;
+
+    struct = getSolutionStructure(solution_id);
+    const config = {
+      "sid": solution_id,
+      "filename": filename,
+      "lang": langName,
+      "pid": pid,
+      "max_time": time_limit,
+      "max_time_total": 30000,
+      "max_memory": memory_limit,
+      "max_output": 10000000,
+      "max_thread": 4,
+      "continue_on": detail_judge ? true : ["accepted", "presentation error"],
+      "test_case_count": cases,
+      "spj_mode": special_judge,
+    }
+    filename = `main.${langExt}`;
+    fs.writeFileSync(`${struct.path.solution}/exec.config`, JSON.stringify(config))
+    try {
+      await spawn('docker', ['exec', '-i', 'judgecore', './judgecore', `${struct.path.solution}/exec.config`]);
+      const json = JSON.parse(fs.readFileSync(`${struct.path.exec_out}/result.json`, {encoding: 'utf8'}))
+
+      const old_new_statsu_map = [107, 108, 102, 101, 103, 104, 105, 106, 109, 118];
+      const result = old_new_statsu_map[json.status];
+
+      const time = json.time;
+      const memory = json.memory;
+
+      let ac_count = 0
+      if (json.detail) {
+        json.detail.forEach(function (i) {
+          i.extra = i.extra || json.extra;
+          if (i.status === 0 || i.status === 1)
+            ac_count += 1
+        })
+      }
+      const score = parseInt(ac_count * 100.0 / cases)
+
+      await db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3, score = $4, detail = $5::json, compile_info = $6 WHERE solution_id = $7 RETURNING "when"', [result, time, memory, score, JSON.stringify(json.detail).replace(/\u\d\d\d\d/gms, match => '\\' + match), json.compiler, solution_id])
+      res.ok({json})
+    } catch (e) {
+      console.error(e);
+      db.query('UPDATE solutions SET status_id = $1, "time" = $2, "memory" = $3 WHERE solution_id = $4 RETURNING "when"', [101, 0, 0, solution_id]).then(()=>{}).catch((e)=>{console.error(e)})
+      next(e);
+    }
+  }
+});
+
 const custom_lang = [
   {
     "id": 2,

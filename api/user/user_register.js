@@ -98,6 +98,81 @@ router.post('/register', fc.all(['nickname', 'password', 'email', 'school', 'gen
   redis.del(hashed_key)
 })
 
+
+/**
+ * Reset password
+ */
+router.get('/resetpwd/:email', captcha.check('sendmail'), fc.all('email'), require_limit('sendmail'), async (req, res) => {
+  'use strict'
+  const email = req.fcResult.email
+  let result
+  result = await db.checkEmail(email)
+  if (result === false){
+    result = [{ name: 'email', message: '邮箱未注册' }]
+    return res.fail(1, result)
+  }
+  const code = Math.floor(Math.random() * 900000) + 100000
+  const key = md5(email + code)
+  const link = `${require('../../config/path').BASE_URL}/api/u/verify/${key}/${code}`
+
+  result = await redis.setAsync(key, code, 'NX', 'EX', 600)
+  if (!result) return res.fail(500, 'unexpected hash conflict')
+
+  sendVerificationMail(email, code, link, (result) => {
+    if (result.success) {
+      apply_limit('sendmail', req)
+      return res.ok({ key: key })
+    }
+    redis.del(key)
+    return res.fail(1, result)
+  })
+})
+
+router.get('/resetpwd/verify/:key/:code', async (req, res, next) => {
+  'use strict'
+  const key = req.params.key
+  const code = req.params.code
+  const ret = await redis.getAsync(key)
+  if (regex_email.test(code)) {
+    req.email_code = ret
+    return next()
+  }
+  req.session.ecode = code
+  if (ret !== code) return res.fail(1, [{ name: 'ecode', message: 'not match' }])
+  return res.ok('email verified')
+})
+
+router.post('/reset_passwd', fc.all(['email', 'password']), async (req, res) => {
+  'use strict'
+  const form = req.fcResult
+  let result
+  form.ecode = req.body.ecode || req.session.ecode
+  const hashed_key = md5(form.email + form.ecode)
+  if (await redis.getAsync(hashed_key) !== form.ecode)
+    return res.fail(422, [{ name: 'ecode', message: 'not match' }])
+  try {
+    result = await db.checkEmail(form.email)
+    if (result === false) {
+      result = [{ name: 'email', message: '邮箱未注册' }]
+      return res.fail(1, result)
+    }
+    const query = 'UPDATE users SET password=$1, ipaddr=$2 WHERE email=$3 RETURNING *'
+    result = await db.query(query, [form.password, req.ip, form.email])
+  } catch (err) {
+    res.fail(520, err)
+    throw err
+  }
+  req.session.nickname = form.nickname
+  req.session.user = result.rows[0].user_id
+  req.session.save()
+  res.ok(result.rows[0])
+  redis.del(hashed_key)
+})
+
+
+/**
+ * Unsubscribe
+ */
 router.get('/unsubscribe/:hash/:email', async (req, res) => {
   'use strict'
   const email = Buffer.from(req.params.email, 'base64').toString()

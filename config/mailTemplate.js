@@ -61,13 +61,13 @@ module.exports = function mailTemplete (code, link, BASE_URL, hash, to) {
                   </td>
                 </tr>
                 <tr height="10"></tr>
-                <tr align="center">
+                <tr align="center" style="visibility:hidden">
                   <td style="color:#7e8890;">
                     或者
                   </td>
                 </tr>
                 <tr height="10"></tr>
-                <tr align="center" height="52">
+                <tr align="center" height="52" style="visibility:hidden">
                   <td width="256" height="52" style="background:#ff2b63;width:256px;display:inline-block;border-radius:3px;">
                     <a style="padding:14px 28px 14px 28px;width:200px;height:1.5em;background:#ff2b63;display:inline-block;line-height:1.5em;color:#fff;border-radius:3px;text-decoration:none;"
                       href="${link}">验证邮件地址</a>

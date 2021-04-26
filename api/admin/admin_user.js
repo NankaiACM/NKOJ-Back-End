@@ -1,6 +1,7 @@
 const router = require('express').Router()
 import {require_perm, MANAGE_ROLE, SUPER_ADMIN} from '../../lib/permission'
 import db from '../../database/db'
+import pool from '../../database/init'
 import fc from '../../lib/form-check'
 import session  from '../../lib/session'
 import {encrypt, genRawStr} from '../../lib/rsa'
@@ -84,8 +85,10 @@ router.get('/addmulti/:cid/:num', fc.all(['cid']), async (req, res, next) => {
     'SELECT split_part(nickname, \'_\', 2) AS mid FROM users WHERE nickname LIKE $1 ORDER BY nickname DESC LIMIT 1',
     ['c' + cid + '_%']
   )
+  // find max id with like c1001_1
   const begin = ret.rows.length === 0 ? 1 : parseInt(ret.rows[0].mid) + 1 
   let insertArr = Array(num), resUser = new Array(num)
+  // prepare users
   for (let i = 0; i < num; i++) {
     const name = `c${cid}_${i+begin}`
     const pass_raw = genRawStr(8)
@@ -96,15 +99,30 @@ router.get('/addmulti/:cid/:num', fc.all(['cid']), async (req, res, next) => {
     resUser[i] = {username: name, password: pass_raw}
   }
   const insertPrefix = 'INSERT INTO users (nickname, password, email, gender, role, school, words, ipaddr) VALUES'
-  const insertSuffix = ' RETURNING user_id'
+  const addUserSQL = insertPrefix + insertArr.join(',') + ' RETURNING user_id'
+  // use transaction
+  const client = await pool.connect()
   try {
-    ret = await db.query(insertPrefix + insertArr.join(',') + insertSuffix)
-    for (let i = 0; i < num; i++) {
-      resUser[i].user_id = ret.rows[i].user_id      
+    await client.query('BEGIN')
+    ret = await db.query(addUserSQL)
+    if (ret.rows.length !== num) {
+      throw RangeError('some user did not insert successfully')
     }
+    let idList = new Array(num)
+    for (let i = 0; i < num; i++) {
+      resUser[i].user_id = ret.rows[i].user_id
+      idList[i] = `(${cid}, ${ret.rows[i].user_id})`
+    }
+    ret = await db.query(
+      'INSERT INTO contest_users (contest_id, user_id) VALUES ' +
+      idList.join(',') + ' ON CONFLICT DO NOTHING'
+    )
     return res.ok({resUser})
   } catch (e) {
+    ret = await db.query('ROLLBACK')
     return res.fail(520, e)
+  } finally {
+    client.release()
   }
 })
 

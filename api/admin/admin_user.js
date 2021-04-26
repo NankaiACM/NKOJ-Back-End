@@ -1,8 +1,10 @@
 const router = require('express').Router()
 const {require_perm, MANAGE_ROLE, SUPER_ADMIN} = require('../../lib/permission')
 const db = require('../../database/db')
+const pool = require('../../database/init')
 const fc = require('../../lib/form-check')
 const session = require('../../lib/session')
+const {genRawStr, getPass} = require('../../lib/rsa')
 
 // TODO: test
 router.post('/add', fc.all(['nickname', 'password', 'email', 'words', 'count']), async (req, res) => {
@@ -69,6 +71,64 @@ router.get('/logout/:who', async (req, res) => {
     session.logout(who)
   }
   res.ok()
+})
+
+// add multiple contset users
+router.get('/addmulti/:cid/:num', fc.all(['cid']), async (req, res, next) => {
+  const cid = parseInt(req.params.cid)
+  const num = parseInt(req.params.num);
+  let ret = await db.query(`SELECT contest_id, private FROM contests WHERE contest_id = ${cid}`)
+  if (ret.rows.length === 0) return res.fail(404, 'contest not found') 
+  if (!ret.rows[0].private) 
+    return res.fail(422, 'A public contest is not applicable for contest users')
+  ret = await db.query(
+    'SELECT split_part(nickname, \'_\', 2) AS mid FROM users WHERE nickname LIKE $1 ORDER BY nickname DESC LIMIT 1',
+    ['c' + cid + '_%']
+  )
+  // find max id with like c1001_1
+  const begin = ret.rows.length === 0 ? 1 : parseInt(ret.rows[0].mid) + 1 
+  let insertArr = Array(num), resUser = new Array(num)
+  // prepare users
+  for (let i = 0; i < num; i++) {
+    const name = `c${cid}_${i+begin}`
+    const pass_raw = genRawStr(8)
+    const pass_en = pass_raw // getPass(pass_raw)
+    //console.error(pass_en)
+    insertArr[i] = `(
+      '${name}','${pass_en}','${name}@dummy.nankai.edu.cn',
+      3, 'NKU', 'A', '::ffff:127.0.0.1')`
+    resUser[i] = {username: name, password: pass_raw}
+  }
+  const insertPrefix = 'INSERT INTO users (nickname, password, email, gender, school, words, ipaddr) VALUES'
+  const addUserSQL = insertPrefix + insertArr.join(',') + ' RETURNING user_id'
+  //console.error(addUserSQL)
+  // use transaction
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    ret = await db.query(addUserSQL)
+    if (ret.rows.length !== num) {
+      throw RangeError('some user did not insert successfully')
+    }
+    //console.error(ret.rows)
+    let idList = new Array(num)
+    for (let i = 0; i < num; i++) {
+      resUser[i].user_id = ret.rows[i].user_id
+      idList[i] = `(${cid}, ${ret.rows[i].user_id})`
+    }
+    // console.error(idList)
+    ret = await db.query(
+      'INSERT INTO contest_users (contest_id, user_id) VALUES ' +
+      idList.join(',') + ' ON CONFLICT DO NOTHING'
+    )
+    // console.error(ret.rows)
+    return res.ok({resUser})
+  } catch (e) {
+    ret = await db.query('ROLLBACK')
+    return res.fail(520, e)
+  } finally {
+    client.release()
+  }
 })
 
 module.exports = router

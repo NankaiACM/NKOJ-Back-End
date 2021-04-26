@@ -1,10 +1,10 @@
 const router = require('express').Router()
-import {require_perm, MANAGE_ROLE, SUPER_ADMIN} from '../../lib/permission'
-import db from '../../database/db'
-import pool from '../../database/init'
-import fc from '../../lib/form-check'
-import session  from '../../lib/session'
-import {encrypt, genRawStr} from '../../lib/rsa'
+const {require_perm, MANAGE_ROLE, SUPER_ADMIN} = require('../../lib/permission')
+const db = require('../../database/db')
+const pool = require('../../database/init')
+const fc = require('../../lib/form-check')
+const session = require('../../lib/session')
+const {encrypt, genRawStr} = require('../../lib/rsa')
 
 // TODO: test
 router.post('/add', fc.all(['nickname', 'password', 'email', 'words', 'count']), async (req, res) => {
@@ -100,6 +100,7 @@ router.get('/addmulti/:cid/:num', fc.all(['cid']), async (req, res, next) => {
   }
   const insertPrefix = 'INSERT INTO users (nickname, password, email, gender, role, school, words, ipaddr) VALUES'
   const addUserSQL = insertPrefix + insertArr.join(',') + ' RETURNING user_id'
+  // console.info(insertPrefix+addUserSQL)
   // use transaction
   const client = await pool.connect()
   try {

@@ -4,7 +4,7 @@ const db = require('../../database/db')
 const pool = require('../../database/init')
 const fc = require('../../lib/form-check')
 const session = require('../../lib/session')
-const {encrypt, genRawStr} = require('../../lib/rsa')
+const {genRawStr, getPass} = require('../../lib/rsa')
 
 // TODO: test
 router.post('/add', fc.all(['nickname', 'password', 'email', 'words', 'count']), async (req, res) => {
@@ -92,15 +92,16 @@ router.get('/addmulti/:cid/:num', fc.all(['cid']), async (req, res, next) => {
   for (let i = 0; i < num; i++) {
     const name = `c${cid}_${i+begin}`
     const pass_raw = genRawStr(8)
-    const pass_en = encrypt(pass_raw)
+    const pass_en = pass_raw // getPass(pass_raw)
+    //console.error(pass_en)
     insertArr[i] = `(
       '${name}','${pass_en}','${name}@dummy.nankai.edu.cn',
-      3, '{1, 4}', 'NKU', 'A', '::ffff:127.0.0.1')`
+      3, 'NKU', 'A', '::ffff:127.0.0.1')`
     resUser[i] = {username: name, password: pass_raw}
   }
-  const insertPrefix = 'INSERT INTO users (nickname, password, email, gender, role, school, words, ipaddr) VALUES'
+  const insertPrefix = 'INSERT INTO users (nickname, password, email, gender, school, words, ipaddr) VALUES'
   const addUserSQL = insertPrefix + insertArr.join(',') + ' RETURNING user_id'
-  // console.info(insertPrefix+addUserSQL)
+  //console.error(addUserSQL)
   // use transaction
   const client = await pool.connect()
   try {
@@ -109,15 +110,18 @@ router.get('/addmulti/:cid/:num', fc.all(['cid']), async (req, res, next) => {
     if (ret.rows.length !== num) {
       throw RangeError('some user did not insert successfully')
     }
+    //console.error(ret.rows)
     let idList = new Array(num)
     for (let i = 0; i < num; i++) {
       resUser[i].user_id = ret.rows[i].user_id
       idList[i] = `(${cid}, ${ret.rows[i].user_id})`
     }
+    // console.error(idList)
     ret = await db.query(
       'INSERT INTO contest_users (contest_id, user_id) VALUES ' +
       idList.join(',') + ' ON CONFLICT DO NOTHING'
     )
+    // console.error(ret.rows)
     return res.ok({resUser})
   } catch (e) {
     ret = await db.query('ROLLBACK')

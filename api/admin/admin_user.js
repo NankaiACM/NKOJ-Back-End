@@ -71,4 +71,15 @@ router.get('/logout/:who', async (req, res) => {
   res.ok()
 })
 
+// add multiple contset users
+router.get('/addmulti/:cid/:num', fc.all(['cid']), async (req, res, next) => {
+  const cid = parseInt(req.params.cid)
+  const num = parseInt(req.params.num);
+  const cret = await db.query(`SELECT contest_id, private FROM contests WHERE contest_id = ${cid}`)
+  if (cret.rows.length === 0) return res.fail(404, 'contest not found') 
+  if (!cret.rows[0].private) 
+    return res.fail(422, 'A public contest is not applicable for contest users')
+  
+})
+
 module.exports = router

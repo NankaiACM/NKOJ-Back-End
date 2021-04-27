@@ -82,11 +82,17 @@ router.get('/addmulti/:cid/:num', fc.all(['cid']), async (req, res, next) => {
   if (!ret.rows[0].private) 
     return res.fail(422, 'A public contest is not applicable for contest users')
   ret = await db.query(
-    'SELECT split_part(nickname, \'_\', 2) AS mid FROM users WHERE nickname LIKE $1 ORDER BY nickname DESC LIMIT 1',
+    'SELECT split_part(nickname, \'_\', 2) AS uid FROM users WHERE nickname LIKE $1',
     ['c' + cid + '_%']
   )
   // find max id with like c1001_1
-  const begin = ret.rows.length === 0 ? 1 : parseInt(ret.rows[0].mid) + 1 
+  let begin = 1, nickID
+  for (let i = 0, len = ret.rows.length; i < len; i++) {
+    nickID = parseInt(ret.rows[i].uid)
+    if (nickID) {
+      begin = Math.max(begin, nickID + 1)
+    }
+  }
   let insertArr = Array(num), resUser = new Array(num)
   // prepare users
   for (let i = 0; i < num; i++) {

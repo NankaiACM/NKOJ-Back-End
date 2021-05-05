@@ -249,7 +249,7 @@ router.post('/nkpc/standings', async(req, res) => {
   }
   data['users'] = participants
   
-  ret = await db.query('SELECT solution_id, user_id, problem_id, score, "when" FROM solutions WHERE problem_id=$1', [cid])
+  ret = await db.query('SELECT solution_id, user_id, problem_id, score, "when" FROM solutions WHERE contest_id=$1', [cid])
   let solutions = {}
   for (let i = 0, len = ret.rows.length; i < len ; i++) {
     const item = ret.rows[i]

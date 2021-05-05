@@ -74,15 +74,21 @@ router.get('/logout/:who', async (req, res) => {
 })
 
 // add multiple contset users
-router.get('/addmulti/:cid/:num', fc.all(['cid']), async (req, res, next) => {
-  const cid = parseInt(req.params.cid)
-  const num = parseInt(req.params.num);
+router.post('/addmulti', async (req, res, next) => {
+  'use strict'
+  const form = req.body
+  const cid = form.cid
+  const num = form.num
+  const nameList = form.nameList
+  console.warn(cid, num, nameList)
+  if (nameList.length !== num)
+    return res.fail(422, 'nameList length not match with number of users to add')
   let ret = await db.query(`SELECT contest_id, private FROM contests WHERE contest_id = ${cid}`)
   if (ret.rows.length === 0) return res.fail(404, 'contest not found') 
   if (!ret.rows[0].private) 
     return res.fail(422, 'A public contest is not applicable for contest users')
   ret = await db.query(
-    'SELECT split_part(nickname, \'_\', 2) AS uid FROM users WHERE nickname LIKE $1',
+    'SELECT split_part(split_part(email, \'_\', 2), \'_\', 1) AS uid FROM users WHERE email LIKE $1',
     ['c' + cid + '_%']
   )
   // find max id with like c1001_1
@@ -97,13 +103,14 @@ router.get('/addmulti/:cid/:num', fc.all(['cid']), async (req, res, next) => {
   // prepare users
   for (let i = 0; i < num; i++) {
     const name = `c${cid}_${i+begin}`
+    const nickname = name + '_' + nameList[i]
     const pass_raw = genRawStr(8)
     const pass_en = pass_raw // getPass(pass_raw)
     //console.error(pass_en)
     insertArr[i] = `(
-      '${name}','${pass_en}','${name}@dummy.nankai.edu.cn',
+      '${nickname}','${pass_en}','${name}@nkpc.nankai.edu.cn',
       3, 'NKU', 'A', '::ffff:127.0.0.1')`
-    resUser[i] = {username: name, password: pass_raw}
+    resUser[i] = { name: nameList[i], username: nickname, password: pass_raw, email: name+'@nkpc.nankai.edu.cn'}
   }
   const insertPrefix = 'INSERT INTO users (nickname, password, email, gender, school, words, ipaddr) VALUES'
   const addUserSQL = insertPrefix + insertArr.join(',') + ' RETURNING user_id'

@@ -217,4 +217,51 @@ router.get('/nkpc/distinct', async(req, res) => {
     })
 })
 
+
+router.post('/nkpc/standings', async(req, res) => {
+  const cid = req.body.cid
+  const nameList = req.body.nameList
+  let starMap = {}
+  for (let i = 0; i < nameList.length; i++) {
+    starMap[nameList[i].nickname]=nameList[i].school
+  }
+  let ret = await db.query(`SELECT contest_id, lower(during) as begin FROM contests WHERE contest_id = $1`, [cid])
+  if (ret.rows.length === 0) return res.fail(404, 'contest not found')
+  const beginTime = new Date(ret.rows[0].begin)
+  
+  ret = await db.query('SELECT problem_id FROM contest_problems WHERE contest_id = $1 ORDER BY problem_id ASC', [cid])
+  let data = { problem_count: ret.rows.length}
+  let problemMap = {}
+  for (let i = 0, len = ret.rows.length; i < len; i++) {
+    problemMap[ret.rows[i].problem_id] = String(i + 1)
+  }
+  
+  ret = await db.query('SELECT user_id, nickname, school FROM users WHERE user_id IN\
+    (SELECT user_id FROM contest_users WHERE contest_id=$1)', [cid])
+  let participants = {}
+  for (let i = 0, len = ret.rows.length; i < len; i++) {
+    const nickname = ret.rows[i].nickname
+    const isStar = nickname in starMap
+    const school = isStar ? starMap[nickname] : ret.rows[i].school
+    participants[String(ret.rows[i].user_id)] = {
+      name: nickname, college: school, is_exclude: isStar
+    }
+  }
+  data['users'] = participants
+  
+  ret = await db.query('SELECT solution_id, user_id, problem_id, score, "when" FROM solutions WHERE problem_id=$1', [cid])
+  let solutions = {}
+  for (let i = 0, len = ret.rows.length; i < len ; i++) {
+    const item = ret.rows[i]
+    solutions[String(item.solution_id)] = {
+      user_id: String(item.user_id),
+      problem_index: problemMap[item.problem_id],
+      verdict: item.score === 100.0 ? 'AC' : 'WA',
+      submitted_seconds: parseInt((new Date(item.when) - beginTime) / 1000)
+    }
+  }
+  data['solutions'] = solutions
+  res.ok(data)
+})
+
 module.exports = router

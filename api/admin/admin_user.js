@@ -80,7 +80,7 @@ router.post('/addmulti', async (req, res, next) => {
   const cid = form.cid
   const num = form.num
   const nameList = form.nameList
-  console.warn(cid, num, nameList)
+  // console.warn(cid, num, nameList)
   if (nameList.length !== num)
     return res.fail(422, 'nameList length not match with number of users to add')
   let ret = await db.query(`SELECT contest_id, private FROM contests WHERE contest_id = ${cid}`)

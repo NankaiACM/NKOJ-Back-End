@@ -230,7 +230,7 @@ router.get('/share/:type(add|remove)/:sid(\\d+)', async (req, res) => {
     return res.fail(422)
   /**
    * have to check by multiple query to avoid
-   * sb that share a solution submit outside contest page
+   * somebody that share a solution submit outside contest page
    * to the problem in a running contest.
   */
   const pid = await db.query('select problem_id from solutions where solution_id = $1 LIMIT 1', [sid])

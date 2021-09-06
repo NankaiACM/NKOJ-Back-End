@@ -4,7 +4,6 @@ const app = express()
 const api = require('./api/api')
 const prototype = require('./lib/prototype')
 
-const bodyParser = require('body-parser')
 const logger = require('morgan')
 
 const path = require('path')
@@ -43,10 +42,10 @@ app.use('*', function (req, res, next) {
 
 app.use('/public', express.static(PUBLIC_PATH, {fallthrough: false}))
 
-app.use(bodyParser.json({limit: '233kb'}))
+app.use(express.json({limit: '233kb'}))
 
 // This defaults to 100kb
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(express.urlencoded({extended: true}))
 
 app.use(require('./lib/apikey'))
 

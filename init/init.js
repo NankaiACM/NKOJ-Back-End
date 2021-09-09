@@ -2,11 +2,10 @@ const express = require('express')
 const app = express()
 const path = require('path')
 const fs = require('fs')
-const bodyParser = require('body-parser')
 
 app.set('view engine', 'ejs')
 app.use(express.static(path.resolve(__dirname, 'public')))
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(express.urlencoded({extended: true}))
 
 const evalInContext = (scr) => {
   const mask = {}
